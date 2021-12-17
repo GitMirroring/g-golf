@@ -105,3 +105,12 @@
                       (dynamic-func "g_callable_info_may_return_null"
 				    %libgirepository)
                       (list '*)))
+
+(define g_callable_info_prepare_closure
+  (pointer->procedure '*
+                      (dynamic-func "g_callable_info_get_return_type"
+				    %libgirepository)
+                      (list '*
+                            '*
+                            '*
+                            '*)))
