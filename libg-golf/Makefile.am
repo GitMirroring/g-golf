@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2016 - 2020
+#### Copyright (C) 2016 - 2021
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf.
@@ -27,13 +27,23 @@
 lib_LTLIBRARIES = \
 	libg-golf.la
 
+libg_golf_la_sources = \
+	gg-glib.c	\
+	gg-gobject.c	\
+	gg-utils.c	\
+	gg-test-suite.c	\
+	g-golf.c
 
-nodist_libg_golf_SOURCES = \
-	libg-golf.c
+libg_golf_la_headers = \
+	gg-glib.h	\
+	gg-gobject.h	\
+	gg-utils.h	\
+	gg-test-suite.h
 
-libg_golf_SOURCES = \
-	libg-golf.c		\
-	libg-golf.h
+libg_golf_la_SOURCES = \
+  $(libg_golf_la_headers)	\
+  $(libg_golf_la_sources)
+
 
 # libg_golf_la_CFLAGS = \
 #	$(AM_CFLAGS) $(GUILE_CFLAGS) $(GLIB_CFLAGS) $(GOBJECT_CFLAGS) $(GTK_CFLAGS)
