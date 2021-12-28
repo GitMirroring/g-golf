@@ -30,41 +30,18 @@
 #include <float.h>
 #include <math.h>
 
+#include <ffi.h>
+
 #include <glib.h>
 #include <glib-object.h>
 /* #include <gtk/gtk.h> */
 #include <girepository.h>
 
-#include "gg-utils.h"
-#include "gg-glib.h"
-#include "gg-gobject.h"
-#include "gg-callback.h"
-#include "gg-test-suite.h"
-
 
 /*
- * Gdk
+ * Callback
  *
 */
 
-/*
-
-GdkWindowState
-gdk_event_get_changed_mask (GdkEvent *event)
-{
-  if (event->any.type != GDK_WINDOW_STATE)
-    return 0;
-
-  return (((GdkEventWindowState *) event)->changed_mask);
-}
-
-GdkWindowState
-gdk_event_get_new_window_state (GdkEvent *event)
-{
-  if (event->any.type != GDK_WINDOW_STATE)
-    return 0;
-
-  return (((GdkEventWindowState *) event)->new_window_state);
-}
-
-*/
+gpointer
+g_golf_callback_closure (const char *name, GICallbackInfo *cb_info, gpointer *s_func);

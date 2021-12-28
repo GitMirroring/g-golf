@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019
+;;;; Copyright (C) 2019 - 2021
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -35,9 +35,9 @@
   #:use-module (g-golf gi)
   #:use-module (g-golf glib)
   #:use-module (g-golf gobject)
+  #:use-module (g-golf support libg-golf)
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api gobject)
-  #:use-module (g-golf hl-api function)
 
   #:duplicates (merge-generics
 		replace
@@ -45,12 +45,26 @@
 		warn
 		last)
   
-  #:export (gi-import-callback))
+  #:export (gi-import-callback
+            g-golf-callback-closure))
 
 
 #;(g-export )
+
 
 (define (gi-import-callback info)
   (dimfi (g-base-info-get-namespace info)
          (g-base-info-get-name info)
          " (callback)"))
+
+
+;;;
+;;; Dynamic FFI C closure for GICallbackInfo
+;;;
+
+(define (g-golf-callback-closure name info proc)
+  (dimfi "g-golf-callback-closure")
+  (dimfi "  " name " " (g-base-info-get-name info))
+  (g_golf_callback_closure (string->pointer (symbol->string name))
+                           info		;; a GICallbackInfo ptr
+                           (scm->pointer proc)))

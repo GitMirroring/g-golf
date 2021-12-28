@@ -48,6 +48,9 @@
             g_closure_ref_count
             g_param_spec_get_flags
 
+            ;; Callback
+            g_golf_callback_closure
+
             ;; Gdk
             ;; gdk_event_get_changed_mask
             ;; gdk_event_get_new_window_state
@@ -152,6 +155,20 @@ later.
                       (dynamic-func "g_param_spec_get_flags"
                                     %libg-golf)
                       (list '*)))
+
+
+;;;
+;;; Callback
+;;;
+
+
+(define g_golf_callback_closure
+  (pointer->procedure '*
+                      (dynamic-func "g_golf_callback_closure"
+                                    %libg-golf)
+                      (list '*		;; name
+                            '*		;; cb-info
+                            '*)))	;; s-proc
 
 
 ;;;

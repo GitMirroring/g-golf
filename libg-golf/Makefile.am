@@ -23,42 +23,46 @@
 
 #include $(top_srcdir)/am/guile.mk
 
-
 lib_LTLIBRARIES = \
 	libg-golf.la
 
 libg_golf_la_sources = \
+	gg-utils.c	\
 	gg-glib.c	\
 	gg-gobject.c	\
-	gg-utils.c	\
+	gg-callback.c	\
 	gg-test-suite.c	\
 	g-golf.c
 
 libg_golf_la_headers = \
+	gg-utils.h	\
 	gg-glib.h	\
 	gg-gobject.h	\
-	gg-utils.h	\
+	gg-callback.h	\
 	gg-test-suite.h
 
 libg_golf_la_SOURCES = \
   $(libg_golf_la_headers)	\
   $(libg_golf_la_sources)
 
-
-# libg_golf_la_CFLAGS = \
-#	$(AM_CFLAGS) $(GUILE_CFLAGS) $(GLIB_CFLAGS) $(GOBJECT_CFLAGS) $(GTK_CFLAGS)
-
-# libg_golf_la_LIBADD = \
-# 	$(GUILE_LIBS) $(GLIB_LIBS) $(GOBJECT_LIBS) $(GTK_LIBS)
-
 libg_golf_la_CFLAGS = \
-	$(AM_CFLAGS) $(GUILE_CFLAGS) $(GLIB_CFLAGS) $(GOBJECT_CFLAGS)
+  $(AM_CFLAGS) \
+  $(GUILE_CFLAGS) \
+  $(GLIB_CFLAGS) \
+  $(GOBJECT_CFLAGS) \
+  $(GOBJECT_INTROSPECTION_CFLAGS) \
+  $(FFI_CFLAGS)
 
 libg_golf_la_LIBADD = \
-	$(GUILE_LIBS) $(GLIB_LIBS) $(GOBJECT_LIBS)
+  $(GUILE_LIBS) \
+  $(GLIB_LIBS) \
+  $(GOBJECT_LIBS) \
+  $(GOBJECT_INTROSPECTION_LIBS) \
+  $(FFI_LIBS)
 
 libg_golf_la_LDFLAGS = \
-	 $(GUILE_LDFLAGS)
+  -no-undefined \
+  $(GUILE_LDFLAGS)
 
 printenv:
 	printf '$(libg_golf_la_CFLAGS)\n' \
