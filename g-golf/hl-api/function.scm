@@ -39,6 +39,7 @@
   #:use-module (g-golf gobject)
   #:use-module (g-golf override)
   #:use-module (g-golf hl-api gtype)
+  #:use-module (g-golf hl-api callback)
   #:use-module (g-golf hl-api utils)
 
   #:duplicates (merge-generics
@@ -579,9 +580,11 @@ method with its 'old' definition.
          (iface-type (g-base-info-get-type iface-info)))
     (case iface-type
       ((callback)
-       (g-base-info-unref iface-info)
-       ;; skeleton - wip
-       (list iface-type #f #f #f #f))
+       ;; in this case, iface-info is a GICallableInfo and must not be
+       ;; (g-base-info-)unref, as it's needed to prepare the callback
+       ;; every time the function (method) holding this argument is
+       ;; called.
+       (list 'callback #f iface-info #f #f))
       (else
        (if (is-registered? iface-type)
            (receive (id name gi-type confirmed?)
@@ -902,12 +905,15 @@ method with its 'old' definition.
                                                %null-pointer
                                                (error "Invalid arg: " arg)))))
                     ((callback)
-                     (let ((name (!name arg-in)))
-                       (if (not arg)
-                           (if (or may-be-null?
-                                   (%allow-none-exception? name))
-                               (gi-argument-set! gi-argument-in 'v-pointer #f)
-                               (error "Invalid callback argument: " name #f)))))))))
+                     (gi-argument-set! gi-argument-in 'v-pointer
+                                       (if arg
+                                           (g-golf-callback-closure (!name function)
+                                                                    gi-type
+                                                                    arg)
+                                           (if (or may-be-null?
+                                                   (%allow-none-exception? name))
+                                               #f
+                                               (error "Invalid arg: " arg)))))))))
               ((array)
                (if (or (not arg)
                        (null? arg))

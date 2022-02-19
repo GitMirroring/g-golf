@@ -1,7 +1,7 @@
 /*  -*- mode: C; coding: utf-8 -*-
 
 ####
-#### Copyright (C) 2016 - 2021
+#### Copyright (C) 2021 - 2022
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf.
@@ -34,7 +34,6 @@
 
 #include <glib.h>
 #include <glib-object.h>
-/* #include <gtk/gtk.h> */
 #include <girepository.h>
 
 
@@ -44,7 +43,9 @@
 */
 
 gpointer
-g_golf_callback_closure (const char *name, GICallbackInfo *cb_info, gpointer *s_func)
+g_golf_callback_closure (const char *name, \
+                         GICallbackInfo *callback_info, \
+                         gpointer *s_func)
 {
   return NULL;
 }
