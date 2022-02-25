@@ -20,8 +20,8 @@ GICallableInfo — Struct representing a callable.
 @table @code
 @item @ref{g-callable-info-get-n-args}
 @item @ref{g-callable-info-get-arg}
-@item @ref{g-callable-info-get-instance-ownership-transfer}
 @item @ref{g-callable-info-get-caller-owns}
+@item @ref{g-callable-info-get-instance-ownership-transfer}
 @item @ref{g-callable-info-get-return-type}
 @item @ref{g-callable-info-may-return-null}
 @end table
@@ -84,22 +84,22 @@ the data.
 @end deffn
 
 
-@anchor{g-callable-info-get-instance-ownership-transfer}
-@deffn Procedure g-callable-info-get-instance-ownership-transfer info
-
-Returns a @code{GITransfer} enumerated value.
-
-Obtains the ownership transfer for the instance argument. See
-@ref{%gi-transfer} for the list of possible values.
-@end deffn
-
-
 @anchor{g-callable-info-get-caller-owns}
 @deffn Procedure g-callable-info-get-caller-owns info
 
 Returns a @code{GITransfer} enumerated value.
 
 See whether the caller owns the return value of this callable. See
+@ref{%gi-transfer} for the list of possible values.
+@end deffn
+
+
+@anchor{g-callable-info-get-instance-ownership-transfer}
+@deffn Procedure g-callable-info-get-instance-ownership-transfer info
+
+Returns a @code{GITransfer} enumerated value.
+
+Obtains the ownership transfer for the instance argument. See
 @ref{%gi-transfer} for the list of possible values.
 @end deffn
 

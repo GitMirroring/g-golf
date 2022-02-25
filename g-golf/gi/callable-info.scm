@@ -27,18 +27,55 @@
 
 
 (define-module (g-golf gi callable-info)
+  #:use-module (ice-9 format)
   #:use-module (system foreign)
   #:use-module (g-golf support enum)
   #:use-module (g-golf init)
   #:use-module (g-golf gi utils)
+  #:use-module (g-golf gi base-info)
   #:use-module (g-golf gi arg-info)
+  #:use-module (g-golf gi type-info)
 
-  #:export (g-callable-info-get-n-args
+  #:export (gi-callable-show
+
+            g-callable-info-get-n-args
 	    g-callable-info-get-arg
-            g-callable-info-get-instance-ownership-transfer
 	    g-callable-info-get-caller-owns
+            g-callable-info-get-instance-ownership-transfer
 	    g-callable-info-get-return-type
 	    g-callable-info-may-return-null))
+
+
+;;;
+;;; Misc.
+;;;
+
+(define %callable-fmt
+  "
+~S is a (pointer to a) GICallableInfo:
+
+  Callable:
+          namespace: ~S
+               name: ~S
+              n-arg: ~A
+        caller-owns: ~S
+                iot: ~S	 [ instance-ownership-transfer
+        return-type: ~S
+    may-return-null: ~S
+
+")
+
+(define* (gi-callable-show info
+                           #:optional (port (current-output-port)))
+  (format port "~?" %callable-fmt
+          (list info
+                (g-base-info-get-namespace info)
+                (g-base-info-get-name info)
+                (g-callable-info-get-n-args info)
+                (g-callable-info-get-caller-owns info)
+                (g-callable-info-get-instance-ownership-transfer info)
+                (g-type-info-get-tag (g-callable-info-get-return-type info))
+                (g-callable-info-may-return-null info))))
 
 
 ;;;
@@ -51,13 +88,13 @@
 (define (g-callable-info-get-arg info n)
   (gi->scm (g_callable_info_get_arg info n) 'pointer))
 
-(define (g-callable-info-get-instance-ownership-transfer info)
-  (enum->symbol %gi-transfer
-                (g_callable_info_get_instance_ownership_transfer info)))
-
 (define (g-callable-info-get-caller-owns info)
   (enum->symbol %gi-transfer
                 (g_callable_info_get_caller_owns info)))
+
+(define (g-callable-info-get-instance-ownership-transfer info)
+  (enum->symbol %gi-transfer
+                (g_callable_info_get_instance_ownership_transfer info)))
 
 (define (g-callable-info-get-return-type info)
   (gi->scm (g_callable_info_get_return_type info) 'pointer))
@@ -82,15 +119,15 @@
 				    %libgirepository)
                       (list '* int)))
 
-(define g_callable_info_get_instance_ownership_transfer
-  (pointer->procedure int
-                      (dynamic-func "g_callable_info_get_instance_ownership_transfer"
-				    %libgirepository)
-                      (list '*)))
-
 (define g_callable_info_get_caller_owns
   (pointer->procedure int
                       (dynamic-func "g_callable_info_get_caller_owns"
+				    %libgirepository)
+                      (list '*)))
+
+(define g_callable_info_get_instance_ownership_transfer
+  (pointer->procedure int
+                      (dynamic-func "g_callable_info_get_instance_ownership_transfer"
 				    %libgirepository)
                       (list '*)))
 
