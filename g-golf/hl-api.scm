@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2018 - 2020
+;;;; Copyright (C) 2018 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -31,6 +31,7 @@
   #:use-module (g-golf support utils)
   #:use-module (g-golf support module)
   #:use-module (g-golf support goops)
+  #:use-module (g-golf hl-api n-decl)
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api glib)
   #:use-module (g-golf hl-api gobject)
@@ -52,6 +53,7 @@
 (re-export-public-interface (oop goops)
                             (g-golf support utils)
                             (g-golf support goops)
+                            (g-golf hl-api n-decl)
                             (g-golf hl-api gtype)
                             (g-golf hl-api glib)
                             (g-golf hl-api gobject)

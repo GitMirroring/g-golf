@@ -91,6 +91,7 @@ SOURCES = \
 	g-golf/override/gdk.scm			\
 	g-golf/override/gtk.scm			\
 	g-golf/override.scm			\
+	g-golf/hl-api/n-decl.scm		\
 	g-golf/hl-api/gtype.scm			\
 	g-golf/hl-api/gobject.scm		\
 	g-golf/hl-api/function.scm		\
