@@ -38,6 +38,7 @@
   #:use-module (g-golf glib)
   #:use-module (g-golf gobject)
   #:use-module (g-golf override)
+  #:use-module (g-golf hl-api n-decl)
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api callback)
   #:use-module (g-golf hl-api utils)
@@ -50,7 +51,6 @@
 
   #:export (%gi-import-namespace-exceptions
             is-namespace-import-exception?
-            %gi-strip-boolean-result
             gi-import-function
             %gi-method-short-names-skip
             <function>
@@ -129,9 +129,6 @@
           %gi-import-namespace-exceptions
           string=?))
 
-(define %gi-strip-boolean-result
-  '())
-
 (define (%i-func f-inst)
   (lambda args
     (let ((f-inst f-inst)
@@ -155,8 +152,7 @@
       (if (> n-gi-arg-out 0)
           (case return-type
             ((boolean)
-             (if (memq name
-                       %gi-strip-boolean-result)
+             (if (gi-strip-boolean-result? name)
                  (if (return-value->scm f-inst)
                      (apply values
                             (map arg-out->scm (!args-out f-inst)))
@@ -1452,18 +1448,16 @@ method with its 'old' definition.
             "NotifyType"
             "keyval_name"))
     (gdk-event-class-redefine)
-    (set! %gi-strip-boolean-result
-          (append '(gdk-event-get-axis
-                    gdk-event-get-button
-                    gdk-event-get-click-count
-                    gdk-event-get-coords
-                    gdk-event-get-keycode
-                    gdk-event-get-keyval
-                    gdk-event-get-root-coords
-                    gdk-event-get-scroll-direction
-                    gdk-event-get-scroll-deltas
-                    gdk-event-get-state)
-                  %gi-strip-boolean-result)))))
+    (gi-strip-boolean-result-add gdk-event-get-axis
+                                 gdk-event-get-button
+                                 gdk-event-get-click-count
+                                 gdk-event-get-coords
+                                 gdk-event-get-keycode
+                                 gdk-event-get-keyval
+                                 gdk-event-get-root-coords
+                                 gdk-event-get-scroll-direction
+                                 gdk-event-get-scroll-deltas
+                                 gdk-event-get-state))))
 
 (define* (gi-import-registered info
                                type
