@@ -50,7 +50,7 @@
 		last)
 
   #:export (%gi-import-namespace-exceptions
-            is-namespace-import-exception?
+            gi-namespace-import-exception?
             gi-import-function
             %gi-method-short-names-skip
             <function>
@@ -124,7 +124,7 @@
   '("Glib"
     "GObject"))
 
-(define (is-namespace-import-exception? namespace)
+(define (gi-namespace-import-exception? namespace)
   (member namespace
           %gi-import-namespace-exceptions
           string=?))
@@ -197,7 +197,7 @@
 (define* (gi-import-function info #:key (force? #f))
   (let ((namespace (g-base-info-get-namespace info)))
     (when (or force?
-              (not (is-namespace-import-exception? namespace)))
+              (not (gi-namespace-import-exception? namespace)))
       (receive (name short-name c-name namespace shadows?)
           (gi-function-info-names info namespace)
         (or (gi-cache-ref 'function name)
@@ -1467,7 +1467,7 @@ method with its 'old' definition.
                                #:key (with-methods? #t)
                                (force? #f))
   (let* ((namespace (g-base-info-get-namespace info))
-         (with-methods? (if (is-namespace-import-exception? namespace)
+         (with-methods? (if (gi-namespace-import-exception? namespace)
                             #f
                             with-methods?))
          (g-type (g-registered-type-info-get-g-type info))

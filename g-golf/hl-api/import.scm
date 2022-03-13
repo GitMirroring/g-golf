@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2018 - 2021
+;;;; Copyright (C) 2018 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -88,7 +88,7 @@
                             (with-methods? #t)
                             (force? #f))
   (when (or force?
-            (not (is-namespace-import-exception? namespace)))
+            (not (gi-namespace-import-exception? namespace)))
     (g-irepository-require namespace #:version version)
     (let ((info (g-irepository-find-by-name namespace name)))
       (if info

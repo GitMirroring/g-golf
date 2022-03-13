@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2020
+;;;; Copyright (C) 2019 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -53,7 +53,7 @@
 
 (define* (gi-import-object info #:key (with-methods? #t) (force? #f))
   (let* ((namespace (g-base-info-get-namespace info))
-         (with-methods? (if (is-namespace-import-exception? namespace)
+         (with-methods? (if (gi-namespace-import-exception? namespace)
                             #f
                             with-methods?))
          (module (resolve-module '(g-golf hl-api gobject)))
@@ -231,7 +231,7 @@
 
 (define* (gi-import-interface info #:key (with-methods? #t) (force? #f))
   (let* ((namespace (g-base-info-get-namespace info))
-         (with-methods? (if (is-namespace-import-exception? namespace)
+         (with-methods? (if (gi-namespace-import-exception? namespace)
                             #f
                             with-methods?))
          (module (resolve-module '(g-golf hl-api gobject))))
