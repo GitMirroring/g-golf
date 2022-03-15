@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2016 - 2021
+#### Copyright (C) 2016 - 2022
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -121,4 +121,6 @@ EXTRA_DIST = \
 	$(DOC_CSS)
 
 AM_MAKEINFOHTMLFLAGS = \
-	-c DOCTYPE='<!DOCTYPE html>' --css-ref=../css/manual.css
+	-c DOCTYPE='<!DOCTYPE html>'	\
+	-c FORMAT_MENU='menu'		\
+	--css-ref=../css/manual.css
