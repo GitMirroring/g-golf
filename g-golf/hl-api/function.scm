@@ -52,7 +52,6 @@
   #:export (%gi-import-namespace-exceptions
             gi-namespace-import-exception?
             gi-import-function
-            %gi-method-short-names-skip
             <function>
             <argument>
             gi-import-enum
@@ -310,20 +309,9 @@ method with its 'old' definition.
             (module-set! module name gf)
             gf)))))
 
-
-(define %gi-method-short-names-skip
-  '())
-
 (define* (gi-add-method-gf-sn name #:optional (module #f))
-  (let* ((%skip? (cond ((list? %gi-method-short-names-skip)
-                        (memq name %gi-method-short-names-skip))
-                       ((eq? %gi-method-short-names-skip 'all)
-                        #t)
-                       (else
-                        #f))))
-    (if %skip?
-        #f
-        (gi-add-method-gf name module))))
+  (unless (gi-method-short-name-skip? name)
+    (gi-add-method-gf name module)))
 
 (define (gi-add-method-specializers f-inst)
   (let ((arguments (!arguments f-inst))

@@ -27,19 +27,31 @@
 
 
 (define-module (g-golf hl-api n-decl)
+  #:use-module (srfi srfi-1)
+
   #:export (gi-strip-boolean-result
             gi-strip-boolean-result?
-            gi-strip-boolean-result-add))
+            gi-strip-boolean-result-add
+            gi-strip-boolean-result-remove
+            gi-strip-boolean-result-reset
+
+            gi-method-short-name-skip
+            gi-method-short-name-skip?
+            gi-method-short-name-skip-all
+            gi-method-short-name-skip-add
+            gi-method-short-name-skip-remove
+            gi-method-short-name-skip-reset))
 
 
 ;;;
-;;; 
+;;; strip boolean result
 ;;;
 
 (define gi-strip-boolean-result #f)
 (define gi-strip-boolean-result? #f)
-
-(define strip-boolean-result-add-names #f)
+(define strip-boolean-result-add #f)
+(define strip-boolean-result-remove #f)
+(define gi-strip-boolean-result-reset #f)
 
 (let ((%gi-strip-boolean-result '()))
 
@@ -51,13 +63,84 @@
         (lambda (name)
           (memq name %gi-strip-boolean-result)))
 
-  (set! strip-boolean-result-add-names
+  (set! strip-boolean-result-add
         (lambda (names)
           (set! %gi-strip-boolean-result
                 (append names
-                        %gi-strip-boolean-result)))))
+                        %gi-strip-boolean-result))))
+
+  (set! strip-boolean-result-remove
+        (lambda (names)
+          (set! %gi-strip-boolean-result
+                (lset-difference eq? %gi-strip-boolean-result names))))
+
+  (set! gi-strip-boolean-result-reset
+        (lambda ()
+          (set! %gi-strip-boolean-result '()))))
 
 (define-syntax gi-strip-boolean-result-add
   (syntax-rules ()
     ((gi-strip-boolean-result-add name ...)
-     (strip-boolean-result-add-names '(name ...)))))
+     (strip-boolean-result-add '(name ...)))))
+
+(define-syntax gi-strip-boolean-result-remove
+  (syntax-rules ()
+    ((gi-strip-boolean-result-remove name ...)
+     (strip-boolean-result-remove '(name ...)))))
+
+
+;;;
+;;; short name skip
+;;;
+
+(define gi-method-short-name-skip #f)
+(define gi-method-short-name-skip? #f)
+(define gi-method-short-name-skip-all #f)
+(define method-short-name-skip-add #f)
+(define method-short-name-skip-remove #f)
+(define gi-method-short-name-skip-reset #f)
+
+
+(let ((%gi-method-short-name-skip '()))
+
+  (set! gi-method-short-name-skip
+        (lambda ()
+          %gi-method-short-name-skip))
+
+  (set! gi-method-short-name-skip?
+        (lambda (name)
+          (or (eq? %gi-method-short-name-skip 'all)
+              (memq name %gi-method-short-name-skip))))
+
+  (set! gi-method-short-name-skip-all
+        (lambda ()
+          (set! %gi-method-short-name-skip 'all)))
+
+  (set! method-short-name-skip-add
+        (lambda (names)
+          (if (eq? %gi-method-short-name-skip 'all)
+              (values)
+              (set! %gi-method-short-name-skip
+                    (append names
+                            %gi-method-short-name-skip)))))
+
+  (set! method-short-name-skip-remove
+        (lambda (names)
+          (if (eq? %gi-method-short-name-skip 'all)
+              (values)
+              (set! %gi-method-short-name-skip
+                    (lset-difference eq? %gi-method-short-name-skip names)))))
+
+  (set! gi-method-short-name-skip-reset
+        (lambda ()
+          (set! %gi-method-short-name-skip '()))))
+
+(define-syntax gi-method-short-name-skip-add
+  (syntax-rules ()
+    ((gi-method-short-name-skip-add name ...)
+     (method-short-name-skip-add '(name ...)))))
+
+(define-syntax gi-method-short-name-skip-remove
+  (syntax-rules ()
+    ((gi-method-short-name-skip-remove name ...)
+     (method-short-name-skip-remove '(name ...)))))
