@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2021
+;;;; Copyright (C) 2019 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -65,6 +65,54 @@
 
 (define-class <g-golf-test-hl-api> (<test-case>))
 
+;;;
+;;; n-decl
+;;;
+
+(define-method (test-n-decl-1 (self <g-golf-test-hl-api>))
+  (assert-true (eq? (gi-strip-boolean-result) '()))
+  (assert-false (gi-strip-boolean-result? 'gdk-event-get-axis))
+  (assert (gi-strip-boolean-result-add gdk-event-get-axis
+                                       gdk-event-get-button
+                                       gdk-event-get-click-count
+                                       gdk-event-get-coords
+                                       gdk-event-get-keycode
+                                       gdk-event-get-keyval
+                                       gdk-event-get-root-coords
+                                       gdk-event-get-scroll-direction
+                                       gdk-event-get-scroll-deltas
+                                       gdk-event-get-state))
+  (assert-true (gi-strip-boolean-result? 'gdk-event-get-axis))
+  (assert (gi-strip-boolean-result-remove gdk-event-get-axis))
+  (assert-false (gi-strip-boolean-result? 'gdk-event-get-axis))
+  (assert (gi-strip-boolean-result-reset))
+  (assert-true (eq? (gi-strip-boolean-result) '())))
+
+(define-method (test-n-decl-2 (self <g-golf-test-hl-api>))
+  (assert-true (eq? (gi-method-short-name-skip) '()))
+  (assert-false (gi-method-short-name-skip? 'gdk-event-get-axis))
+  (assert (gi-method-short-name-skip-add gdk-event-get-axis
+                                         gdk-event-get-button
+                                         gdk-event-get-click-count
+                                         gdk-event-get-coords
+                                         gdk-event-get-keycode
+                                         gdk-event-get-keyval
+                                         gdk-event-get-root-coords
+                                         gdk-event-get-scroll-direction
+                                         gdk-event-get-scroll-deltas
+                                         gdk-event-get-state))
+  (assert-true (gi-method-short-name-skip? 'gdk-event-get-axis))
+  (assert (gi-method-short-name-skip-remove gdk-event-get-axis))
+  (assert-false (gi-method-short-name-skip? 'gdk-event-get-axis))
+  (assert (gi-method-short-name-skip-all))
+  (assert-true (eq? (gi-method-short-name-skip) 'all))
+  (assert (gi-method-short-name-skip-reset))
+  (assert-true (eq? (gi-method-short-name-skip) '())))
+
+
+;;;
+;;;
+;;;
 
 (define-method (test-g-property-accessor (self <g-golf-test-hl-api>))
   (let ((a-grid (make <clutter-grid-layout>)))
