@@ -57,7 +57,7 @@ procedure@footnote{This procedure, as well as @ref{g-name->name} and
 where there are named @code{GStudlyCapsExpand},
 @code{gtype-name->scm-name} and @code{gtype-name->class-name}, in the
 (Guile-Gnome) module (gnome gobject utils).  In G-Golf, these will also
-be used to transform other (Gobject Inptrospection given) names, such as
+be used to transform other (Gobject Introspection given) names, such as
 function names, hence their @code{g-name->} prefix instead} returns a
 new string, with all @samp{_} transformed into @samp{-}, uppercase
 letters are transformed into their corresponding lowercase letter, and a
