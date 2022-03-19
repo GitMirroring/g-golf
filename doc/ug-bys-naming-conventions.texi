@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2020 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2022 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -72,7 +72,7 @@ their respective generic function, the name of which is given by calling
 @ref{g-name->name}.
 
 In addition, unless otherwise specified (@xref{Customizing G-Golf}
-section), G-Golf also defines so called short name methods, obtained by
+section), G-Golf also defines @samp{methods short name}, obtained by
 dropping the container name (and its trailing hyphen) from the GI
 typelib method full/long names.
 

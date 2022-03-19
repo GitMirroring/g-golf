@@ -1,20 +1,19 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2020 Free Software Foundation, Inc.
+@c Copyright (C) 2020 - 2022 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
 @node Customizing G-Golf
 @subsection Customizing G-Golf
 
-There are three @samp{domains} for which G-Golf offers a series of
-customization variables. The first is related to @samp{name
+There are three domains for which G-Golf offers a series of
+customization variables: (1) the first is related to @samp{name
 transformation}, or how things are being named as they are being
-imported. The second is related to the so called @samp{short name
-methods}, wether G-Golf should create them. The third is related to the
-so called @samp{syntax name protect} mechanism, or how G-Golf should
-address syntax name @samp{clash} exceptions, if/when short name methods
-are created.
+imported; (2) the second is related to @samp{methods short name}, wether
+G-Golf should create them; (3) the third is related to a @samp{syntax
+name protect} mechanism, or how G-Golf should address syntax name
+@samp{clash} exceptions, if/when methods short name are created.
 
 Variables listed in this subsection of the manual are somewhat briefly
 introduced, make sure to follow each cross-reference to also read their
@@ -62,12 +61,12 @@ listed token exceptions.
 @end itemize
 
 
-@ @ @sup{_} @strong{Short Name Methods}
+@ @ @sup{_} @strong{Methods Short Name}
 
-By default, when G-Golf imports a GI typelib, it creates so called
-@samp{short name methods}, obtained by dropping the container name (and
-its trailing hyphen) from the GI typelib method full/long names. Users
-may change this default, by setting the following variable:
+By default, when G-Golf imports a GI typelib, it creates @samp{methods
+short name}, obtained by dropping the container name (and its trailing
+hyphen) from the GI typelib method full/long names. Users may change
+this default, by setting the following variable:
 
 @indentedblock
 @table @code
@@ -80,12 +79,12 @@ may change this default, by setting the following variable:
 
 When a short name method is created, which is obtained by dropping the
 container name (and its trailing hyphen) from the GI typelib method
-full/long name, it may lead to a so called name @samp{clash}, with an
-already defined procedure or syntax. Name @samp{clashes} against
-procedures are not a concern (this is explained in the
-@ref{syntax-name->method-name} documentation entry).
+full/long name, it may lead to a @samp{name clash}, with an already
+defined procedure or syntax. @samp{Name clashes} against methods are not
+a concern (this is explained in the @ref{syntax-name->method-name}
+documentation entry).
 
-However, the @samp{magic} applied for name @samp{clashes} against
+However, the @samp{magic} applied for @samp{name clashes} against
 procedures can not work for syntaxes, and those syntax names must be
 @samp{protected}, which is achieved by (automatically) calling
 @ref{syntax-name->method-name} (users should normally not call this

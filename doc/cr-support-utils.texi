@@ -178,10 +178,10 @@ purposes, if/when they customize its default settings - it is
 appropriately and automatically called by G-Golf when importing a GI
 typelib.
 
-Unless otherwise specified (see @ref{%gi-method-short-names-skip}),
-when a GI typelib is imported, G-Golf also creates so called short name
-methods, obtained by dropping the container name (and its trailing
-hyphen) from the GI typelib method full/long names.
+Unless otherwise specified (see @ref{%gi-method-short-names-skip}), when
+a GI typelib is imported, G-Golf also creates methods short name,
+obtained by dropping the container name (and its trailing hyphen) from
+the GI typelib method full/long names.
 
 GI methods are added to their respective generic function, which is
 created if it does not already exist. When a generic function is
@@ -199,7 +199,7 @@ By default, the renamer (@ref{%syntax-name-protect-renamer}) and prefix
 the postfix (@ref{%syntax-name-protect-postfix}) variable is set to
 @code{_} (the underscore symbol).
 
-As an example, using these default settings, the short name method for
+As an example, using these default settings, the method short name for
 @code{gcr-secret-exchange-begin} would be @code{begin_}.
 
 @c If the @code{(ice-9 receive)} has also been imported, then the short
