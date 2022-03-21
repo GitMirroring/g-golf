@@ -1,13 +1,13 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2020 - 2021 Free Software Foundation, Inc.
+@c Copyright (C) 2020 - 2022 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
-@node G-Golf Cache - Accessing
-@section G-Golf Cache - Accessing
+@node Cache Park
+@subsection Cache Park
 
-G-Golf Cache - Accessing.
+Cache Park - Accessing G-Golf caches.
 
 
 @subheading Procedures

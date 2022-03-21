@@ -99,7 +99,7 @@ clutter_actor_new @result{} clutter-actor-new
 @ @ @sup{_} @strong{Enums, Flags and Boxed types}
 
 Gnome library enums, flags and boxed types are renamed by calling
-@ref{g-name->name} (and cached, @xref{G-Golf Cache - Accessing}
+@ref{g-name->name} (and cached, @xref{Cache Park}
 section).
 
 Enum and flag type members are renamed by calling @ref{g-name->name}. To

@@ -43,15 +43,16 @@ g_golf_TEXINFOS = \
   ug-bys-goops-notes-and-conventions.texi	\
   ug-bys-configuring-guile-for-g-golf.texi	\
   ug-bys-customizing-g-golf.texi		\
-  ug-g-golf-cache.texi		\
   ug-gswg.texi			\
   ug-gswg-hello-world.texi	\
   ug-gswg-selective-import.texi	\
   ug-gswg-scripting.texi	\
+  ug-wwg.texi			\
   ug-wwg-import.texi		\
   ug-wwg-events.texi		\
   ug-wwg-gobject.texi		\
-  ug-wwg.texi			\
+  ug-ggv.texi			\
+  ug-ggv-cache.texi		\
   cr.texi			\
   cr-overview.texi		\
   cr-ov-structure-and-naming-conventions.texi	\
