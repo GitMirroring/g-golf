@@ -66,13 +66,16 @@
   (set! strip-boolean-result-add
         (lambda (names)
           (set! %gi-strip-boolean-result
-                (append names
-                        %gi-strip-boolean-result))))
+                (apply lset-adjoin eq?
+                       %gi-strip-boolean-result
+                       names))))
 
   (set! strip-boolean-result-remove
         (lambda (names)
           (set! %gi-strip-boolean-result
-                (lset-difference eq? %gi-strip-boolean-result names))))
+                (lset-difference eq?
+                                 %gi-strip-boolean-result
+                                 names))))
 
   (set! gi-strip-boolean-result-reset
         (lambda ()
@@ -121,15 +124,18 @@
           (if (eq? %gi-method-short-name-skip 'all)
               (values)
               (set! %gi-method-short-name-skip
-                    (append names
-                            %gi-method-short-name-skip)))))
+                    (apply lset-adjoin eq?
+                           %gi-method-short-name-skip
+                           names)))))
 
   (set! method-short-name-skip-remove
         (lambda (names)
           (if (eq? %gi-method-short-name-skip 'all)
               (values)
               (set! %gi-method-short-name-skip
-                    (lset-difference eq? %gi-method-short-name-skip names)))))
+                    (lset-difference eq?
+                                     %gi-method-short-name-skip
+                                     names)))))
 
   (set! gi-method-short-name-skip-reset
         (lambda ()

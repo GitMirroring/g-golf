@@ -82,6 +82,8 @@
                                        gdk-event-get-scroll-direction
                                        gdk-event-get-scroll-deltas
                                        gdk-event-get-state))
+  (gi-strip-boolean-result-add gdk-event-get-axis)
+  (assert-true (= 10 (length (gi-strip-boolean-result))))
   (assert-true (gi-strip-boolean-result? 'gdk-event-get-axis))
   (assert (gi-strip-boolean-result-remove gdk-event-get-axis))
   (assert-false (gi-strip-boolean-result? 'gdk-event-get-axis))
@@ -101,6 +103,8 @@
                                          gdk-event-get-scroll-direction
                                          gdk-event-get-scroll-deltas
                                          gdk-event-get-state))
+  (gi-method-short-name-skip-add gdk-event-get-axis)
+  (assert-true (= 10 (length (gi-method-short-name-skip))))
   (assert-true (gi-method-short-name-skip? 'gdk-event-get-axis))
   (assert (gi-method-short-name-skip-remove gdk-event-get-axis))
   (assert-false (gi-method-short-name-skip? 'gdk-event-get-axis))
