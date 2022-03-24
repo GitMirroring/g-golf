@@ -1,0 +1,158 @@
+@c -*-texinfo-*-
+@c This is part of the GNU G-Golf Reference Manual.
+@c Copyright (C) 2022 Free Software Foundation, Inc.
+@c See the file g-golf.texi for copying conditions.
+
+
+@node Customization Square
+@subsection Customization Square
+
+Customization Square - G-Golf customization functionality.
+
+
+@subheading Procedures and Syntax
+
+@indentedblock
+@table @code
+@item @ref{gi-strip-boolean-result}
+@item @ref{gi-strip-boolean-result?}
+@item @ref{gi-strip-boolean-result-add}
+@item @ref{gi-strip-boolean-result-remove}
+@item @ref{gi-strip-boolean-result-reset}
+@end table
+@end indentedblock
+
+
+@c @subheading Variables
+
+@c @indentedblock
+@c @table @code
+@c @item @ref{%gi-cache}
+@c @end table
+@c @end indentedblock
+
+
+@subheading Description
+
+Welcome to the G-Golf Customization Square.
+
+This section is organized per customization theme: (-) GI strip boolean
+result; (-) GI method short name skip.
+
+
+@subheading GI strip boolean result
+
+In this corner of the square, we expose how you may customize G-Golf
+with respect to GI typelib functions and methods that (1) have at least
+one @code{'inout} or @code{'out} argument(s) and (2) return either
+@code{#t} or @code{#f}, solely to indicate that the function or method
+call was successful or not.
+
+The default G-Golf behavior, when there is at least one @code{'inout} or
+@code{'out} argument(s), is to return multiple values. The first
+returned value is the function or method result, followed by the
+@code{'inout} and @code{'out} values, in order of appearance in the
+function or method call.
+
+G-Golf also offers - through a series of interfaces to get, check, add,
+remove and reset a list of such function or methods names - to instead
+elude the function or method returned value when it is @code{#t} and
+raise an exception if the returned value is @code{#f}.
+
+Here is a concrete example, for the @code{"Clutter"} namespace and
+the @code{clutter-color-from-string} procedure:
+
+@lisp
+,use (g-golf)
+(gi-import "Clutter")
+
+(clutter-color-from-string "Blue")
+@result{} $2 = #t
+@result{} $3 = (0 0 255 255)
+@end lisp
+
+And call it with an undefined color name:
+
+@lisp
+(clutter-color-from-string "Bluee")
+@result{} $4 = #f
+@result{} $5 = (0 0 0 0)
+@end lisp
+
+Now, let's add @code{clutter-color-from-string} to the list of GI
+funtions and methods for which we wish to elude the result of the call
+from the returned value(s), then experiment the above calls and see how
+G-Golf changed the way it handles the results:
+
+@lisp
+(gi-strip-boolean-result-add clutter-color-from-string)
+
+(clutter-color-from-string "Blue")
+@result{} $7 = (0 0 255 255)
+@end lisp
+
+As expected, if we call it with an undefined color name, it will raise
+an exception@footnote{Note that the raised exception message and
+formatting depends on the version of guile you are using. Fwiw, this
+example was produced using @code{GNU Guile 3.0.8}.}
+
+@lisp
+(clutter-color-from-string "Bluee")
+@print{} ice-9/boot-9.scm:1686:16: In procedure raise-exception:
+@print{}   clutter-color-from-string " failed."
+@print{}
+@print{} Entering a new prompt.  Type `,bt' for a backtrace or `,q' to continue.
+@end lisp
+
+G-Golf default is that the list of GI funtions and methods for which to
+elude the result of the call from the returned value(s) is empty. It is
+a user responsibility to fill it appropriately, for each namespace they
+are importing.
+
+
+@anchor{gi-strip-boolean-result}
+@deffn Procedure gi-strip-boolean-result
+
+Returns a (possibly empty) list of (symbol) name(s).
+
+Obtains and returns the list of GI funtions and methods for which G-Golf
+will elude the result of the call from the returned value(s).
+@end deffn
+
+
+@anchor{gi-strip-boolean-result?}
+@deffn Procedure gi-strip-boolean-result? name
+
+Returns @code{#t} if @var{name} is a member of the list of GI funtions
+and methods for which G-Golf will elude the result of the call from the
+returned value(s). Otherwise, it returns @code{#f}.
+@end deffn
+
+
+@anchor{gi-strip-boolean-result-add}
+@anchor{gi-strip-boolean-result-remove}
+@deffn Syntax gi-strip-boolean-result-add name @dots{}
+@deffnx Syntax gi-strip-boolean-result-remove name @dots{}
+
+Add (remove) the @var{names} to (from) the list of GI funtions and
+methods for which G-Golf will elude the result of the call from the
+returned value(s)
+@end deffn
+
+
+@anchor{gi-strip-boolean-result-reset}
+@deffn Procedure gi-strip-boolean-result-reset
+
+Resets the list of GI funtions and methods for which G-Golf will elude
+the result of the call from the returned value(s) to the empty list.
+@end deffn
+
+
+@c @subheading Variables
+
+@c @anchor{%gi-cache}
+@c @defvar %gi-cache
+
+@c Holds a reference the the G-Golf @code{main cache}, which as said
+@c earlier, currently is composed of two nested association lists.
+@c @end defvar

@@ -10,7 +10,9 @@
 
 @menu
 * Cache Park:: Accessing G-Golf caches.
+* Customization Square:: G-Golf customization functionality.
 @end menu
 
 
 @include ug-ggv-cache.texi
+@include ug-ggv-customization.texi
