@@ -4,6 +4,17 @@ exec guile -e main -s "$0" "$@"
 !#
 
 
+;;;
+;;; This example requires the following GNOME setting
+;;;
+
+;; 	Tweaks (gnome-tweaks) setting application,
+;; 		-> General
+;; 			Animations	ON
+;; 			[ I had it ON, but it became OFF after some
+;; 			[ updates, and I didn't think about that ...
+
+
 (eval-when (expand load eval)
   (use-modules (oop goops))
 
