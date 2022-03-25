@@ -11,13 +11,13 @@
 
 G-Golf is, or at least tries to be, consistent in the way @samp{things}
 are being named, whether the functionality being @samp{exposed} is from
-an imported Gnome library or is part of a G-Golf's core reference
+an imported GNOME library or is part of a G-Golf's core reference
 module.
 
 
-@subheading Gnome Libraries
+@subheading GNOME Libraries
 
-When G-Golf imports a Gnome library, its classes, properties, methods,
+When G-Golf imports a GNOME library, its classes, properties, methods,
 functions, types and constant are renamed, which is achieved by calling
 @ref{g-name->class-name} and @ref{g-name->name} appropriately.
 
@@ -38,7 +38,7 @@ or partially customize the renaming process.
 @ @ @sup{_} @strong{Classes} @*
 
 
-Gnome library classes are imported as GOOPS classes (the Guile Object
+GNOME libraries classes are imported as GOOPS classes (the Guile Object
 Oriented System, @pxref{GOOPS,,, guile, The GNU Guile Reference
 Manual}), and their respective name is given by the result of calling
 @ref{g-name->class-name}, for example:
@@ -55,7 +55,7 @@ would be <web-kit-web-view>.}
 
 @ @ @sup{_} @strong{Properties}
 
-Gnome library class properties are imported as GOOPS class slots, and
+GNOME libraries class properties are imported as GOOPS class slots, and
 their respective name is given by calling @ref{g-name->name}. Each
 property slot defines an @code{init-keyword} and an @code{accessor},
 following G-Golf's accessors naming conventions (see @ref{GOOPS Notes
@@ -67,9 +67,8 @@ with the @code{#:label} init-keyword and @code{!label} accessor.
 
 @ @ @sup{_} @strong{Methods}
 
-Gnome library methods are imported as GOOPS class methods and added to
-their respective generic function, the name of which is given by calling
-@ref{g-name->name}.
+GNOME libraries methods are imported as GOOPS methods, the name of which
+is obtained by calling @ref{g-name->name}.
 
 In addition, unless otherwise specified (@xref{Customizing G-Golf}
 section), G-Golf also defines @samp{methods short name}, obtained by
@@ -86,7 +85,7 @@ specializer(s), in this case @code{<gtk-label>}.
 
 @ @ @sup{_} @strong{Functions}
 
-Gnome library functions are imported as procedures, renamed by calling
+GNOME libraries functions are imported as procedures, renamed by calling
 @ref{g-name->name}. For example:
 
 @lisp
@@ -98,9 +97,8 @@ clutter_actor_new @result{} clutter-actor-new
 
 @ @ @sup{_} @strong{Enums, Flags and Boxed types}
 
-Gnome library enums, flags and boxed types are renamed by calling
-@ref{g-name->name} (and cached, @xref{Cache Park}
-section).
+GNOME libraries enums, flags and boxed types are renamed by calling
+@ref{g-name->name} (and cached, @xref{Cache Park} section).
 
 Enum and flag type members are renamed by calling @ref{g-name->name}. To
 illustrate, here is an example:
