@@ -90,7 +90,7 @@
   (assert (gi-strip-boolean-result-reset))
   (assert-true (eq? (gi-strip-boolean-result) '())))
 
-(define-method (test-n-decl-2 (self <g-golf-test-hl-api>))
+(define-method (test-n-decl-2.1 (self <g-golf-test-hl-api>))
   (assert-true (eq? (gi-method-short-name-skip) '()))
   (assert-false (gi-method-short-name-skip? 'gdk-event-get-axis))
   (assert (gi-method-short-name-skip-add gdk-event-get-axis
@@ -112,6 +112,14 @@
   (assert-true (eq? (gi-method-short-name-skip) 'all))
   (assert (gi-method-short-name-skip-reset))
   (assert-true (eq? (gi-method-short-name-skip) '())))
+
+(define-method (test-n-decl-2.2 (self <g-golf-test-hl-api>))
+  (let ((%gi-add-method-gf-sn
+         (@@ (g-golf hl-api function) gi-add-method-gf-sn)))
+    (gi-method-short-name-skip-add gtk-label-get-text)
+    (assert-false (%gi-add-method-gf-sn 'gtk-label-get-text 'get-text))
+    (gi-method-short-name-skip-remove gtk-label-get-text)
+    (assert-true (%gi-add-method-gf-sn 'gtk-label-get-text 'get-text))))
 
 
 ;;;

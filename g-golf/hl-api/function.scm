@@ -227,7 +227,7 @@
        (let* ((m-long-name (!name f-inst))
               (m-long-generic (gi-add-method-gf m-long-name))
               (m-short-name (!m-name f-inst))
-              (m-short-generic (gi-add-method-gf-sn m-short-name))
+              (m-short-generic (gi-add-method-gf-sn m-long-name m-short-name))
               (specializers (gi-add-method-specializers f-inst))
               (procedure (if (!override? f-inst)
                              (!o-func f-inst)
@@ -309,9 +309,11 @@ method with its 'old' definition.
             (module-set! module name gf)
             gf)))))
 
-(define* (gi-add-method-gf-sn name #:optional (module #f))
-  (unless (gi-method-short-name-skip? name)
-    (gi-add-method-gf name module)))
+(define* (gi-add-method-gf-sn m-long-name m-short-name
+                              #:optional (module #f))
+  (if (gi-method-short-name-skip? m-long-name)
+      #f
+      (gi-add-method-gf m-short-name module)))
 
 (define (gi-add-method-specializers f-inst)
   (let ((arguments (!arguments f-inst))
