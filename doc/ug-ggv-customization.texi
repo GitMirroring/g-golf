@@ -19,6 +19,12 @@ Customization Square - G-Golf customization functionality.
 @item @ref{gi-strip-boolean-result-add}
 @item @ref{gi-strip-boolean-result-remove}
 @item @ref{gi-strip-boolean-result-reset}
+@item @ref{gi-method-short-name-skip}
+@item @ref{gi-method-short-name-skip?}
+@item @ref{gi-method-short-name-skip-all}
+@item @ref{gi-method-short-name-skip-add}
+@item @ref{gi-method-short-name-skip-remove}
+@item @ref{gi-method-short-name-skip-reset}
 @end table
 @end indentedblock
 
@@ -40,7 +46,7 @@ This section is organized per customization theme: (-) GI strip boolean
 result; (-) GI method short name skip.
 
 
-@subheading GI strip boolean result
+@subheading GI Strip Boolean Result
 
 In this corner of the square, we expose how you may customize G-Golf
 with respect to GI typelib functions and methods that (1) have at least
@@ -136,7 +142,7 @@ returned value(s). Otherwise, it returns @code{#f}.
 
 Add (remove) the @var{names} to (from) the list of GI funtions and
 methods for which G-Golf will elude the result of the call from the
-returned value(s)
+returned value(s).
 @end deffn
 
 
@@ -147,6 +153,75 @@ Resets the list of GI funtions and methods for which G-Golf will elude
 the result of the call from the returned value(s) to the empty list.
 @end deffn
 
+
+@subheading GI Method Short Name Skip
+
+In this corner of the square, we expose how you may customize G-Golf
+with respect to GI method short name, more specifically, whether you
+wish to skip the method short name creation, and doing so individually
+or for all GI imported methods.
+
+By default, as it imports a GI typelib, G-Golf creates a method short
+name for each imported method, obtained by dropping the container name
+(and its trailing hyphen) from the GI typelib method full/long name.
+
+For example, the @code{<gtk-label>} class, which defines the
+@code{gtk-label-get-text} method, would also define, using G-Golf's
+default settings, the @code{get-text} method. To be more precise, G-Golf
+would create (if it does not exist) or reuse (if it exists) the
+@code{get-text} generic function, make and add a method with its
+specializer(s), in this case @code{<gtk-label>}.
+
+Now, let's add @code{gtk-label-get-text} to the list of the GI methods
+for which we wish to skip the short name creation step. In this case, as
+G-Golf imports the @code{GtkLabel} class, it would only create the
+@code{gtk-label-get-text} method, but not the @code{get-text} method
+anymore.
+
+@anchor{gi-method-short-name-skip}
+@deffn Procedure gi-method-short-name-skip
+
+Returns a (possibly empty) list of (symbol) name(s).
+
+Obtains and returns the list of GI method long name for which G-Golf
+will skip the method short name creation step.
+@end deffn
+
+
+@anchor{gi-method-short-name-skip?}
+@deffn Procedure gi-method-short-name-skip? name
+
+Returns @code{#t} if @var{name} is a member of the list of GI method
+long name for which G-Golf will skip the method short name creation
+step. Otherwise, it returns @code{#f}.
+@end deffn
+
+
+@anchor{gi-method-short-name-skip-all}
+@deffn Procedure gi-method-short-name-skip-all
+
+Returns nothing.
+
+Sets the GI method short name skip creation step to @code{'all}.
+@end deffn
+
+
+@anchor{gi-method-short-name-skip-add}
+@anchor{gi-method-short-name-skip-remove}
+@deffn Syntax gi-method-short-name-skip-add name @dots{}
+@deffnx Syntax gi-method-short-name-skip-remove name @dots{}
+
+Add (remove) the @var{names} to (from) the list of GI method long name
+for which G-Golf will skip the method short name creation step.
+@end deffn
+
+
+@anchor{gi-method-short-name-skip-reset}
+@deffn Procedure gi-method-short-name-skip-reset
+
+Resets the list of GI method long name for which G-Golf will skip the
+method short name creation step to the empty list.
+@end deffn
 
 @c @subheading Variables
 

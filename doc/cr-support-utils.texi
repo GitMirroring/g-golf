@@ -29,7 +29,6 @@
 @table @code
 @item @ref{%g-name-transform-exceptions}
 @item @ref{%g-studly-caps-expand-token-exceptions}
-@item @ref{%gi-method-short-names-skip}
 @item @ref{%syntax-name-protect-prefix}
 @item @ref{%syntax-name-protect-postfix}
 @item @ref{%syntax-name-protect-renamer}
@@ -178,10 +177,11 @@ purposes, if/when they customize its default settings - it is
 appropriately and automatically called by G-Golf when importing a GI
 typelib.
 
-Unless otherwise specified (see @ref{%gi-method-short-names-skip}), when
-a GI typelib is imported, G-Golf also creates methods short name,
-obtained by dropping the container name (and its trailing hyphen) from
-the GI typelib method full/long names.
+Unless otherwise specified (@pxref{Customization Square} - @emph{GI
+Method Short Name Skip}), as it imports a GI typelib, G-Golf creates a
+method short name for each imported method, obtained by dropping the
+container name (and its trailing hyphen) from the GI typelib method long
+name.
 
 GI methods are added to their respective generic function, which is
 created if it does not already exist. When a generic function is
@@ -251,36 +251,6 @@ Its default value contains an entry for the @code{WebKit} token:
 @end lisp
 
 Users may add or remove alist pairs to satisfy their needs.
-@end defvar
-
-
-@anchor{%gi-method-short-names-skip}
-@defvar %gi-method-short-names-skip
-
-This variable is used by G-Golf to decide, while importing a GI typelib,
-if a short name method should be created or not (@samp{skipped}, hence
-the variable name).
-
-It can take the following values:
-
-@indentedblock
-@table @code
-
-@item '()
-This is the default value. In this case, a short name method is created
-for every full/long name method, or in other words, no short name method
-creation process is skipped.
-
-@item 'all
-In this case, no short name method is created, or in other words, all
-short name method creation process is skipped.
-
-@item a list of short name(s)
-In this case, for each short name in the list, the short name method
-creation process is skipped.
-@end table
-@end indentedblock
-
 @end defvar
 
 

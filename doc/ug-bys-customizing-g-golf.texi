@@ -7,20 +7,22 @@
 @node Customizing G-Golf
 @subsection Customizing G-Golf
 
-There are three domains for which G-Golf offers a series of
-customization variables: (1) the first is related to @samp{name
-transformation}, or how things are being named as they are being
-imported; (2) the second is related to @samp{methods short name}, wether
-G-Golf should create them; (3) the third is related to a @samp{syntax
-name protect} mechanism, or how G-Golf should address syntax name
-@samp{clash} exceptions, if/when methods short name are created.
-
-Variables listed in this subsection of the manual are somewhat briefly
-introduced, make sure to follow each cross-reference to also read their
-reference documentation entry.
+G-Golf offers a series of customization interfaces for the following
+domains: (@bullet{}) @emph{name transformation} - how things are being
+named as they are being imported;(@bullet{}) @emph{strip boolean result}
+- should G-Golf elude (some) function and method call returned value
+when it is @code{#t} and raise an exception if the returned value is
+@code{#f}; (@bullet{}) @emph{method short name} - should G-Golf create
+them or not; (@bullet{}) @emph{syntax name protect} - how G-Golf should
+address syntax name @samp{clash} against method short name.
 
 
-@ @ @sup{_} @strong{Name Transformation }
+@c Variables listed in this subsection of the manual are somewhat briefly
+@c introduced, make sure to follow each cross-reference to also read their
+@c reference documentation entry.
+
+
+@ @ @sup{_} @strong{Name Transformation}
 
 As stated previously (@xref{Naming Conventions}), when G-Golf imports a
 Gnome library, its classes, properties, methods, functions, types and
@@ -61,18 +63,31 @@ listed token exceptions.
 @end itemize
 
 
-@ @ @sup{_} @strong{Methods Short Name}
+@ @ @sup{_} @strong{Strip Boolean Result}
 
-By default, when G-Golf imports a GI typelib, it creates @samp{methods
-short name}, obtained by dropping the container name (and its trailing
-hyphen) from the GI typelib method full/long names. Users may change
-this default, by setting the following variable:
+Some GI typelib functions and methods that (1) have at least one
+@code{'inout} or @code{'out} argument(s) and (2) return either @code{#t}
+or @code{#f}, solely to indicate that the function or method call was
+successful or not.
 
-@indentedblock
-@table @code
-@item @ref{%gi-method-short-names-skip}
-@end table
-@end indentedblock
+G-Golf also offers - through a series of interfaces to get, check, add,
+remove and reset a list of such function or methods names - to instead
+elude the function or method returned value when it is @code{#t} and
+raise an exception if the returned value is @code{#f}.
+
+@xref{Customization Square} - @emph{GI Strip Boolean Result}.
+
+
+@ @ @sup{_} @strong{Method Short Name}
+
+By default, as it imports a GI typelib, G-Golf creates a method short
+name for each imported method, obtained by dropping the container name
+(and its trailing hyphen) from the GI typelib method full/long name.
+
+Users may change this default and skip the method short name creation
+step, either individually or for all GI imported methods.
+
+@xref{Customization Square} - @emph{GI Method Short Name Skip}.
 
 
 @ @ @sup{_} @strong{Syntax Name Protect}

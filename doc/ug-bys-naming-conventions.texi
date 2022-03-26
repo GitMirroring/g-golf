@@ -58,8 +58,8 @@ would be <web-kit-web-view>.}
 GNOME libraries class properties are imported as GOOPS class slots, and
 their respective name is given by calling @ref{g-name->name}. Each
 property slot defines an @code{init-keyword} and an @code{accessor},
-following G-Golf's accessors naming conventions (see @ref{GOOPS Notes
-and Conventions}.
+following G-Golf's accessors naming conventions (@xref{GOOPS Notes
+and Conventions}).
 
 As an example, the @code{<gtk-label>} class has a @code{label} slot,
 with the @code{#:label} init-keyword and @code{!label} accessor.
@@ -70,10 +70,10 @@ with the @code{#:label} init-keyword and @code{!label} accessor.
 GNOME libraries methods are imported as GOOPS methods, the name of which
 is obtained by calling @ref{g-name->name}.
 
-In addition, unless otherwise specified (@xref{Customizing G-Golf}
-section), G-Golf also defines @samp{methods short name}, obtained by
-dropping the container name (and its trailing hyphen) from the GI
-typelib method full/long names.
+In addition, unless otherwise specified (@xref{Customizing G-Golf}),
+G-Golf also defines a @emph{method short name}, obtained by dropping the
+container name (and its trailing hyphen) from the GI typelib method
+full/long name.
 
 For example, the @code{<gtk-label>} class, which defines a
 @code{gtk-label-get-text} method, would also define, using G-Golf's
