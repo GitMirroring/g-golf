@@ -26,7 +26,7 @@ address syntax name @samp{clash} against method short name.
 
 As stated previously (@xref{Naming Conventions}), when G-Golf imports a
 Gnome library, its classes, properties, methods, functions, types and
-constant are renamed, mainly to avoid
+constants are renamed, mainly to avoid
 @samp{@uref{@value{UWIKI-CAMELCASE}, Camel Case}}, to surround class
 names by @samp{<} @samp{>} and to avoid @samp{_} (underscore) and use
 @samp{-} (hyphen) instead.
