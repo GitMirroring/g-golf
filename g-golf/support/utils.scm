@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2021
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -138,14 +138,18 @@
   args)
 
 (define (flatten lst)
-  (reverse! (let loop ((lst lst)
-                       (result '()))
-              (match lst
-                (() result)
-                ((x . rests)
-                 (if (pair? x)
-                     (loop rests (append (loop x '()) result))
-                     (loop rests (cons x result))))))))
+ (let loop ((item lst)
+            (result '()))
+   (match item
+     (()
+      result)
+     ((elt . rests)
+      (loop elt
+            (loop rests
+                  result)))
+     (else
+      (cons item
+            result)))))
 
 (define (explode lst)
   ;; Generate the (first level only [*]) combinatorial lists for LST.
