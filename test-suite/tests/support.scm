@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2021
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -139,7 +139,11 @@
 ;;; Utils
 ;;;
 
-(define-method (test-utils (self <g-golf-test-support>))
+(define-method (test-utils-1 (self <g-golf-test-support>))
+  (assert-equal (flatten '(1 2 (3) (4 (5 (6 (7 8) 9) (10 11))) 12))
+                '(1 2 3 4 5 6 7 8 9 10 11 12)))
+
+(define-method (test-utils-2 (self <g-golf-test-support>))
   (assert-equal "g-studly-caps-expand"
                 (g-studly-caps-expand "GStudlyCapsExpand"))
   (assert-equal "webkit-web-content"
