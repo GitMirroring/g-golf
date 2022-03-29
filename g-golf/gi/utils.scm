@@ -145,9 +145,10 @@
   (if (= value 0) #f #t))
 
 (define (gi-string->scm pointer)
-  (if (null-pointer? pointer)
-      #f
-      (pointer->string pointer)))
+  (and pointer
+       (if (null-pointer? pointer)
+           #f
+           (pointer->string pointer))))
 
 (define (gi-n-string->scm pointer n-string)
   (if (or (not pointer)
