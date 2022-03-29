@@ -1121,8 +1121,12 @@ method with its 'old' definition.
                         (gi-argument-set! gi-argument-out 'v-pointer %null-pointer))
                        ((utf8
                          filename)
-                        ;; not sure, but this shouldn't arm.
-                        (gi-argument-set! gi-argument-out 'v-pointer %null-pointer))
+                        (if is-pointer?
+                            (let ((bv (make-bytevector (sizeof '*) 0)))
+                              (gi-argument-set! gi-argument-out 'v-pointer
+                                                (bytevector->pointer bv)))
+                            (gi-argument-set! gi-argument-out 'v-pointer
+                                              %null-pointer)))
                        ((boolean
                          int8 uint8
                          int16 uint16
@@ -1300,8 +1304,11 @@ method with its 'old' definition.
      (warning "Unimplemented type" (symbol->string type-tag)))
     ((utf8
       filename)
-     ;; not sure, but this shouldn't arm.
-     (gi->scm (gi-argument-ref gi-argument 'v-pointer) 'string))
+     (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
+            (foreign (if is-pointer?
+                         (dereference-pointer gi-arg-val)
+                         gi-arg-val)))
+       (gi->scm foreign 'string)))
     ((gtype)
      (let ((val (gi-argument-ref gi-argument 'v-ulong)))
        (g-type->symbol val)))
