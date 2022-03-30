@@ -121,7 +121,7 @@ illustrate, here is an example:
 @subheading G-Golf Core Reference
 
 
-@ @ @sup{_} @strong{Procedures}
+@ @ @sup{_} @strong{Procedures and Variables}
 
 G-Golf procedure names that bind a Glib, GObject or GObject
 Introspection functions (always) use the @samp{original} name, except
@@ -165,16 +165,18 @@ When an @samp{obvious} name can't be find @samp{on its own}, or to avoid
 possible conflict outside G-Golf@footnote{As an example, it would not be
 a good idea to use (the name) @code{import} for the G-Golf procedure
 that reads and build the interface for a @code{GIR} library, since it is
-an R6RS reserved word.}, then the name starts using the @code{gi-}
-prefix, and equally for variables, using @code{%gi-}.
+an R6RS reserved word.}, then the name starts using a @code{g-} prefix
+(when the procedure context is GNOME in general) or @code{gi-} prefix
+(when the procedure context is GI more specifically), and equally for
+variables, using @code{%g-} or @code{%gi-}.
 
 
 @ @ @sup{_} @strong{Types and Values}
 
-G-Golf variables that bind Glib, GObject, Gdk and GI types and values
-use the same convention as for procedures, except that they always start
-with @code{%} and their original type names are transformed by the same
-rules that those applied when calling @ref{g-studly-caps-expand}.
+G-Golf variables that bind Glib, GObject and GI types and values use the
+same convention as for procedures, except that they always start with
+@code{%} and their original type names are transformed by the same rules
+that those applied when calling @ref{g-studly-caps-expand}.
 
 For example, from the @code{GIBaseInfo} section:
 
