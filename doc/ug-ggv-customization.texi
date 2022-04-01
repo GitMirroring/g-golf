@@ -14,6 +14,18 @@ Customization Square - G-Golf customization functionality.
 
 @indentedblock
 @table @code
+@item @ref{g-name-transform-exception}
+@item @ref{g-name-transform-exception?}
+@item @ref{g-name-transform-exception-add}
+@item @ref{g-name-transform-exception-remove}
+@item @ref{g-name-transform-exception-reset}
+@item @ref{g-studly-caps-expand-token-exception}
+@item @ref{g-studly-caps-expand-token-exception?}
+@item @ref{g-studly-caps-expand-token-exception-add}
+@item @ref{g-studly-caps-expand-token-exception-remove}
+@item @ref{g-studly-caps-expand-token-exception-reset}
+@c g-short-name-transform-exception
+@c g-short-name-transform-exception?
 @item @ref{gi-strip-boolean-result}
 @item @ref{gi-strip-boolean-result?}
 @item @ref{gi-strip-boolean-result-add}
@@ -42,8 +54,149 @@ Customization Square - G-Golf customization functionality.
 
 Welcome to the G-Golf Customization Square.
 
-This section is organized per customization theme: (-) GI strip boolean
-result; (-) GI method short name skip.
+This section is organized per customization theme: (-) GI Name
+Transformation; (-) GI strip boolean result; (-) GI method short name
+skip.
+
+
+@subheading GI Name Transformation
+
+In this corner of the square, we expose how you may customize G-Golf
+with respect to GI Name Transformation that occurs when importing GNOME
+libraries.
+
+When G-Golf imports a GNOME library, its classes, properties, methods,
+functions, types and constants are renamed (@xref{Naming Conventions}),
+mainly to (a) avoid @samp{@uref{@value{UWIKI-CAMELCASE}, Camel Case}},
+(b) surround class names by @samp{<} @samp{>} and (c) replace @samp{_}
+(underscore) occurrences using the @samp{-} (hyphen) character.
+
+
+As the context of name transformation is GNOME in general, as opposed to
+GI more specifically, (all) procedures involved are named using a
+@code{g-} prefix.
+
+Here is a summary of how the name transformation happens:
+
+@itemize
+@item
+Class names are obtained by calling @ref{g-name->class-name}, which
+calls @ref{g-name->name};
+@*@*
+
+@item
+@ref{g-name->name} first calls @ref{g-name-transform-exception?} and
+returns its value if it found one, otherwise, it calls
+@ref{g-studly-caps-expand};
+@*@*
+
+@item
+@ref{g-studly-caps-expand}, which does the core of the job, uses
+@ref{g-studly-caps-expand-token-exception?} to specially treat its
+listed token exceptions.
+@end itemize
+
+
+@anchor{g-name-transform-exception}
+@deffn Procedure g-name-transform-exception
+
+Returns an alist.
+
+Obtains and returns the list of GI name transform exception @code{(key
+. value)} pairs. Both @code{key} and @code{value} are strings.
+
+The GI name transform exception alist is never empty, as it is
+initialized and always kept to at least contain the @code{'("GObject"
+. "gobject")} pair@footnote{This is the only name for which G-Golf
+maintains compatibility with Guile-GNOME (which has a long list of
+exceptions)..}.
+
+ As a consequence @ref{<gobject>} (as opposed to @code{<g-object>} is
+the G-Golf class name for the base class of the GLib Object
+System.
+
+This only affects the class name though - any procedure or method name
+that comes from the @code{"GObject"} namespace is transformed using the
+@code{g-object} prefix, as the upstream library prefix is
+@code{g_object}.
+@end deffn
+
+
+@anchor{g-name-transform-exception?}
+@deffn Procedure g-name-transform-exception? key
+
+Returns @code{#t} if @var{key} is a key member of the GI name transform
+exception alist. Otherwise, it returns @code{#f}.
+@end deffn
+
+
+@anchor{g-name-transform-exception-add}
+@anchor{g-name-transform-exception-remove}
+@deffn Procedure g-name-transform-exception-add key value
+@deffnx Procedure g-name-transform-exception-remove key
+
+Returns nothing.
+
+Add (remove) a @var{(key . value)} pair to (from) the GI name transform
+exception alist.
+@end deffn
+
+
+@anchor{g-name-transform-exception-reset}
+@deffn Procedure g-name-transform-exception-reset
+
+Returns nothing.
+
+This procedure resets the GI name transform exception alist to its
+default value - which is to contain the single @code{'("GObject"
+. "gobject")} pair.
+@end deffn
+
+
+@anchor{g-studly-caps-expand-token-exception}
+@deffn Procedure g-studly-caps-expand-token-exception
+
+Returns an alist.
+
+Obtains and returns the list of GI studly caps expand token exception
+@code{(key . value)} pairs. Both @code{key} and @code{value} are
+strings.
+
+The GI studly caps expand token exception alist is never empty, as it is
+initialized and always kept to at least contain the @code{'("WebKit"
+. "webkit")} pair.
+@end deffn
+
+
+@anchor{g-studly-caps-expand-token-exception?}
+@deffn Procedure g-studly-caps-expand-token-exception? key
+
+Returns @code{#t} if @var{key} is a key member of the GI studly caps
+expand token exception alist. Otherwise, it returns @code{#f}.
+@end deffn
+
+
+@anchor{g-studly-caps-expand-token-exception-add}
+@anchor{g-studly-caps-expand-token-exception-remove}
+@deffn Procedure g-studly-caps-expand-token-exception-add key value
+@deffnx Procedure g-studly-caps-expand-token-exception-remove key
+
+Returns nothing.
+
+Add (remove) a @var{(key . value)} pair to (from) the GI studly caps
+expand token exception alist.
+@end deffn
+
+
+@anchor{g-studly-caps-expand-token-exception-reset}
+@deffn Procedure g-studly-caps-expand-token-exception-reset
+
+Returns nothing.
+
+This procedure resets the GI studly caps expand token exception alist to
+its default value - which is to contain the single @code{'("WebKit"
+. "webkit")} pair.
+@end deffn
 
 
 @subheading GI Strip Boolean Result

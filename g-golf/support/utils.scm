@@ -33,6 +33,7 @@
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
   #:use-module (system foreign)
+  #:use-module (g-golf hl-api n-decl)
 
   #:export (storage-get
 	    storage-set
@@ -46,8 +47,6 @@
             explode
 
             g-studly-caps-expand
-	    %g-name-transform-exceptions
-            %g-studly-caps-expand-token-exceptions
 	    g-name->name
             g-name->short-name
 	    g-name->class-name
@@ -200,37 +199,26 @@
 ;;; Name Transformation
 ;;;
 
-;; Initially based on Guile-Gnome (gobject gw utils), from which we keep
+;; Initially based on Guile-GNOME (gobject gw utils), from which we keep
 ;; one algorithm - see caps-expand-token-2 - the original idea and
 ;; procedures have been enhanced to allow special treatment of any token
 ;; that compose the name to be transformed. A typical example of such a
-;; need is from the WebKit2 namespace, where most users prefer that
-;; class names use webkit- as their prefix, not web-kit. Up to the point
-;; that we made this a default in G-Golf. Those who would prefer not to
-;; do this may of course remove the assoc pair from
-;; %g-studly-caps-expand-token-exceptions.
-
-(define %g-name-transform-exceptions
-  ;; Default name transformations can be overridden, but g-golf won't
-  ;; define exceptions for now, let's see.
-  '(#;("GEnum" . "genum")  	;; no sure yet
-    ("GObject" . "gobject")))
+;; need is from the WebKit2 namespace, where the "WebKit' studly caps
+;; expand (token) procedure is expected to return "webkit", not
+;; "web-kit".
 
 (define* (g-name->name g-name #:optional (as-string? #f))
-  (let ((name (or (assoc-ref %g-name-transform-exceptions g-name)
+  (let ((name (or (g-name-transform-exception? g-name)
                   (g-studly-caps-expand g-name))))
     (if as-string?
         name
         (string->symbol name))))
 
-(define %g-short-name-transform-exceptions
-  '(("GObject" . "g-object")))
-
 (define* (g-name->short-name g-name
                              g-parent-name
                              #:optional (as-string? #f))
   (let* ((name (g-name->name g-name 'as-string))
-         (parent-name (or (assoc-ref %g-short-name-transform-exceptions g-parent-name)
+         (parent-name (or (g-short-name-transform-exception? g-parent-name)
                           (g-name->name g-parent-name 'as-string)))
          (short-name
           (if (string-contains name parent-name)
@@ -259,8 +247,25 @@
      (string-append (substring class-string 1 (1- (string-length class-string)))
                     ":" (symbol->string name)))))
 
-(define %g-studly-caps-expand-token-exceptions
-  '(("WebKit" . "webkit")))
+
+#!
+
+The g-studly-caps-expand procedure is based on the version that
+is used by Guile-GNOME, where it is named GStudlyCapsExpand.
+
+It itself is based on the slib's strcase.scm Written 1992 by Dirk
+Lutzebaeck (lutzeb@cs.tu-berlin.de), and the code is in the public
+domain.
+
+It has then be modified by Aubrey Jaffer Nov 1992.
+SYMBOL-APPEND and StudlyCapsExpand added by A. Jaffer 2001.
+Authors of the original version were Ken Dickey and Aubrey Jaffer.
+
+For G-Golf, in 2019, I - David Pirotte - modified the code, so that it
+allows for exception treatment on inner token, such as "WebKit"
+-> "webkit", not "web-kit".
+
+!#
 
 (define (g-studly-caps-expand name)
   (let loop ((tokens (string-split name #\_))
@@ -280,7 +285,7 @@
   ;; #\- to.
   (if (string-null? token)
       token
-      (or (assoc-ref %g-studly-caps-expand-token-exceptions token)
+      (or (g-studly-caps-expand-token-exception? token)
           (caps-expand-token-1 token '()))))
 
 (define (caps-expand-token-1 token subtokens)
@@ -327,7 +332,7 @@
                                            (string-length token))))))))
 
 (define (any-caps-expand-token-exception token)
-  (let loop ((exceptions %g-studly-caps-expand-token-exceptions))
+  (let loop ((exceptions (g-studly-caps-expand-token-exception)))
     (match exceptions
       (()
        (values 0 #f))

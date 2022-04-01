@@ -65,11 +65,44 @@
 
 (define-class <g-golf-test-hl-api> (<test-case>))
 
+
 ;;;
 ;;; n-decl
 ;;;
 
-(define-method (test-n-decl-1 (self <g-golf-test-hl-api>))
+(define-method (test-n-decl-1.1 (self <g-golf-test-hl-api>))
+  (assert (g-name-transform-exception))
+  (assert-true (g-name-transform-exception? "GObject"))
+  (assert-false (g-name-transform-exception? "GEnum"))
+  (assert (g-name-transform-exception-add "GEnum" "genum"))
+  (assert-true (g-name-transform-exception? "GEnum"))
+  (assert (g-name-transform-exception-remove "GEnum"))
+  (assert-false (g-name-transform-exception? "GEnum"))
+  ;; removing "GObject" is a no op
+  (assert (g-name-transform-exception-remove "GObject"))
+  (assert-true (g-name-transform-exception? "GObject"))
+  (assert (g-name-transform-exception-add "GEnum" "genum"))
+  (assert (g-name-transform-exception-reset))
+  (assert-false (g-name-transform-exception? "GEnum"))
+  (assert-true (g-name-transform-exception? "GObject")))
+
+(define-method (test-n-decl-1.2 (self <g-golf-test-hl-api>))
+  (assert (g-studly-caps-expand-token-exception))
+  (assert-true (g-studly-caps-expand-token-exception? "WebKit"))
+  (assert-false (g-studly-caps-expand-token-exception? "BlueFox"))
+  (assert (g-studly-caps-expand-token-exception-add "BlueFox" "bluefox"))
+  (assert-true (g-studly-caps-expand-token-exception? "BlueFox"))
+  (assert (g-studly-caps-expand-token-exception-remove "BlueFox"))
+  (assert-false (g-studly-caps-expand-token-exception? "BlueFox"))
+  ;; removing "GObject" is a no op
+  (assert (g-studly-caps-expand-token-exception-remove "WebKit"))
+  (assert-true (g-studly-caps-expand-token-exception? "WebKit"))
+  (assert (g-studly-caps-expand-token-exception-add "BlueFox" "bluefos"))
+  (assert (g-studly-caps-expand-token-exception-reset))
+  (assert-false (g-studly-caps-expand-token-exception? "BlueFox"))
+  (assert-true (g-studly-caps-expand-token-exception? "WebKit")))
+
+(define-method (test-n-decl-2 (self <g-golf-test-hl-api>))
   (assert-true (eq? (gi-strip-boolean-result) '()))
   (assert-false (gi-strip-boolean-result? 'gdk-event-get-axis))
   (assert (gi-strip-boolean-result-add gdk-event-get-axis
@@ -90,7 +123,7 @@
   (assert (gi-strip-boolean-result-reset))
   (assert-true (eq? (gi-strip-boolean-result) '())))
 
-(define-method (test-n-decl-2.1 (self <g-golf-test-hl-api>))
+(define-method (test-n-decl-3.1 (self <g-golf-test-hl-api>))
   (assert-true (eq? (gi-method-short-name-skip) '()))
   (assert-false (gi-method-short-name-skip? 'gdk-event-get-axis))
   (assert (gi-method-short-name-skip-add gdk-event-get-axis
@@ -113,7 +146,7 @@
   (assert (gi-method-short-name-skip-reset))
   (assert-true (eq? (gi-method-short-name-skip) '())))
 
-(define-method (test-n-decl-2.2 (self <g-golf-test-hl-api>))
+(define-method (test-n-decl-3.2 (self <g-golf-test-hl-api>))
   (let ((%gi-add-method-gf-sn
          (@@ (g-golf hl-api function) gi-add-method-gf-sn)))
     (gi-method-short-name-skip-add gtk-label-get-text)

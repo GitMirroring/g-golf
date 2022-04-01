@@ -8,12 +8,12 @@
 @subsection Customizing G-Golf
 
 G-Golf offers a series of customization interfaces for the following
-domains: (@bullet{}) @emph{name transformation} - how things are being
-named as they are being imported;(@bullet{}) @emph{strip boolean result}
+domains: (@bullet{}) @emph{Name Transformation} - how things are being
+named as they are being imported;(@bullet{}) @emph{Strip Boolean Result}
 - should G-Golf elude (some) function and method call returned value
 when it is @code{#t} and raise an exception if the returned value is
-@code{#f}; (@bullet{}) @emph{method short name} - should G-Golf create
-them or not; (@bullet{}) @emph{syntax name protect} - how G-Golf should
+@code{#f}; (@bullet{}) @emph{Method Short Name} - should G-Golf create
+them or not; (@bullet{}) @emph{Syntax Name Protect} - how G-Golf should
 address syntax name @samp{clash} against method short name.
 
 
@@ -24,43 +24,19 @@ address syntax name @samp{clash} against method short name.
 
 @ @ @sup{_} @strong{Name Transformation}
 
-As stated previously (@xref{Naming Conventions}), when G-Golf imports a
-Gnome library, its classes, properties, methods, functions, types and
-constants are renamed, mainly to avoid
-@samp{@uref{@value{UWIKI-CAMELCASE}, Camel Case}}, to surround class
-names by @samp{<} @samp{>} and to avoid @samp{_} (underscore) and use
-@samp{-} (hyphen) instead.
+@c As stated previously (@xref{Naming Conventions}),
 
-G-Golf provides two variables, that may be used to fully or partially
-customize the name transformation output:
+When G-Golf imports a GNOME library, its classes, properties, methods,
+functions, types and constants are renamed (@xref{Naming Conventions}),
+mainly to (a) avoid @samp{@uref{@value{UWIKI-CAMELCASE}, Camel Case}},
+(b) surround class names by @samp{<} @samp{>} and (c) replace @samp{_}
+(underscore) occurrences using the @samp{-} (hyphen) character instead.
 
-@indentedblock
-@table @code
-@item @ref{%g-name-transform-exceptions}
-@item @ref{%g-studly-caps-expand-token-exceptions}
-@end table
-@end indentedblock
+G-Golf offers - through a series of interfaces to get, check, add,
+remove and reset two (distinct) associative lists - a way to either
+ignore or partially customize the renaming process.
 
-Here is a summary of how name transformation happens and how the above
-two variables are used:
-
-@itemize
-@item
-Class names are obtained by calling @ref{g-name->class-name}, which
-calls @ref{g-name->name}
-@*@*
-
-@item
-@ref{g-name->name} first checks if its argument has an entry in
-@ref{%g-name-transform-exceptions} and returns its value if it found
-one, otherwise, it calls @ref{g-studly-caps-expand} @*@*
-
-@item
-@ref{g-studly-caps-expand}, which does the core of the job, uses
-@ref{%g-studly-caps-expand-token-exceptions} to specially treat its
-listed token exceptions.
-
-@end itemize
+@xref{Customization Square} - @emph{GI Name Transformation}.
 
 
 @ @ @sup{_} @strong{Strip Boolean Result}
@@ -70,7 +46,7 @@ Some GI typelib functions and methods that (1) have at least one
 or @code{#f}, solely to indicate that the function or method call was
 successful or not.
 
-G-Golf also offers - through a series of interfaces to get, check, add,
+G-Golf offers - through a series of interfaces to get, check, add,
 remove and reset a list of such function or methods names - to instead
 elude the function or method returned value when it is @code{#t} and
 raise an exception if the returned value is @code{#f}.
