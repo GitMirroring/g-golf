@@ -14,8 +14,8 @@
 @table @code
 @item @ref{g-studly-caps-expand}
 @item @ref{g-name->name}
-@item @ref{g-name->short-name}
 @item @ref{g-name->class-name}
+@item @ref{g-name->short-name}
 @item @ref{gi-type-tag->ffi}
 @item @ref{gi-type-tag->init-val}
 @item @ref{syntax-name->method-name}
@@ -81,16 +81,14 @@ The list of StudlyCaps token exception pairs are maintained in the
 
 
 @anchor{g-name->name}
-@anchor{g-name->short-name}
 @anchor{g-name->class-name}
 @deffn Procedure g-name->name g-name [as-string? #f]
-@deffnx Procedure g-name->short-name g-name g-parent-name [as-string? #f]
 @deffnx Procedure g-name->class-name g-name [as-string? #f]
 
 Return a symbol name, or a string name if @var{as-string} is #t.
 
-@ref{g-name->name} first obtains the scheme representation string for
-@var{g-name}, by looking for a possible entry in
+@ref{g-name->name} first obtains, the scheme representation of
+@var{g-name}, as a string, by looking for a possible entry in
 @ref{g-name-transform-exception}, or if it failed, by calling
 @ref{g-studly-caps-expand}.
 
@@ -98,22 +96,40 @@ If the optional @var{as-string} argument is #t, it returns
 that string, otherwise, it calls and returns the result of
 @code{string->symbol}.
 
-@ref{g-name->short-name} returns a (method) short name for
-@var{g-name}. It first obtains the scheme representation string for both
-argument, @var{name} and @var{parent-name}, which is the container
-(class) name, then:
+@ref{g-name->class-name} calls @ref{g-name->name}, surrounds the result
+using @code{#\<} and @code{#\>} characters then either return that
+string, if @var{as-string?} is @code{#t}, otherwise it calls and returns
+the result of @code{string->symbol}:
+
+@lisp
+(g-name->class-name "GtkWindow")
+@result{} <gtk-window>
+@end lisp
+@end deffn
+
+
+@anchor{g-name->short-name}
+@deffn Procedure g-name->short-name g-name g-class-name [as-string? #f]
+
+Return a symbol name, or a string name if @var{as-string} is #t.
+
+Obtains and returns a (method) short name for @var{g-name}. It first
+obtains the @abbr{sro, scheme representation of} both @var{g-name} and
+@var{g-class-name} (which is expected to be the upstream method
+container (class) name), as a string, then:
 
 @itemize
 @item
-if @var{parent-name} is (fully) contained in @var{name}, it drops the
-@var{parent-name} prefix - or its plural form - and its trailing #\-
-(hiphen) delimiter from @var{name};
+if the sro @var{g-class-name} is (fully) contained in the sro
+@var{g-name}, it drops the sro @var{g-class-name} prefix - or its plural
+form - and its trailing #\- (hiphen) delimiter from the sro
+@var{g-name};
 @ifhtml
 @*@*
 @end ifhtml
 
 @item
-otherwise, it drops the longest common string prefix it finds.
+otherwise, it drops the longest common sro string prefix it finds.
 @end itemize
 
 If the optional @var{as-string} argument is #t, it returns
@@ -132,16 +148,6 @@ cases:
 
 (g-name->short-name "gtk_drag_begin" "GtkWidget")
 @result{} drag-begin
-@end lisp
-
-@ref{g-name->class-name} calls @ref{g-name->name}, surrounds the result
-using @code{#\<} and @code{#\>} characters then either return that
-string, if @var{as-string?} is @code{#t}, otherwise it calls and returns
-the result of @code{string->symbol}:
-
-@lisp
-(g-name->class-name "GtkWindow")
-@result{} <gtk-window>
 @end lisp
 @end deffn
 
