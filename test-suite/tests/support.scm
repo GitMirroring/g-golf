@@ -170,5 +170,24 @@
                 (g-name->short-name "gtk_drag_begin"
                                     "GtkWidget")))
 
+(define-method (test-utils-3 (self <g-golf-test-support>))
+  (assert-equal 'begin_ (syntax-name->method-name 'begin))
+  (assert (syntax-name-protect-prefix-set '_))
+  (assert-equal '_begin_ (syntax-name->method-name 'begin))
+  (assert (syntax-name-protect-postfix-set #f))
+  (assert-equal '_begin (syntax-name->method-name 'begin))
+  (assert (syntax-name-protect-prefix-set #f))
+  (assert-exception (syntax-name->method-name 'begin))
+  (assert (syntax-name-protect-renamer-set
+           (lambda (name)
+             (symbol-append 'blue- name '-fox))))
+  (assert-equal 'blue-begin-fox (syntax-name->method-name 'begin))
+  (assert (syntax-name-protect-prefix-reset))
+  (assert (syntax-name-protect-postfix-reset))
+  (assert (syntax-name-protect-renamer-reset))
+  (assert-equal 'begin_ (syntax-name->method-name 'begin))
+  (assert (syntax-name-protect-reset))
+  (assert-equal 'begin_ (syntax-name->method-name 'begin)))
+
 
 (exit-with-summary (run-all-defined-test-cases))

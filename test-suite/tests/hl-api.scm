@@ -154,6 +154,32 @@
     (gi-method-short-name-skip-remove gtk-label-get-text)
     (assert-true (%gi-add-method-gf-sn 'gtk-label-get-text 'get-text))))
 
+(define-method (test-n-decl-4.1 (self <g-golf-test-hl-api>))
+  (assert (syntax-name-protect-prefix))
+  (assert-false (syntax-name-protect-prefix))
+  (assert (syntax-name-protect-prefix-set '_))
+  (assert-equal '_ (syntax-name-protect-prefix))
+  (assert (syntax-name-protect-prefix-reset))
+  (assert-false (syntax-name-protect-prefix)))
+
+(define-method (test-n-decl-4.2 (self <g-golf-test-hl-api>))
+  (assert (syntax-name-protect-postfix))
+  (assert-equal '_ (syntax-name-protect-postfix))
+  (assert (syntax-name-protect-postfix-set #f))
+  (assert-false (syntax-name-protect-postfix))
+  (assert (syntax-name-protect-postfix-reset))
+  (assert-equal '_ (syntax-name-protect-postfix)))
+
+(define-method (test-n-decl-4.3 (self <g-golf-test-hl-api>))
+  (assert (syntax-name-protect-renamer))
+  (assert-false (syntax-name-protect-renamer))
+  (assert (syntax-name-protect-renamer-set
+           (lambda (name)
+             (symbol-append 'blue- name '-fox))))
+  (assert-true (procedure? (syntax-name-protect-renamer)))
+  (assert (syntax-name-protect-renamer-reset))
+  (assert-false (syntax-name-protect-renamer)))
+
 
 ;;;
 ;;;

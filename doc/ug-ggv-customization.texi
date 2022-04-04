@@ -37,6 +37,16 @@ Customization Square - G-Golf customization functionality.
 @item @ref{gi-method-short-name-skip-add}
 @item @ref{gi-method-short-name-skip-remove}
 @item @ref{gi-method-short-name-skip-reset}
+@item @ref{syntax-name-protect-prefix}
+@item @ref{syntax-name-protect-prefix-set}
+@item @ref{syntax-name-protect-prefix-reset}
+@item @ref{syntax-name-protect-postfix}
+@item @ref{syntax-name-protect-postfix-set}
+@item @ref{syntax-name-protect-postfix-reset}
+@item @ref{syntax-name-protect-renamer}
+@item @ref{syntax-name-protect-renamer-set}
+@item @ref{syntax-name-protect-renamer-reset}
+@item @ref{syntax-name-protect-reset}
 @end table
 @end indentedblock
 
@@ -54,16 +64,16 @@ Customization Square - G-Golf customization functionality.
 
 Welcome to the G-Golf Customization Square.
 
-This section is organized per customization theme: (-) GI Name
-Transformation; (-) GI strip boolean result; (-) GI method short name
-skip.
+This section is organized per customization theme: (-) @emph{GI Name
+Transformation}; (-) @emph{GI Strip Boolean Result}; (-) @emph{GI Method
+Short Name Skip} and (-) @emph{GI Syntax Name Protect}.
 
 
 @subheading GI Name Transformation
 
 In this corner of the square, we expose how you may customize G-Golf
-with respect to GI Name Transformation that occurs when importing GNOME
-libraries.
+with respect to @emph{GI Name Transformation} that occurs when importing
+GNOME libraries.
 
 When G-Golf imports a GNOME library, its classes, properties, methods,
 functions, types and constants are renamed (@xref{Naming Conventions}),
@@ -202,10 +212,11 @@ its default value - which is to contain the single @code{'("WebKit"
 @subheading GI Strip Boolean Result
 
 In this corner of the square, we expose how you may customize G-Golf
-with respect to GI typelib functions and methods that (1) have at least
-one @code{'inout} or @code{'out} argument(s) and (2) return either
-@code{#t} or @code{#f}, solely to indicate that the function or method
-call was successful or not.
+with respect to @emph{GI Strip Boolean Result}, which addresses the
+problem of typelib functions and methods that (1) have at least one
+@code{'inout} or @code{'out} argument(s) and (2) return either @code{#t}
+or @code{#f}, solely to indicate that the function or method call was
+successful or not.
 
 The default G-Golf behavior, when there is at least one @code{'inout} or
 @code{'out} argument(s), is to return multiple values. The first
@@ -310,9 +321,9 @@ the result of the call from the returned value(s) to the empty list.
 @subheading GI Method Short Name Skip
 
 In this corner of the square, we expose how you may customize G-Golf
-with respect to GI method short name, more specifically, whether you
-wish to skip the method short name creation, and doing so individually
-or for all GI imported methods.
+with respect to @emph{GI Method Short Name}, more specifically, whether
+you wish to skip the method short name creation, and doing so
+individually or for all GI imported methods.
 
 By default, as it imports a GI typelib, G-Golf creates a method short
 name for each imported method, obtained by dropping the container name
@@ -375,6 +386,100 @@ for which G-Golf will skip the method short name creation step.
 Resets the list of GI method long name for which G-Golf will skip the
 method short name creation step to the empty list.
 @end deffn
+
+
+@subheading GI Syntax Name Protect
+
+In this corner of the square, we expose how you may customize G-Golf
+with respect to @emph{GI Syntax Name Protect}.
+
+When G-Golf creates a method short name, obtained by dropping the
+container name (and its trailing hyphen) from the GI typelib method
+full/long name, it may lead to a @samp{name clash}, with an already
+defined procedure or syntax.
+
+GI methods are added to their respective generic function, which is
+created if it does not already exist. When a generic function is
+created, G-Golf checks if the name is used, and when it is bound to a
+procedure, the procedure is @samp{captured} into an unspecialized
+method, which is added to the newly created generic function.
+
+However, when the name is used but its variable value is a syntax, the
+above can't be done and the name must be @samp{protected}, which is what
+@ref{syntax-name->method-name} does@footnote{Users should normally not
+call this procedure - except for testing purposes, if/when they
+customize its default settings - it is appropriately and automatically
+called by G-Golf when importing a GI typelib.}, using a @emph{renamer},
+or by adding a @emph{prefix}, a @emph{postfix} or both to its (symbol)
+@var{name} argument.
+
+G-Golf defines the following interfaces to get, set and reset the syntax
+name protect @emph{prefix}, @emph{postfix} and @emph{renamer}, of which
+at least one must be set.
+
+@anchor{syntax-name-protect-prefix}
+@anchor{syntax-name-protect-prefix-set}
+@anchor{syntax-name-protect-prefix-reset}
+@deffn Procedure syntax-name-protect-prefix
+@deffnx Procedure syntax-name-protect-prefix-set prefix
+@deffnx Procedure syntax-name-protect-prefix-reset
+
+Respectively get, set and reset the syntax name protect
+@var{prefix}. Its default value is @code{#f}.
+@end deffn
+
+
+@anchor{syntax-name-protect-postfix}
+@anchor{syntax-name-protect-postfix-set}
+@anchor{syntax-name-protect-postfix-reset}
+@deffn Procedure syntax-name-protect-postfix
+@deffnx Procedure syntax-name-protect-postfix-set postfix
+@deffnx Procedure syntax-name-protect-postfix-reset
+
+Respectively get, set and reset the syntax name protect
+@var{postfix}. Its default value is @code{'_} (the symbol _).
+@end deffn
+
+
+@anchor{syntax-name-protect-renamer}
+@anchor{syntax-name-protect-renamer-set}
+@anchor{syntax-name-protect-renamer-reset}
+@deffn Procedure syntax-name-protect-renamer
+@deffnx Procedure syntax-name-protect-renamer-set renamer
+@deffnx Procedure syntax-name-protect-renamer-reset
+
+Respectively get, set and reset the syntax name protect
+@var{renamer}. Its default value is @code{'_} (the symbol _).
+
+The syntax name protect @var{renamer}, unless set to @code{#f}, must be
+a procedure that takes a (symbol) name as its single argument, and
+return a @samp{none clashing} (symbol) name.
+@end deffn
+
+
+@anchor{syntax-name-protect-reset}
+@deffn Procedure syntax-name-protect-reset
+
+This procedure will conveniently reset all three syntax name protect
+@emph{prefix}, @emph{postfix} and @emph{renamer} to their default value,
+which are:
+
+@indentedblock
+@multitable @columnfractions .30 .05 .25
+@item @ref{syntax-name-protect-prefix}
+@tab @code{#f}
+
+@item @ref{syntax-name-protect-postfix}
+@tab @code{'_}
+@tab (the symbol _)
+
+@item @ref{syntax-name-protect-renamer}
+@tab @code{#f}
+@end multitable
+@end indentedblock
+
+@end deffn
+
 
 @c @subheading Variables
 

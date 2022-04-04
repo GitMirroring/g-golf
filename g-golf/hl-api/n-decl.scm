@@ -43,7 +43,7 @@
 
             g-short-name-transform-exception
             g-short-name-transform-exception?
-
+ 
             gi-strip-boolean-result
             gi-strip-boolean-result?
             gi-strip-boolean-result-add
@@ -55,7 +55,18 @@
             gi-method-short-name-skip-all
             gi-method-short-name-skip-add
             gi-method-short-name-skip-remove
-            gi-method-short-name-skip-reset))
+            gi-method-short-name-skip-reset
+
+            syntax-name-protect-prefix
+            syntax-name-protect-prefix-set
+            syntax-name-protect-prefix-reset
+            syntax-name-protect-postfix
+            syntax-name-protect-postfix-set
+            syntax-name-protect-postfix-reset
+            syntax-name-protect-renamer
+            syntax-name-protect-renamer-set
+            syntax-name-protect-renamer-reset
+            syntax-name-protect-reset))
 
 
 ;;;
@@ -211,7 +222,6 @@
 (define method-short-name-skip-remove #f)
 (define gi-method-short-name-skip-reset #f)
 
-
 (let ((%gi-method-short-name-skip '()))
 
   (set! gi-method-short-name-skip
@@ -258,3 +268,67 @@
   (syntax-rules ()
     ((gi-method-short-name-skip-remove name ...)
      (method-short-name-skip-remove '(name ...)))))
+
+
+;;;
+;;; syntax name protect
+;;;
+
+(define syntax-name-protect-prefix #f)
+(define syntax-name-protect-prefix-set #f)
+(define syntax-name-protect-prefix-reset #f)
+
+(let ((%syntax-name-protect-prefix #f))
+
+  (set! syntax-name-protect-prefix
+        (lambda ()
+          %syntax-name-protect-prefix))
+
+  (set! syntax-name-protect-prefix-set
+        (lambda (value)
+          (set! %syntax-name-protect-prefix value)))
+
+  (set! syntax-name-protect-prefix-reset
+        (lambda ()
+          (set! %syntax-name-protect-prefix #f))))
+
+(define syntax-name-protect-postfix #f)
+(define syntax-name-protect-postfix-set #f)
+(define syntax-name-protect-postfix-reset #f)
+
+(let ((%syntax-name-protect-postfix '_))
+
+  (set! syntax-name-protect-postfix
+        (lambda ()
+          %syntax-name-protect-postfix))
+
+  (set! syntax-name-protect-postfix-set
+        (lambda (value)
+          (set! %syntax-name-protect-postfix value)))
+
+  (set! syntax-name-protect-postfix-reset
+        (lambda ()
+          (set! %syntax-name-protect-postfix '_))))
+
+(define syntax-name-protect-renamer #f)
+(define syntax-name-protect-renamer-set #f)
+(define syntax-name-protect-renamer-reset #f)
+
+(let ((%syntax-name-protect-renamer #f))
+
+  (set! syntax-name-protect-renamer
+        (lambda ()
+          %syntax-name-protect-renamer))
+
+  (set! syntax-name-protect-renamer-set
+        (lambda (value)
+          (set! %syntax-name-protect-renamer value)))
+
+  (set! syntax-name-protect-renamer-reset
+        (lambda ()
+          (set! %syntax-name-protect-renamer #f))))
+
+(define (syntax-name-protect-reset)
+  (syntax-name-protect-prefix-reset)
+  (syntax-name-protect-postfix-reset)
+  (syntax-name-protect-renamer-reset))

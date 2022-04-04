@@ -48,13 +48,10 @@
 
             g-studly-caps-expand
 	    g-name->name
-            g-name->short-name
 	    g-name->class-name
+            g-name->short-name
 	    #;gi-class-name->method-name
 
-            %syntax-name-protect-prefix
-            %syntax-name-protect-postfix
-            %syntax-name-protect-renamer
             syntax-name->method-name
 
             gi-type-tag->ffi
@@ -214,6 +211,13 @@
         name
         (string->symbol name))))
 
+(define* (g-name->class-name g-name #:optional (as-string? #f))
+  (let* ((name (g-name->name g-name 'as-string))
+         (class-name (string-append "<" name ">")))
+    (if as-string?
+        class-name
+        (string->symbol class-name))))
+
 (define* (g-name->short-name g-name
                              g-parent-name
                              #:optional (as-string? #f))
@@ -232,13 +236,6 @@
     (if as-string?
         short-name
         (string->symbol short-name))))
-
-(define* (g-name->class-name g-name #:optional (as-string? #f))
-  (let* ((name (g-name->name g-name 'as-string))
-         (class-name (string-append "<" name ">")))
-    (if as-string?
-        class-name
-        (string->symbol class-name))))
 
 ;; Not sure this is used but let's keep it as well
 #;(define (gi-class-name->method-name class-name name)
@@ -345,13 +342,12 @@ allows for exception treatment on inner token, such as "WebKit"
 
 
 ;;;
-;;; Syntax names -> method names
+;;; Syntax name -> method name
 ;;;
 
-;; The following variables and procedure are related to the so called
-;; GI method short names, which are obtained by dropping the container
-;; name (and its trailing hyphen) from the GI method full/long names,
-;; which are (Gnome method long names), by definition, always unique.
+;; When G-Golf creates a method short name, it obtains it by dropping
+;; the container name (and its trailing hyphen) from the GI method full
+;; name, which is (the GNOME method name), by definition, always unique.
 
 ;; GI methods are added to their respective generic function, which is
 ;; created if it does not already exist. When a generic function is
@@ -365,26 +361,20 @@ allows for exception treatment on inner token, such as "WebKit"
 ;; 'user provided'), or by adding a prefix, a postfix or both to its
 ;; argument (symbol) name.
 
-(define %syntax-name-protect-prefix #f)
-(define %syntax-name-protect-postfix '_)
-(define %syntax-name-protect-renamer #f)
-
 (define (syntax-name->method-name name)
-  (cond (%syntax-name-protect-renamer
-         (%syntax-name-protect-renamer name))
-        ((and %syntax-name-protect-prefix
-              %syntax-name-protect-postfix)
-         (symbol-append %syntax-name-protect-prefix
-                        name
-                        %syntax-name-protect-postfix))
-        (%syntax-name-protect-prefix
-         (symbol-append %syntax-name-protect-prefix
-                        name))
-        (%syntax-name-protect-postfix
-         (symbol-append name
-                        %syntax-name-protect-postfix))
+  (let ((snp-prefix (syntax-name-protect-prefix))
+        (snp-postfix (syntax-name-protect-postfix))
+        (snp-renamer (syntax-name-protect-renamer)))
+    (cond (snp-renamer (snp-renamer name))
+          ((and snp-prefix
+                snp-postfix)
+           (symbol-append snp-prefix name snp-postfix))
+          (snp-prefix
+           (symbol-append snp-prefix name))
+        (snp-postfix (symbol-append name snp-postfix))
         (else
-         (error "At least one of %syntax-name-protect-prefix, %syntax-name-protect-postfix or %syntax-name-protect-renamer variable must be defined: " %syntax-name-protect-prefix %syntax-name-protect-postfix %syntax-name-protect-renamer))))
+         (error "At least one of syntax name protect prefix, postfix or
+renamer must be defined: " snp-prefix snp-postfix snp-renamer)))))
 
 
 ;;;

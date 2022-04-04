@@ -68,26 +68,13 @@ step, either individually or for all GI imported methods.
 
 @ @ @sup{_} @strong{Syntax Name Protect}
 
-When a short name method is created, which is obtained by dropping the
+When G-Golf creates a method short name, obtained by dropping the
 container name (and its trailing hyphen) from the GI typelib method
 full/long name, it may lead to a @samp{name clash}, with an already
-defined procedure or syntax. @samp{Name clashes} against methods are not
-a concern (this is explained in the @ref{syntax-name->method-name}
-documentation entry).
+defined procedure or syntax.
 
-However, the @samp{magic} applied for @samp{name clashes} against
-procedures can not work for syntaxes, and those syntax names must be
-@samp{protected}, which is achieved by (automatically) calling
-@ref{syntax-name->method-name} (users should normally not call this
-procedure themselves - except for testing purposes).
+Both type of @samp{name clash} need to be addressed, which G-Golf does,
+automatically, but special care must be taken when that happens against
+a syntax name, a process that you may custom to your own taste.
 
-Three variables are provided to customize the @samp{Syntax Name
-Protect} default mechanism:
-
-@indentedblock
-@table @code
-@item @ref{%syntax-name-protect-prefix}
-@item @ref{%syntax-name-protect-postfix}
-@item @ref{%syntax-name-protect-renamer}
-@end table
-@end indentedblock
+@xref{Customization Square} - @emph{GI Syntax Name Protect}.
