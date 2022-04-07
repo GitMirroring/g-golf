@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019
+;;;; Copyright (C) 2019 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -31,6 +31,9 @@
   #:use-module (system foreign)
   #:use-module (g-golf init)
   #:use-module (g-golf gi utils)
+  #:use-module (g-golf gi common-types)
+  #:use-module (g-golf gi base-info)
+  #:use-module (g-golf gi type-info)
 
   #:duplicates (merge-generics
 		replace
@@ -38,10 +41,29 @@
 		warn
 		last)
 
-  #:export (g-constant-info-free-value
+  #:export (gi-import-constant
+
+            g-constant-info-free-value
             g-constant-info-get-type
             g-constant-info-get-value))
 
+
+;;;
+;;;
+;;;
+
+(define* (gi-import-constant info)
+  (let* ((g-name (g-base-info-get-name info))
+         ;; (name (g-name->name g-name))
+         (type-info (g-constant-info-get-type info))
+         (type-tag (g-type-info-get-tag type-info))
+         (field (gi-type-tag->field type-tag))
+         (value (make-gi-argument))
+         (dummy (g-constant-info-get-value info value))
+         (constant (gi-argument-ref value field)))
+    (g-base-info-unref type-info)
+    (values constant
+            g-name)))
 
 
 ;;;

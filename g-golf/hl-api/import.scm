@@ -51,8 +51,7 @@
             gi-is-info-a?
             gi-import
             gi-import-by-name
-            gi-import-info
-            gi-import-constant))
+            gi-import-info))
 
 
 #;(g-export )
@@ -159,16 +158,3 @@
                          i-type
                          "not imported"))))
            #f)))))
-
-(define* (gi-import-constant info)
-  (let* ((g-name (g-base-info-get-name info))
-         ;; (name (g-name->name g-name))
-         (type-info (g-constant-info-get-type info))
-         (type-tag (g-type-info-get-tag type-info))
-         (field (gi-type-tag->field type-tag))
-         (value (make-gi-argument))
-         (dummy (g-constant-info-get-value info value))
-         (constant (gi-argument-ref value field)))
-    (g-base-info-unref type-info)
-    (values constant
-            g-name)))
