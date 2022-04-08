@@ -210,115 +210,43 @@
               ;; info - it is needed by g-function-info-invoke.
               (gi-cache-set! 'function name f-inst)
               (if (!is-method? f-inst)
-                  (gi-add-method f-inst gi-add-procedure)
+                  (gi-add-method-* f-inst)
                   (gi-add-procedure f-inst))
               f-inst))))))
 
-(define (gi-add-procedure f-inst)
+(define* (gi-add-procedure f-inst #:key
+                           (name #f) (procedure #f))
   (let ((module (resolve-module '(g-golf hl-api function)))
-        (name (!name f-inst)))
-    (module-g-export! module `(,name))
-    (if (!override? f-inst)
-        (module-set! module name (!o-func f-inst))
-        (module-set! module name (!i-func f-inst)))))
+        (the-name (or name (!name f-inst)))
+        (the-procedure (or procedure
+                           (if (!override? f-inst)
+                               (!o-func f-inst)
+                               (!i-func f-inst)))))
+    (module-g-export! module `(,the-name))
+    (module-set! module the-name the-procedure)))
 
-(define (gi-add-method f-inst fallback)
+(define (gi-add-method-* f-inst)
   (let* ((info (!info f-inst))
          (parent (g-base-info-get-container info))
-         (type-tag (g-base-info-get-type parent)))
+         (type-tag (g-base-info-get-type parent))
+         (procedure (if (!override? f-inst)
+                        (!o-func f-inst)
+                        (!i-func f-inst))))
     (case type-tag
       ((interface
         object)
        (let* ((m-long-name (!name f-inst))
               (m-long-generic (gi-add-method-gf m-long-name))
-              (m-short-name (!m-name f-inst))
-              (m-short-generic (gi-add-method-gf-sn m-long-name m-short-name))
-              (specializers (gi-add-method-specializers f-inst))
-              (procedure (if (!override? f-inst)
-                             (!o-func f-inst)
-                             (!i-func f-inst))))
-         (gi-add-methods m-long-generic
-                         m-short-generic
-                         specializers
-                         procedure)))
+              (specializers (gi-add-method-specializers f-inst)))
+         (gi-add-method m-long-generic specializers procedure)
+         (unless (gi-method-short-name-skip? m-long-name)
+           (let* ((m-short-name (!m-name f-inst))
+                  (m-long-generic (gi-add-method-gf m-short-name)))
+             (gi-add-method m-long-generic specializers procedure)))))
       (else
-       (fallback f-inst)))))
-
-(define (gi-add-methods m-long-generic
-                        m-short-generic
-                        specializers
-                        procedure)
-  (for-each (lambda (xp-spec)
-              (add-method! m-long-generic
-                           (make <method>
-                             #:specializers xp-spec
-                             #:procedure procedure))
-              (when m-short-generic
-                (add-method! m-short-generic
-                             (make <method>
-                               #:specializers xp-spec
-                               #:procedure procedure))))
-      (explode specializers)))
-
-#!
-
-The gi-add-method-gf code now uses ensure-generic, when its name
-argument is find to be bound to a procedure. It should have used it in
-the first place, but I've looked at the code and ensure-generic actually
-does a better job then what I wrote, because it checks if the procedure
-is a procedure-with-setter?, and returns a <generic-with-setter>
-instance, otherwise, it returns a <generic> instance.
-
-Nonetheless, I'll keep the code I wrote as an example of 'manually'
-promoting a procedure (with no setter) to a generic function, adding a
-method with its 'old' definition.
-
-  ...
-  (else
-   (module-replace! module `(,name))
-   (let ((gf (make <generic> #:name name)))
-     (module-set! module name gf)
-     (add-method! gf
-                  (make <method>
-                    #:specializers <top>
-                    #:procedure (lambda ( . args)
-                                  (apply value args))))
-     gf))
-
-!#
-
-(define* (gi-add-method-gf name #:optional (module #f))
-  (let* ((g-golf (resolve-module '(g-golf)))
-         (module (or module
-                     (resolve-module '(g-golf hl-api gobject))))
-         (variable (module-variable module name))
-         (value (and variable
-                     (variable-bound? variable)
-                     (variable-ref variable)))
-         (names `(,name)))
-    (if value
-        (cond ((generic? value)
-               value)
-              ((macro? value)
-               (gi-add-method-gf (syntax-name->method-name name)
-                                 module))
-              (else
-               (module-replace! module names)
-               (re-export-and-replace-names! g-golf names)
-               (let ((gf (ensure-generic value name)))
-                 (module-set! module name gf)
-                 gf)))
-        (begin
-          (module-export! module names)
-          (let ((gf (make <generic> #:name name)))
-            (module-set! module name gf)
-            gf)))))
-
-(define* (gi-add-method-gf-sn m-long-name m-short-name
-                              #:optional (module #f))
-  (if (gi-method-short-name-skip? m-long-name)
-      #f
-      (gi-add-method-gf m-short-name module)))
+       (gi-add-procedure f-inst
+                         #:name (!name f-inst)
+                         #:procedure procedure)))))
 
 (define (gi-add-method-specializers f-inst)
   (let ((arguments (!arguments f-inst))

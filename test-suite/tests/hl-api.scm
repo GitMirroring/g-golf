@@ -146,14 +146,6 @@
   (assert (gi-method-short-name-skip-reset))
   (assert-true (eq? (gi-method-short-name-skip) '())))
 
-(define-method (test-n-decl-3.2 (self <g-golf-test-hl-api>))
-  (let ((%gi-add-method-gf-sn
-         (@@ (g-golf hl-api function) gi-add-method-gf-sn)))
-    (gi-method-short-name-skip-add gtk-label-get-text)
-    (assert-false (%gi-add-method-gf-sn 'gtk-label-get-text 'get-text))
-    (gi-method-short-name-skip-remove gtk-label-get-text)
-    (assert-true (%gi-add-method-gf-sn 'gtk-label-get-text 'get-text))))
-
 (define-method (test-n-decl-4.1 (self <g-golf-test-hl-api>))
   (assert (syntax-name-protect-prefix))
   (assert-false (syntax-name-protect-prefix))

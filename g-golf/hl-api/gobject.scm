@@ -55,9 +55,12 @@
 
   #:export (<gobject>
             gobject-class?
+            <ginterface>
+
             g-object-find-class
             g-object-make-class
-            <ginterface>))
+            gi-add-method
+            gi-add-method-gf))
 
 
 #;(g-export )
@@ -381,8 +384,22 @@
 
 
 ;;;
+;;; <ginterface>
+;;;
+
+#;(define-class <ginterface-class> (<gtype-class>))
+
+(define-class <ginterface> (<gtype-instance>)
+  #:info #t
+  #:metaclass <gobject-class>)
+
+
+;;;
 ;;; Utils
 ;;;
+
+;; Below, procedures and methods to support the (g-golf hl-api function)
+;; module, wrt its goops/gobject 'required' functionality.
 
 ;; [1]
 
@@ -427,13 +444,64 @@
           c-inst)
         (error "Undefined (parent) class: " p-name))))
 
+(define (gi-add-method generic specializers procedure)
+  (for-each (lambda (xp-spec)
+              (add-method! generic
+                           (make <method>
+                             #:specializers xp-spec
+                             #:procedure procedure)))
+      (explode specializers)))
 
-;;;
-;;; <ginterface>
-;;;
+#!
 
-#;(define-class <ginterface-class> (<gtype-class>))
+The gi-add-method-gf code now uses ensure-generic, when its name
+argument is find to be bound to a procedure. It should have used it in
+the first place, but I've looked at the code and ensure-generic actually
+does a better job then what I wrote, because it checks if the procedure
+is a procedure-with-setter?, and returns a <generic-with-setter>
+instance, otherwise, it returns a <generic> instance.
 
-(define-class <ginterface> (<gtype-instance>)
-  #:info #t
-  #:metaclass <gobject-class>)
+Nonetheless, I'll keep the code I wrote as an example of 'manually'
+promoting a procedure (with no setter) to a generic function, adding a
+method with its 'old' definition.
+
+  ...
+  (else
+   (module-replace! module `(,name))
+   (let ((gf (make <generic> #:name name)))
+     (module-set! module name gf)
+     (add-method! gf
+                  (make <method>
+                    #:specializers <top>
+                    #:procedure (lambda ( . args)
+                                  (apply value args))))
+     gf))
+
+!#
+
+(define* (gi-add-method-gf name #:optional (module #f))
+  (let* ((g-golf (resolve-module '(g-golf)))
+         (module (or module
+                     (resolve-module '(g-golf hl-api gobject))))
+         (variable (module-variable module name))
+         (value (and variable
+                     (variable-bound? variable)
+                     (variable-ref variable)))
+         (names `(,name)))
+    (if value
+        (cond ((generic? value)
+               value)
+              ((macro? value)
+               (gi-add-method-gf (syntax-name->method-name name)
+                                 module))
+              (else
+               (module-replace! module names)
+               (re-export-and-replace-names! g-golf names)
+               (let ((gf (ensure-generic value name)))
+                 (module-set! module name gf)
+                 gf)))
+        (begin
+          (module-export! module names)
+          (let ((gf (make <generic> #:name name)))
+            (module-set! module name gf)
+            gf)))))
