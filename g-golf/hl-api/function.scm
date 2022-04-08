@@ -40,6 +40,7 @@
   #:use-module (g-golf override)
   #:use-module (g-golf hl-api n-decl)
   #:use-module (g-golf hl-api gtype)
+  #:use-module (g-golf hl-api gobject)
   #:use-module (g-golf hl-api callback)
   #:use-module (g-golf hl-api utils)
 
@@ -1255,8 +1256,9 @@ method with its 'old' definition.
                          (g-object-find-class foreign)
                        ;; We used to update the funarg 'type-desc
                        ;; argument when it wasn't confirmed?, but that
-                       ;; actually won't work anymore, see below [1] for
-                       ;; a complete description. However, I'll keep the
+                       ;; actually won't work anymore, see the comment
+                       ;; labeled [1] in (g-golf hl-api gobject) for a
+                       ;; complete description. However, I'll keep the
                        ;; code, commented, for now, until I clear all
                        ;; occurrences of the confirmed? pattern entries.
                        #;(unless confirmed?
@@ -1344,48 +1346,6 @@ method with its 'old' definition.
        (else
         (gi-argument-ref gi-argument
                          (gi-type-tag->field type-tag)))))))
-
-;; [1]
-
-;; Because g-object-find-class has been updated to define (sub)classes,
-;; when that is necessary, that (a) are not defined in the (their
-;; parent) namespace and (b) may differ from one call to another.
-
-;; For example, a call to webkit-web-view-get-tls-info may return, for
-;; it second 'out argument, a <g-tls-certificate-gnutls> instance, but
-;; (a) "GTlsCertificateGnutls" is a runtime class - that is, undefined
-;; in its corresponding namespace - subclass of "GTlsCertificate" and
-;; (b) a subsequent call to webkit-web-view-get-tls-info could very well
-;; return another certificate subclass type.
-
-(define (g-object-find-class foreign)
-  (let* ((module (resolve-module '(g-golf hl-api gobject)))
-         (g-type (g-object-type foreign))
-         (g-name (g-object-type-name foreign))
-         (name (g-name->class-name g-name))
-         (class-var (module-variable module name))
-         (class (and class-var (module-ref module name))))
-    (if class
-        (values class name g-type)
-        (let ((class (g-object-define-class g-type g-name name module)))
-          (values class name g-type)))))
-
-(define (g-object-define-class g-type g-name c-name module)
-  (let* ((parent (g-type-parent g-type))
-         (g-p-name (g-type-name parent))
-         (p-name (g-name->class-name g-p-name))
-         (p-class-var (module-variable module p-name))
-         (p-class (and p-class-var (module-ref module p-name))))
-    (if p-class
-        (let ((public-i (module-public-interface module))
-              (c-inst (make-class `(,p-class)
-                                  '()
-                                  #:name c-name)))
-          (module-define! module c-name c-inst)
-          (module-add! public-i c-name
-                       (module-variable module c-name))
-          c-inst)
-        (error "Undefined (parent) class: " p-name))))
 
 
 ;;;

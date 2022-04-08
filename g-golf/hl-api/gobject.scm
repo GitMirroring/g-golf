@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2018 - 2021
+;;;; Copyright (C) 2018 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -55,6 +55,8 @@
 
   #:export (<gobject>
             gobject-class?
+            g-object-find-class
+            g-object-make-class
             <ginterface>))
 
 
@@ -376,6 +378,54 @@
        (memq <gobject>
              (class-precedence-list val))
        #t))
+
+
+;;;
+;;; Utils
+;;;
+
+;; [1]
+
+;; Used by gi-argument->scm to either retrieve or create (sub)classes,
+;; when that is necessary, that (a) are not defined in the (their
+;; parent) namespace and (b) may differ from one call to another.
+
+;; For example, a call to webkit-web-view-get-tls-info may return, for
+;; it second 'out argument, a <g-tls-certificate-gnutls> instance, but
+;; (a) "GTlsCertificateGnutls" is a runtime class - that is, undefined
+;; in its corresponding namespace - subclass of "GTlsCertificate" and
+;; (b) a subsequent call to webkit-web-view-get-tls-info could very well
+;; return another certificate subclass type.
+
+(define (g-object-find-class foreign)
+  (let* ((module (resolve-module '(g-golf hl-api gobject)))
+         (g-type (g-object-type foreign))
+         (g-name (g-object-type-name foreign))
+         (name (g-name->class-name g-name))
+         (class-var (module-variable module name))
+         (class (and class-var (module-ref module name))))
+    (if class
+        (values class name g-type)
+        (values (g-object-make-class g-type g-name name module)
+                name
+                g-type))))
+
+(define (g-object-make-class g-type g-name c-name module)
+  (let* ((parent (g-type-parent g-type))
+         (g-p-name (g-type-name parent))
+         (p-name (g-name->class-name g-p-name))
+         (p-class-var (module-variable module p-name))
+         (p-class (and p-class-var (module-ref module p-name))))
+    (if p-class
+        (let ((public-i (module-public-interface module))
+              (c-inst (make-class `(,p-class)
+                                  '()
+                                  #:name c-name)))
+          (module-define! module c-name c-inst)
+          (module-add! public-i c-name
+                       (module-variable module c-name))
+          c-inst)
+        (error "Undefined (parent) class: " p-name))))
 
 
 ;;;
