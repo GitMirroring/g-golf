@@ -241,8 +241,8 @@
          (gi-add-method m-long-generic specializers procedure)
          (unless (gi-method-short-name-skip? m-long-name)
            (let* ((m-short-name (!m-name f-inst))
-                  (m-long-generic (gi-add-method-gf m-short-name)))
-             (gi-add-method m-long-generic specializers procedure)))))
+                  (m-short-generic (gi-add-method-gf m-short-name)))
+             (gi-add-method m-short-generic specializers procedure)))))
       (else
        (gi-add-procedure f-inst
                          #:name (!name f-inst)
