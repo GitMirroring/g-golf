@@ -625,13 +625,7 @@
        (values g-type name #f #f)))))
 
 (define (is-registered? type-tag)
-  (member type-tag
-          '(enum
-            flags
-            interface
-            object
-            struct
-            union)))
+  (memq type-tag '(enum flags interface object struct union)))
 
 (define (function-arguments-and-gi-arguments info is-method? override?)
   (let* ((n-arg (g-callable-info-get-n-args info))
