@@ -41,6 +41,7 @@
   #:use-module (g-golf hl-api n-decl)
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api gobject)
+  #:use-module (g-golf hl-api events)
   #:use-module (g-golf hl-api callback)
   #:use-module (g-golf hl-api utils)
 
@@ -1091,9 +1092,6 @@
                       function		;; the type-desc instance 'owner'
                       #:args-out args-out)))
 
-(define %gdk-event-class
-  (@ (g-golf gdk events) gdk-event-class))
-
 (define* (gi-argument->scm type-tag type-desc gi-argument funarg
                            #:key (forced-type #f) (is-pointer? #f) (args-out #f))
   ;; forced-type is only used for 'inout and 'out arguments, in which
@@ -1160,7 +1158,7 @@
                  ;; where the <gdk-event> class and accessors are (must
                  ;; be) defined dynamically - hence (gdk-event-class)
                 (and foreign
-                     (make (%gdk-event-class) #:event foreign)))
+                     (make (gdk-event-class) #:event foreign)))
                (else
                 foreign))))
           ((object
@@ -1442,130 +1440,3 @@
         #:may-be-null? #f
         #:arg-pos 0 ;; always the first argument
         #:gi-argument-field 'v-pointer))))
-
-
-;;;
-;;; Gdk (gdk-event-class-redefine)
-;;;
-
-(define (gdk-event-class-redefine)
-  (let* ((module (resolve-module '(g-golf hl-api gobject)))
-         (public-i (module-public-interface module))
-         (c-name '<gdk-event>)
-         (c-inst (make-class `(,<object>)
-                             (cons (%gdk-event-slot module public-i)
-                                   ;; the accessors
-                                   (gdk-event-virtual-slots module public-i))
-                             #:name c-name)))
-    (if (module-bound? module c-name)
-        (class-redefinition (module-ref module c-name) c-inst)
-        (begin
-          (module-define! module c-name c-inst)
-          (module-add! public-i c-name
-                       (module-variable module c-name))))
-    c-inst))
-
-(define %gdk-event-slot
-  (@@ (g-golf gdk events) gdk-event-slot))
-
-(define (gdk-event-virtual-slots module public-i)
-  (append (map (lambda (getter)
-                 (gdk-event-virtual-slot getter module public-i))
-            (gdk-event-getters))
-          (gdk-event-additional-virtual-slots module public-i)))
-
-(define (gdk-event-virtual-slot getter module public-i)
-  (let* ((f-name (g-name->name getter))
-         ;; 14 is the length of "gdk_event_get_"
-         (slot-name (g-name->name (substring getter 14)))
-         (a-name (symbol-append '! slot-name))
-         (a-inst (if (module-variable module a-name)
-                     (module-ref module a-name)
-                     (let ((a-inst (make-accessor a-name)))
-                       (module-define! module a-name a-inst)
-                       (module-add! public-i a-name
-                                    (module-variable module a-name))
-                       a-inst)))
-         (f-inst (gi-cache-ref 'function f-name))
-         (procedure (if (!override? f-inst)
-                        (!o-func f-inst)
-                        (!i-func f-inst))))
-    (make <slot>
-      #:name slot-name
-      #:accessor a-inst
-      #:allocation #:virtual
-      #:slot-ref (lambda (obj)
-                   (procedure (slot-ref obj 'event)))
-      #:slot-set! (lambda (obj val) (values)))))
-
-(define (gdk-event-getters)
-  (let* ((info (g-irepository-find-by-name "Gdk" "Event"))
-         (n-method (g-union-info-get-n-methods info)))
-    (let loop ((i 0)
-               (results '()))
-      (if (= i n-method)
-          (reverse! results)
-          (let* ((m-info (g-union-info-get-method info i))
-                 (name (g-function-info-get-symbol m-info)))
-            (loop (+ i 1)
-                  (if (gdk-event-getter? name)
-                      (cons name results)
-                      results)))))))
-
-(define (gdk-event-getter? name)
-  (string-contains name "gdk_event_get_"))
-
-(define %gdk-event-additional-virtual-slots
-  `((keyname ,(lambda (obj)
-                (let* ((module (resolve-module '(g-golf hl-api function)))
-                       (keyname (module-ref module 'gdk-keyval-name))
-                       (keyval (module-ref module 'gdk-event-get-keyval)))
-                  (keyname (keyval (slot-ref obj 'event))))))
-    (x ,(lambda (obj)
-          (let* ((module (resolve-module '(g-golf hl-api function)))
-                 (coords (module-ref module 'gdk-event-get-coords)))
-            (receive (x-win y-win)
-                (coords (slot-ref obj 'event))
-              x-win))))
-    (y ,(lambda (obj)
-          (let* ((module (resolve-module '(g-golf hl-api function)))
-                 (coords (module-ref module 'gdk-event-get-coords)))
-            (receive (x-win y-win)
-                (coords (slot-ref obj 'event))
-              y-win))))
-    (root-x ,(lambda (obj)
-               (let* ((module (resolve-module '(g-golf hl-api function)))
-                      (root-coords (module-ref module 'gdk-event-get-root-coords)))
-                 (receive (x-root y-root)
-                     (root-coords (slot-ref obj 'event))
-                   x-root))))
-    (root-y ,(lambda (obj)
-               (let* ((module (resolve-module '(g-golf hl-api function)))
-                      (root-coords (module-ref module 'gdk-event-get-root-coords)))
-                 (receive (x-root y-root)
-                     (root-coords (slot-ref obj 'event))
-                   y-root))))))
-
-
-(define (gdk-event-additional-virtual-slots module public-i)
-  (map (lambda (slot-spec)
-         (gdk-event-additional-virtual-slot slot-spec module public-i))
-    %gdk-event-additional-virtual-slots))
-
-(define (gdk-event-additional-virtual-slot slot-spec module public-i)
-  (match slot-spec
-    ((slot-name slot-ref-proc)
-     (let* ((a-name (symbol-append '! slot-name))
-            (a-inst (if (module-variable module a-name)
-                        (module-ref module a-name)
-                        (let ((a-inst (make-accessor a-name)))
-                          (module-define! module a-name a-inst)
-                          (module-add! public-i a-name
-                                       (module-variable module a-name))
-                          a-inst))))
-       (make <slot>
-         #:name slot-name
-         #:accessor a-inst
-         #:allocation #:virtual
-         #:slot-ref slot-ref-proc
-         #:slot-set! (lambda (obj val) (values)))))))

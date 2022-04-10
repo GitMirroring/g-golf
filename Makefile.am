@@ -94,6 +94,7 @@ SOURCES = \
 	g-golf/hl-api/n-decl.scm		\
 	g-golf/hl-api/gtype.scm			\
 	g-golf/hl-api/gobject.scm		\
+	g-golf/hl-api/events.scm		\
 	g-golf/hl-api/callback.scm		\
 	g-golf/hl-api/function.scm		\
 	g-golf/hl-api/object.scm		\
