@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2021 Free Software Foundation, Inc.
+@c Copyright (C) 2021 - 2022 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -49,6 +49,13 @@ have an accessor).
 In G-Golf however GdkEvent is a class, with an event slot - holding a
 pointer the Gdk event - all other slots are virtual and define an
 accessor, which is the only way users may retrieve data fields.
+
+When G-Golf detects it is leading with GdkEvent from Gdk-3.0, while
+dynamically implementing the above, in addition, when applicable, it
+will also add some of the upstream GdkEvent accessor name to the
+@emph{GI Strip Boolean Result} list. This is further detailed below, at
+the end of the section.
+
 
 @subheading Class
 
@@ -351,6 +358,32 @@ The result is simply obtained by destructuring and selecting one of the
 @ref{!coords} and @ref{!root-coords} list values, respectively.
 @end deffn
 
+
+@subheading Strip Boolean Result
+
+If you are not (yet) familiar with the concept we are dealing with here,
+make sure you visit and read the @ref{Customization Square} - @emph{GI
+Strip Boolean Result} section of the manual.
+
+When G-Golf detects it is leading with GdkEvent from Gdk-3.0, while
+dynamically implementing the @ref{<gdk-event>} class and its accessors,
+it will add the following names to the @emph{GI Strip Boolean Result}
+list:
+
+@indentedblock
+@table @code
+@item gdk-event-get-axis
+@item gdk-event-get-button
+@item gdk-event-get-click-count
+@item gdk-event-get-coords
+@item gdk-event-get-keycode
+@item gdk-event-get-keyval
+@item gdk-event-get-root-coords
+@item gdk-event-get-scroll-deltas
+@item gdk-event-get-scroll-direction
+@item gdk-event-get-state
+@end table
+@end indentedblock
 
 @sp 1
 @ @ @sup{_} @strong{In Gdk-4.0}
