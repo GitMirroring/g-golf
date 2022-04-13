@@ -34,11 +34,13 @@
   #:use-module (g-golf gi)
   #:use-module (g-golf glib)
   #:use-module (g-golf gobject)
+  #:use-module (g-golf hl-api n-decl)
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api gobject)
   #:use-module (g-golf hl-api function)
   #:use-module (g-golf hl-api object)
-  #:use-module (g-golf hl-api callback)  
+  #:use-module (g-golf hl-api argument)
+  #:use-module (g-golf hl-api callback)
 
   #:duplicates (merge-generics
 		replace

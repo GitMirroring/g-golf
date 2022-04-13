@@ -29,7 +29,10 @@
 (define-module (g-golf hl-api n-decl)
   #:use-module (srfi srfi-1)
 
-  #:export (g-name-transform-exception
+  #:export (%gi-import-namespace-exceptions
+            gi-namespace-import-exception?
+
+            g-name-transform-exception
             g-name-transform-exception?
             g-name-transform-exception-add
             g-name-transform-exception-remove
@@ -67,6 +70,20 @@
             syntax-name-protect-renamer-set
             syntax-name-protect-renamer-reset
             syntax-name-protect-reset))
+
+
+;;;
+;;;
+;;;
+
+(define %gi-import-namespace-exceptions
+  '("Glib"
+    "GObject"))
+
+(define (gi-namespace-import-exception? namespace)
+  (member namespace
+          %gi-import-namespace-exceptions
+          string=?))
 
 
 ;;;

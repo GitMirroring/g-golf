@@ -47,6 +47,7 @@
   #:use-module (g-golf gobject)
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api gobject)
+  #:use-module (g-golf hl-api argument)
   #:use-module (g-golf hl-api function)
   #:use-module (g-golf hl-api closure)
 
