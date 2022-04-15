@@ -23,6 +23,7 @@ GICallableInfo — Struct representing a callable.
 @item @ref{g-callable-info-get-caller-owns}
 @item @ref{g-callable-info-get-instance-ownership-transfer}
 @item @ref{g-callable-info-get-return-type}
+@item @ref{g-callable-info-is-method}
 @item @ref{g-callable-info-may-return-null}
 @end table
 @end indentedblock
@@ -43,6 +44,7 @@ GICallableInfo — Struct representing a callable.
 GIBaseInfoInfo         	                     @*
 @ @ +--- GICallableInfo	                     @*
 @ @ @ @ @ @ @ @ @ @ @ +--- GIFunctionInfo    @*
+@ @ @ @ @ @ @ @ @ @ @ +--- GICallbackInfo    @*
 @ @ @ @ @ @ @ @ @ @ @ +--- GISignalInfo      @*
 @ @ @ @ @ @ @ @ @ @ @ +--- GIVFuncInfo
 @end indentedblock
@@ -50,9 +52,9 @@ GIBaseInfoInfo         	                     @*
 
 @subheading Description
 
-@code{GICallableInfo} represents an entity which is callable. Currently
-a function (@code{GIFunctionInfo}), virtual function,
-(@code{GIVFuncInfo}) or callback (@code{GICallbackInfo}).
+@code{GICallableInfo} represents an entity which is callable. Examples
+of callable are: functions (@code{GIFunctionInfo}), virtual functions,
+(@code{GIVFuncInfo}), callbacks (@code{GICallbackInfo}).
 
 A callable has a list of arguments (@code{GIArgInfo}), a return type,
 direction and a flag which decides if it returns null.
@@ -111,6 +113,24 @@ Returns a pointer to the @code{GITypeInfo}.
 
 It must be freed by calling @ref{g-base-info-unref} when done accessing
 the data.
+@end deffn
+
+
+@anchor{g-callable-info-is-method}
+@deffn Procedure g-callable-info-is-method info
+
+Returns @code{#t} if the callable @var{info} is a method, otherwise it
+return @code{#f}.
+
+Determines if the callable @var{info} is a method. For
+@code{GIVFuncInfo} and @code{GISignalInfo}, this is always
+true. Otherwise, this looks at the @code{GI_FUNCTION_IS_METHOD} flag on
+the @code{GIFunctionInfo}.
+
+Concretely, this function returns whether
+@ref{g-callable-info-get-n-args} matches the number of arguments in the
+raw C method. For methods, there is one more C argument than is exposed
+by introspection: the @samp{self} or @samp{this} object.
 @end deffn
 
 
