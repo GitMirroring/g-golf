@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2021
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -27,6 +27,8 @@
 
 
 (define-module (g-golf gi function-info)
+  #:use-module (ice-9 match)
+  #:use-module (ice-9 receive)
   #:use-module (oop goops)
   #:use-module (system foreign)
   #:use-module (g-golf support enum)
@@ -36,6 +38,7 @@
   #:use-module (g-golf gi utils)
   #:use-module (g-golf gi repository)
   #:use-module (g-golf gi base-info)
+  #:use-module (g-golf gi callable-info)
   #:use-module (g-golf gi registered-type-info)
 
   #:duplicates (merge-generics
@@ -45,6 +48,7 @@
 		last)
 
   #:export (gi-function-info-names
+            gi-function-info-container-name
             gi-function-info-is-method?
 
             g-function-info-get-flags
@@ -58,44 +62,71 @@
 ;;;
 ;;; High level API
 ;;;
-(define* (gi-function-info-names info #:optional (ns #f))
-  (let* ((namespace (or ns
-                        (g-base-info-get-namespace info)))
-         (ns-prefix (g-irepository-get-c-prefix namespace))
-         (ct-info (g-base-info-get-container info))
-         (ct-rg-name (and ct-info
-                          (g-registered-type-info-get-type-name ct-info)))
-         (ct-bi-name (and ct-info
-                          (g-base-info-get-name ct-info)))
-         (ct-name (cond (ct-rg-name
-                         (g-name->name ct-rg-name))
-                        (ct-bi-name
-                         (g-name->name (string-append ns-prefix ct-bi-name)))
-                        (else
-                         #f)))
-         (bi-name (g-base-info-get-name info))
+
+(define* (gi-function-info-names info #:optional (namespace #f))
+  (let* ((namespace (or namespace (g-base-info-get-namespace info)))
+         (g-ir-c-prefix (g-irepository-get-c-prefix namespace))
+         (g-name (g-base-info-get-name info))
+         ;; the g-function-info-get-symbol, which is the upstream C
+         ;; name. we need it, unprocessed by g-name->name, to check for
+         ;; overrides and also to monitor/debug the shadows/shadowed-by
+         ;; mechanism.
          (c-name (g-function-info-get-symbol info)))
-    (if (char=? (string-ref bi-name 0) #\_)
+    (if (char=? (string-ref g-name 0) #\_)
         ;; this (should only) happens for methods, for which the C name
         ;; gets a 'plural-ed' container name, such as for the GdkEvent
         ;; gdk-events-get-angle method. we expect that in these cases,
         ;; there is no renaming, otherwise, we raise an exception.
-        (if (string-contains c-name bi-name)
-            (let ((name (g-name->name c-name))
-                  (m-name (g-name->name (substring bi-name 1))))
-              (values name m-name c-name namespace #f))
-            (error "Unexpected renaming" ct-name c-name bi-name))
-        (let* ((bi-name (g-name->name bi-name))
-               (ns-prefix (g-name->name ns-prefix))
-               (name (if ct-name
-                         (symbol-append ct-name '- bi-name)
-                         (symbol-append ns-prefix '- bi-name))))
-          (values name
-                  (and ct-info ct-name bi-name)
-                  c-name
-                  namespace
-                  ;; shadows?
-                  (not (eq? name (g-name->name c-name))))))))
+        (if (string-contains c-name g-name)
+            (values namespace
+                    ;; g-ir-c-prefix
+                    ;; ct-name
+                    g-name
+                    (g-name->name c-name)
+                    (g-name->name (substring g-name 1))
+                    c-name)
+            (error "Unexpected renaming" c-name g-name))
+        ;; so, here we can't 'just' use the c-name, because functions
+        ;; can be renamed, i.e. gtk_list_store_new, gdk_clipboard_set
+        ;; ... [1]
+        (receive (ct-name ct-name-mode)
+            (gi-function-info-container-name info
+                                             #:namespace namespace
+                                             #:g-ir-c-prefix g-ir-c-prefix)
+          (values namespace
+                  ;; g-ir-c-prefix
+                  ;; ct-name
+                  g-name
+                  (if ct-name
+                      (g-name->name (string-append ct-name "_" g-name))
+                      (g-name->name c-name))
+                  ;; the method name: g-name is a method name, only if
+                  ;; the function is a method.
+                  (and (g-callable-info-is-method info)
+                       (g-name->name g-name))
+                  c-name)))))
+
+;; [1]
+
+;; instead, we need to (re)construct a name based on the container name
+;; (if it exists) and the function-info base name. only if there is no
+;; container, we use the c-name to generate the scheme (long) name - the
+;; short name, the method name, is always the scheme representation of
+;; the g-base-info-get-name.
+
+(define* (gi-function-info-container-name info
+                                          #:key (namespace #f) (g-ir-c-prefix #f))
+  (match (g-base-info-get-container info)
+    (#f
+     (values #f #f))
+    (container
+     (let* ((namespace (or namespace (g-base-info-get-namespace info)))
+               (g-ir-c-prefix (or g-ir-c-prefix (g-irepository-get-c-prefix namespace)))
+               (ct-rg-name (g-registered-type-info-get-type-name container))
+               (ct-g-name (g-base-info-get-name container)))
+          (if  ct-rg-name
+               (values ct-rg-name 'registered-name)
+               (values (string-append g-ir-c-prefix ct-g-name) 'reconstructed))))))
 
 (define* (gi-function-info-is-method? info #:optional (flags #f))
   (let ((flags (or flags

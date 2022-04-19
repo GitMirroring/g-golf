@@ -172,13 +172,15 @@
     (if (= i n-method)
         (newline port)
         (let ((m-info (g-object-info-get-method info i)))
-          (receive (name short-name c-name namespace shadows?)
+          (receive (namespace b-name name m-name c-name)
               (gi-function-info-names m-info)
-            (if shadows?
+            #;(if shadows?
                 (format port "~?" %object-method-shadows-fmt
-                        (list i short-name name c-name))
+                        (list i m-name name c-name))
                 (format port "~?" %object-method-fmt
-                        (list i short-name name)))
+                        (list i m-name name)))
+            (format port "~?" %object-method-fmt
+                    (list i m-name name))
             (loop n-method
                   (+ i 1)))))))
 

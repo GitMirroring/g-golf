@@ -133,7 +133,9 @@
 (define g-studly-caps-expand-token-exception-remove #f)
 (define g-studly-caps-expand-token-exception-reset #f)
 
-(let ((%g-studly-caps-expand-token-exception '(("WebKit" . "webkit"))))
+(let ((%g-studly-caps-expand-token-exception
+       '(("WebKit" . "webkit")
+         ("GObject" . "g-object"))))
 
   (set! g-studly-caps-expand-token-exception
         (lambda ()
