@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2021
+#### Copyright (C) 2021 - 2022
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -25,4 +25,5 @@ EXTRA_DIST = \
 	$(wildcard *.scm)		\
 	$(wildcard *.png)		\
 	$(wildcard images/*.png)	\
-	$(wildcard ui/*.ui)
+	$(wildcard ui/*.ui)		\
+	$(wildcard css/*.css)

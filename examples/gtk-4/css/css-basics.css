@@ -1,0 +1,55 @@
+
+
+/*
+ * The reset.css resets all properties to their defaults values,
+ * overrides (all) user settings and overrides the (settings of the)
+ * theme in use.
+ *
+ * To experiment how 
+
+ */
+
+@import url("reset.css");
+
+
+/*
+ * Set a very futuristic style by default
+ */
+
+* {
+    color: #fcfcfc;
+    font-family: Monospace;
+    margin: 6px;
+    border: 1px solid;
+}
+
+window {
+    background-color: #34495e;
+    color: #8d6e63;
+
+}
+
+box {
+    background-color: #444;
+    color: #009688;
+}
+
+label {
+    background-color: #222;
+    color: #eaeacb;
+}
+
+button {
+    background-color: #136f5f;
+    color: #D0343F;
+}
+
+
+/*
+ * Make sure selections are visible
+ */
+
+selection {
+    background-color: darkGreen;
+    color: black;
+}

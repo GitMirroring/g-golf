@@ -1,0 +1,74 @@
+#! /bin/sh
+# -*- mode: scheme; coding: utf-8 -*-
+exec guile -e main -s "$0" "$@"
+!#
+
+
+(eval-when (expand load eval)
+  (use-modules (oop goops))
+
+  (default-duplicate-binding-handler
+    '(merge-generics replace warn-override-core warn last))
+
+  (use-modules (g-golf))
+
+  (g-irepository-require "Gtk" #:version "4.0")
+  (for-each (lambda (name)
+              (gi-import-by-name "Gtk" name))
+      '("Application"
+        "ApplicationWindow"
+        "CssProvider"
+        "Box"
+        "Label"
+        "Button")))
+
+
+(define (apply-css widget provider)
+  (add-provider (get-style-context widget) provider #xFFFFFFFF)
+  (let loop ((child (get-first-child widget)))
+    (when child
+      (apply-css child provider)
+      (loop (get-next-sibling child)))))
+
+(define (activate app)
+  (let* ((cwd (getcwd))
+         (css-path (string-append cwd "/css/css-basics.css"))
+         (css-provider (let ((provider (make <gtk-css-provider>)))
+                         (gtk-css-provider-load-from-path provider css-path)
+                         provider))
+         (window (make <gtk-application-window>
+                   #:title "CSS Basics"
+                   #:default-width 400
+                   #:default-height 300
+                   #:application app))
+         (box    (make <gtk-box>
+                   #:margin-top 6
+                   #:margin-start 6
+                   #:margin-bottom 6
+                   #:margin-end 6
+                   #:orientation 'vertical))
+         (label  (make <gtk-label>
+                   #:label "High priority css style context!"
+                   #:hexpand #t
+                   #:vexpand #t))
+         (button (make <gtk-button>
+                   #:label "Close")))
+
+    (connect button
+	     'clicked
+	     (lambda (b)
+               (close window)))
+
+    (set-child window box)
+    (append box label)
+    (append box button)
+    (apply-css window css-provider)
+    (show window)))
+
+
+(define (main args)
+  (let ((app (make <gtk-application>
+               #:application-id "org.gtk.example")))
+    (connect app 'activate activate)
+    (let ((status (g-application-run app (length args) args)))
+      (exit status))))
