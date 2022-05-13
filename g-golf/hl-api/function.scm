@@ -57,8 +57,7 @@
             <function>))
 
 
-(g-export describe	;; function and argument
-          !m-name
+(g-export !m-name	;; function and argument
           !c-name
           !i-func
           !o-func
@@ -263,23 +262,3 @@
                 'i-func i-func
                 'o-func (and (!override? f-inst)
                              (%o-func f-inst i-func)))))
-
-#;(define-method* (describe (self <function>) #:key (port #t))
-  (next-method self #:port port)
-  (if (boolean? port)
-      (newline)
-      (newline port))
-  (for-each (lambda (argument)
-              (describe argument #:port port)
-              (if (boolean? port)
-                  (newline)
-                  (newline port)))
-      (!arguments self)))
-
-(define-method (describe (self <function>))
-  (next-method)
-  (newline)
-  (for-each (lambda (argument)
-              (describe argument)
-              (newline))
-      (!arguments self)))
