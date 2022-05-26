@@ -139,7 +139,6 @@
 			      (rnrs arithmetic bitwise)
 			      (system foreign)
 			      (srfi srfi-1)
-                              (g-golf support libg-golf)
                               (g-golf support float)
                               (g-golf support module)
 			      (g-golf support goops)
