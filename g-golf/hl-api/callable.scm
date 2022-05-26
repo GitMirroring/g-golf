@@ -40,6 +40,7 @@
   #:use-module (g-golf hl-api gobject)
   #:use-module (g-golf hl-api events)
   #:use-module (g-golf hl-api argument)
+  #:use-module (g-golf hl-api ccc)
   #:use-module (g-golf hl-api utils)
 
   #:duplicates (merge-generics
@@ -48,69 +49,13 @@
 		warn
 		last)
 
-  #:export (<callable>
-            
-            callable-prepare-gi-arguments
+  #:export (callable-prepare-gi-arguments
             callable-return-value->scm
             callable-arg-out->scm))
 
 
-(g-export describe	;; function and argument
-          !info
-          !namespace
-          !g-name
-          !name
-          !override?
-          !is-method?
-          !n-arg
-          !caller-owns
-          !return-type
-          !type-desc
-          !array-type-desc
-          !bv-cache
-          !bv-cache-ptr
-          !may-return-null?
-          !arguments
-          !n-gi-arg-in
-          !args-in
-          !gi-args-in
-          !gi-args-in-bv
-          !n-gi-arg-out
-          !args-out
-          !gi-args-out
-          !gi-args-out-bv
-          !gi-arg-result)
+#;(g-export )
 
-
-;;;
-;;;
-;;;
-
-(define-class <callable> ()
-  (info #:accessor !info #:init-keyword #:info)
-  (namespace #:accessor !namespace #:init-keyword #:namespace)
-  (g-name #:accessor !g-name #:init-keyword #:g-name)
-  (name #:accessor !name #:init-keyword #:name)
-  (override? #:accessor !override? #:init-keyword #:override? #:init-value #f)
-  (is-method? #:accessor !is-method?)
-  (n-arg #:accessor !n-arg)
-  (caller-owns #:accessor !caller-owns)
-  (return-type #:accessor !return-type)
-  (type-desc #:accessor !type-desc)
-  (array-type-desc #:accessor !array-type-desc)
-  (bv-cache #:accessor !bv-cache #:init-value #f)
-  (bv-cache-ptr #:accessor !bv-cache-ptr #:init-value #f)
-  (may-return-null? #:accessor !may-return-null?)
-  (arguments #:accessor !arguments)
-  (n-gi-arg-in #:accessor !n-gi-arg-in)
-  (args-in #:accessor !args-in)
-  (gi-args-in #:accessor !gi-args-in)
-  (gi-args-in-bv #:accessor !gi-args-in-bv)
-  (n-gi-arg-out #:accessor !n-gi-arg-out)
-  (args-out #:accessor !args-out)
-  (gi-args-out #:accessor !gi-args-out)
-  (gi-args-out-bv #:accessor !gi-args-out-bv)
-  (gi-arg-result #:accessor !gi-arg-result))
 
 (define-method (initialize (self <callable>) initargs)
   (let* ((info (or (get-keyword #:info initargs #f)

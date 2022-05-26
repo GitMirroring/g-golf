@@ -43,6 +43,7 @@
   #:use-module (g-golf hl-api gobject)
   #:use-module (g-golf hl-api events)
   #:use-module (g-golf hl-api argument)
+  #:use-module (g-golf hl-api ccc)
   #:use-module (g-golf hl-api callable)
   #:use-module (g-golf hl-api callback)
   #:use-module (g-golf hl-api utils)

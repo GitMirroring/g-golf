@@ -37,7 +37,7 @@ SOURCES = \
 	g-golf/support/push.scm			\
 	g-golf/support/keyword.scm		\
 	g-golf/support/enum.scm			\
-	g-golf/support/flags.scm			\
+	g-golf/support/flags.scm		\
 	g-golf/support/struct.scm		\
 	g-golf/support/union.scm		\
 	g-golf/support/bytevector.scm		\
@@ -96,6 +96,7 @@ SOURCES = \
 	g-golf/hl-api/gobject.scm		\
 	g-golf/hl-api/events.scm		\
 	g-golf/hl-api/argument.scm		\
+	g-golf/hl-api/ccc.scm			\
 	g-golf/hl-api/callable.scm		\
 	g-golf/hl-api/callback.scm		\
 	g-golf/hl-api/function.scm		\
