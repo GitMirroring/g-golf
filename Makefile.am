@@ -41,6 +41,7 @@ SOURCES = \
 	g-golf/support/struct.scm		\
 	g-golf/support/union.scm		\
 	g-golf/support/bytevector.scm		\
+	g-golf/support/ffi.scm			\
 	g-golf/support.scm			\
 	g-golf/init.scm				\
 	g-golf/glib/mem-alloc.scm		\

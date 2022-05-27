@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2021
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -30,7 +30,10 @@
   #:use-module (system foreign)
   #:use-module (g-golf init)
   
-  #:export (;; Misc.
+  #:export (;; FFI
+            ffi_type_size
+
+            ;; Misc.
             pointer_address_size
 
             ;; Floats
@@ -58,6 +61,17 @@
             ;; Test suite
             test_suite_n_string_ptr
             test_suite_strings_ptr))
+
+
+;;;
+;;; FFI
+;;;
+
+(define ffi_type_size
+  (pointer->procedure size_t
+                      (dynamic-func "ffi_type_size"
+                                    %libg-golf)
+                      (list)))
 
 
 ;;;
