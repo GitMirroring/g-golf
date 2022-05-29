@@ -41,6 +41,7 @@ Intropection (manual) section, but there are some exceptions, such as
 * Field Info::		  Struct representing a struct or a union field.
 * Property Info::	  Struct representing a property.
 * Type Info::		  Struct representing a type.
+* FFI Interface::	  FFI Interface.
 * Utilities::		  (G-Golf) Utilities.
 @end menu
 
@@ -66,5 +67,6 @@ Intropection (manual) section, but there are some exceptions, such as
 @include cr-gi-field-info.texi
 @include cr-gi-property-info.texi
 @include cr-gi-type-info.texi
+@include cr-gi-gir-ffi.texi
 
 @include cr-gi-utilities.texi

@@ -95,6 +95,7 @@ g_golf_TEXINFOS = \
   cr-gi-property-info.texi	\
   cr-gi-type-info.texi		\
   cr-gi-typelib.texi		\
+  cr-gi-gir-ffi.texi		\
   cr-gi-utilities.texi		\
   cr-support.texi		\
   cr-support-module.texi	\

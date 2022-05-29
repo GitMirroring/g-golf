@@ -1,0 +1,77 @@
+@c -*-texinfo-*-
+@c This is part of the GNU G-Golf Reference Manual.
+@c Copyright (C) 2022 Free Software Foundation, Inc.
+@c See the file g-golf.texi for copying conditions.
+
+
+@c @defindex tl
+
+
+@node FFI Interface
+@subsection FFI Interface
+
+G-Golf FFI Interface low level API.@*
+girffi — TODO.
+
+
+@subheading Procedures
+
+@indentedblock
+@table @code
+@item @ref{gi-type-tag-get-ffi-type}
+@item @ref{g-type-info-get-ffi-type}
+@end table
+@end indentedblock
+
+
+@c @subheading Types and Values
+
+@c @indentedblock
+@c @table @code
+@c @item @ref{%g-arg-info-transfer}
+@c @end table
+@c @end indentedblock
+
+
+@c @subheading Struct Hierarchy
+
+@c @indentedblock
+@c GIBaseInfo           	       		@*
+@c @ @ +--- GIRegisteredTypeInfo  		@*
+@c @ @ @ @ @ @ @ @ @ @ @  +--- GIEnumInfo
+@c @end indentedblock
+
+
+@subheading Description
+
+TODO.
+
+
+@subheading Procedures
+
+@c Note: in this section, the @var{typelib} argument is [must be] a
+@c pointer to a @code{GITypelib}.
+
+
+@anchor{gi-type-tag-get-ffi-type}
+@deffn Procedure gi-type-tag-get-ffi-type type-tag is-pointer?
+
+Returns a (pointer to) @code{ffi-type} corresponding to the platform
+default C ABI for @var{type-tag} and @var{is-pointer?}.
+
+The @var{info} argument is (must be) a valid @ref{%gi-type-tag},
+otherwise an exception is raised.
+
+The @var{is-pointer?} argument, @code{#t} or @code{#f}, to indicate
+whether or not this is a pointer type.
+@end deffn
+
+
+@anchor{g-type-info-get-ffi-type}
+@deffn Procedure g-type-info-get-ffi-type info
+
+Returns an (pointer to) @code{ffi-type} corresponding to the platform
+default C ABI for @var{info}.
+
+The @var{info} argument is [must be] a pointer to a @code{GITypeInfo}.
+@end deffn

@@ -29,14 +29,30 @@
 (define-module (g-golf gi gir-ffi)
   #:use-module (system foreign)
   #:use-module (g-golf init)
+  #:use-module (g-golf support enum)
+  #:use-module (g-golf gi common-types)
   #:use-module (g-golf gi utils)
 
-  #:export (#;g-callable-info-prepare-closure))
+  #:export (gi-type-tag-get-ffi-type
+            g-type-info-get-ffi-type
+            #;g-callable-info-prepare-closure))
 
 
 ;;;
 ;;; Low level API
 ;;;
+
+(define (gi-type-tag-get-ffi-type type-tag is-pointer?)
+  (let ((e-val (enum->value %gi-type-tag type-tag)))
+    (if e-val
+        (gi->scm (gi_type_tag_get_ffi_type e-val
+                                           (scm->gi is-pointer? 'boolean))
+                 'pointer)
+        (error "Invalid type-tag:" type-tag))))
+
+(define (g-type-info-get-ffi-type info)
+  (gi->scm (g_type_info_get_ffi_type info)
+           'pointer))
 
 ;; Not ready for export yet - actually not even sure i'll use it, i may
 ;; solve this ffi callback prepare closure using libguile or manually
@@ -49,6 +65,19 @@
 ;;;
 ;;; GI Bindings
 ;;;
+
+(define gi_type_tag_get_ffi_type
+  (pointer->procedure '*		;; *ffi-type
+                      (dynamic-func "gi_type_tag_get_ffi_type"
+				    %libgirepository)
+                      (list int		;; type-tag
+                            int)))	;; is-pointer
+
+(define g_type_info_get_ffi_type
+  (pointer->procedure '*		;; *ffi-type
+                      (dynamic-func "g_type_info_get_ffi_type"
+				    %libgirepository)
+                      (list '*)))	;; *callback-info
 
 (define g_callable_info_prepare_closure
   (pointer->procedure '*		;; *ffi-closure
