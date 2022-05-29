@@ -36,7 +36,6 @@
   #:use-module (g-golf gi)
   #:use-module (g-golf glib)
   #:use-module (g-golf gobject)
-  #:use-module (g-golf support libg-golf)
   #:use-module (g-golf hl-api n-decl)
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api gobject)
@@ -101,7 +100,28 @@
                        (append initargs
                                `(#:namespace ,namespace
                                  #:g-name ,g-name
-                                 #:name ,name)))))))
+                                 #:name ,name)))))
+    (mslot-set! self
+                'ffi-cif (make-ffi-cif self))))
+
+(define (make-ffi-cif callback)
+  (let ((n-arg (!n-arg callback)))
+    (case n-arg
+      ((0) %null-pointer)
+      (else
+       (let ((ffi-cif
+              (bytevector->pointer
+               (make-bytevector (* n-arg (ffi-type-size)) 0))))
+         (let loop ((arguments (!arguments callback))
+                    (w-ptr ffi-cif))
+           (match arguments
+             (() ffi-cif)
+             ((argument . rest)
+              (bv-ptr-set! w-ptr
+                           (gi-type-tag-get-ffi-type (!type-tag argument)
+                                                     (!is-pointer? argument)))
+              (loop rest
+                    (gi-pointer-inc w-ptr))))))))))
 
 
 ;;;

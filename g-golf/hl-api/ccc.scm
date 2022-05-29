@@ -49,7 +49,7 @@
 
 
 
-(g-export !info
+(g-export !info			;; callable
           !namespace
           !g-name
           !name
@@ -72,7 +72,9 @@
           !args-out
           !gi-args-out
           !gi-args-out-bv
-          !gi-arg-result)
+          !gi-arg-result
+
+          !ffi-cif)			;; callback
 
 
 ;;;
@@ -110,4 +112,5 @@
 ;;; Callback
 ;;;
 
-(define-class <callback> (<callable>))
+(define-class <callback> (<callable>)
+  (ffi-cif #:accessor !ffi-cif))
