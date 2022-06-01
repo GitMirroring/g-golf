@@ -67,8 +67,9 @@ SOURCES = \
 	g-golf/gi/cache-gi.scm			\
 	g-golf/gi/cache-others.scm		\
 	g-golf/gi/repository.scm		\
-	g-golf/gi/common-types.scm		\
 	g-golf/gi/typelib.scm			\
+	g-golf/gi/version.scm			\
+	g-golf/gi/common-types.scm		\
 	g-golf/gi/base-info.scm			\
 	g-golf/gi/callable-info.scm		\
 	g-golf/gi/signal-info.scm		\

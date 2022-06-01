@@ -25,6 +25,7 @@ Intropection (manual) section, but there are some exceptions, such as
 @menu
 * Repository::		  GObject Introspection repository manager.
 * Typelib::		  Layout and accessors for typelib.
+* Version Information::	  Procedures to check the GIRepository version.
 * Common Types::          GObject Introspection common types. 
 * Base Info::             Base struct for all GITypelib structs.
 * Callable Info::	  Struct representing a callable.
@@ -51,6 +52,8 @@ Intropection (manual) section, but there are some exceptions, such as
 @include cr-gi-typelib.texi
 
 @include cr-gi-common-types.texi
+
+@include cr-gi-version.texi
 
 @include cr-gi-base-info.texi
 @include cr-gi-callable-info.texi

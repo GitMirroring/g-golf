@@ -78,6 +78,8 @@ g_golf_TEXINFOS = \
   cr-gobject-signals.texi	\
   cr-gi.texi			\
   cr-gi-repository.texi		\
+  cr-gi-typelib.texi		\
+  cr-gi-version.texi		\
   cr-gi-common-types.texi	\
   cr-gi-base-info.texi		\
   cr-gi-callable-info.texi	\
@@ -94,7 +96,6 @@ g_golf_TEXINFOS = \
   cr-gi-field-info.texi		\
   cr-gi-property-info.texi	\
   cr-gi-type-info.texi		\
-  cr-gi-typelib.texi		\
   cr-gi-gir-ffi.texi		\
   cr-gi-utilities.texi		\
   cr-support.texi		\

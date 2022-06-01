@@ -71,6 +71,30 @@
 
 
 ;;;
+;;; Version Information
+;;;
+
+(define-method (test-version-information (self <g-golf-test-gi>))
+  (let ((%gi-get-major-version (@@ (g-golf gi version) gi-get-major-version))
+        (%gi-get-minor-version (@@ (g-golf gi version) gi-get-minor-version))
+        (%gi-get-micro-version (@@ (g-golf gi version) gi-get-micro-version)))
+    (assert (%gi-get-major-version))
+    (assert (%gi-get-minor-version))
+    (assert (%gi-get-micro-version))
+    (assert (gi-version))
+    (assert (gi-effective-version))
+    (assert (gi-major-version))
+    (assert (gi-minor-version))
+    (assert (gi-micro-version))
+    (assert-true (= (%gi-get-major-version)
+                    (gi-major-version 'as-integer)))
+    (assert-true (= (%gi-get-minor-version)
+                    (gi-minor-version 'as-integer)))
+    (assert-true (= (%gi-get-micro-version)
+                    (gi-micro-version 'as-integer)))))
+
+
+;;;
 ;;; Common Types
 ;;;
 
