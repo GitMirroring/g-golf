@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2018
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -41,8 +41,7 @@
 		warn
 		last)
 
-  #:export (g-type-tag-to-string
-	    g-info-type-to-string
+  #:export (g-info-type-to-string
 	    g-type-info-is-pointer
 	    g-type-info-get-tag
 	    g-type-info-get-param-type
@@ -56,15 +55,6 @@
 ;;;
 ;;; Low level API
 ;;;
-
-#;(define (g-type-tag-to-string type-tag)
-  (let ((pointer (g_type_tag_to_string type-tag)))
-    (if (null-pointer? pointer)
-        #f
-        (pointer->string pointer))))
-
-(define (g-type-tag-to-string type-tag)
-  (enum->name %gi-type-tag type-tag))
 
 #;(define (g-info-type-to-string info-type)
   (let ((pointer (g_info_type_to_string info-type)))
@@ -106,13 +96,6 @@
 ;;;
 ;;; GI Bindings
 ;;;
-
-
-#;(define g_type_tag_to_string
-  (pointer->procedure '*
-                      (dynamic-func "g_type_tag_to_string"
-				    %libgirepository)
-                      (list int)))
 
 #;(define g_info_type_to_string
   (pointer->procedure '*

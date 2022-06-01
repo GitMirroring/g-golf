@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2019
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -33,6 +33,7 @@
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-4)
   #:use-module (oop goops)
+  #:use-module (g-golf init)
   #:use-module (g-golf support enum)
   #:use-module (g-golf support union)
   #:use-module (g-golf gi utils)
@@ -43,8 +44,11 @@
 		warn
 		last)
 
-  #:export (%gi-type-tag
+  #:export (g-type-tag-to-string
+
+            %gi-type-tag
 	    %gi-array-type
+
             %gi-argument-desc
             %gi-argument-fields
             %gi-argument-types
@@ -54,6 +58,21 @@
             gi-argument-set!
             gi-type-tag->field
             gi-type-tag->bv-acc))
+
+
+;;;
+;;; Low level API
+;;;
+
+(define (g-type-tag-to-string type-tag)
+  (let* ((id  (if (number? type-tag)
+                  type-tag
+                  (enum->value %gi-type-tag type-tag)))
+         (str (and id
+                   (gi->scm (g_type_tag_to_string id) 'string))))
+    (and str
+         (not (string=? str "unknown"))
+         str)))
 
 
 ;;;
@@ -219,3 +238,14 @@ add as a comment)."
     ((double) f64vector-ref)
     (else
      (error "No such GI type tag: " type-tag))))
+
+
+;;;
+;;; GI Bindings
+;;;
+
+(define g_type_tag_to_string
+  (pointer->procedure '*
+                      (dynamic-func "g_type_tag_to_string"
+				    %libgirepository)
+                      (list int)))
