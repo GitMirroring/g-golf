@@ -30,7 +30,8 @@
   #:use-module (system foreign)
   #:use-module (g-golf init)
 
-  #:export (gi-version
+  #:export (gi-check-version
+            gi-version
             gi-effective-version
             gi-major-version
             gi-minor-version
@@ -40,6 +41,17 @@
 ;;;
 ;;; Low level API
 ;;;
+
+(define (gi-check-version major minor micro)
+  (let ((gi-major (gi-get-major-version))
+        (gi-minor (gi-get-minor-version))
+        (gi-micro (gi-get-micro-version)))
+    (or (> gi-major major)
+        (and (= gi-major major)
+             (> gi-minor minor))
+        (and (= gi-major major)
+             (= gi-minor minor)
+             (>= gi-micro micro)))))
 
 (define (gi-version)
   (simple-format #f "~A.~A.~A"

@@ -23,6 +23,7 @@ Version Information - Procedures to check the GIRepository version.
 @item @ref{gi-major-version}
 @item @ref{gi-minor-version}
 @item @ref{gi-micro-version}
+@item @ref{gi-check-version}
 @end table
 @end indentedblock
 
@@ -70,6 +71,14 @@ version number, major, minor or micro version number, respectively.
 The last three procedures will return the major, minor or micro version
 number as an integer if the optional @var{as-integer?} argument is
 @code{#t}.
+@end deffn
+
+
+@anchor{gi-check-version}
+@deffn Procedure gi-check-version major minor micro
+
+Returns @code{#t} if the GIRepository version is the same as or newer
+than the @var{major} @var{minor} @var{micro} passed-in version.
 @end deffn
 
 

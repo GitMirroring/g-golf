@@ -74,24 +74,34 @@
 ;;; Version Information
 ;;;
 
+(define %gi-get-major-version
+  (@@ (g-golf gi version) gi-get-major-version))
+
+(define %gi-get-minor-version
+  (@@ (g-golf gi version) gi-get-minor-version))
+
+(define %gi-get-micro-version
+  (@@ (g-golf gi version) gi-get-micro-version))
+
 (define-method (test-version-information (self <g-golf-test-gi>))
-  (let ((%gi-get-major-version (@@ (g-golf gi version) gi-get-major-version))
-        (%gi-get-minor-version (@@ (g-golf gi version) gi-get-minor-version))
-        (%gi-get-micro-version (@@ (g-golf gi version) gi-get-micro-version)))
-    (assert (%gi-get-major-version))
-    (assert (%gi-get-minor-version))
-    (assert (%gi-get-micro-version))
+  (let ((gi-major (%gi-get-major-version))
+        (gi-minor (%gi-get-minor-version))
+        (gi-micro (%gi-get-micro-version)))
     (assert (gi-version))
     (assert (gi-effective-version))
     (assert (gi-major-version))
     (assert (gi-minor-version))
     (assert (gi-micro-version))
-    (assert-true (= (%gi-get-major-version)
-                    (gi-major-version 'as-integer)))
-    (assert-true (= (%gi-get-minor-version)
-                    (gi-minor-version 'as-integer)))
-    (assert-true (= (%gi-get-micro-version)
-                    (gi-micro-version 'as-integer)))))
+    (assert-true (= gi-major (gi-major-version 'as-integer)))
+    (assert-true (= gi-minor (gi-minor-version 'as-integer)))
+    (assert-true (= gi-micro (gi-micro-version 'as-integer)))
+    (assert-true (gi-check-version gi-major gi-minor gi-micro))
+    (assert-true (gi-check-version gi-major gi-minor (1- gi-micro)))
+    (assert-true (gi-check-version gi-major (1- gi-minor) gi-micro))
+    (assert-true (gi-check-version (1- gi-major) gi-minor gi-micro))
+    (assert-false (gi-check-version gi-major gi-minor (1+ gi-micro)))
+    (assert-false (gi-check-version gi-major (1+ gi-minor) 0))
+    (assert-false (gi-check-version (1+ gi-major) 0 0))))
 
 
 ;;;
