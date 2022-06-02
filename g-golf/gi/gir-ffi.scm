@@ -35,7 +35,7 @@
 
   #:export (gi-type-tag-get-ffi-type
             g-type-info-get-ffi-type
-            #;g-callable-info-prepare-closure))
+            g-callable-info-prepare-closure))
 
 
 ;;;
@@ -54,11 +54,14 @@
   (gi->scm (g_type_info_get_ffi_type info)
            'pointer))
 
-;; Not ready for export yet - actually not even sure i'll use it, i may
-;; solve this ffi callback prepare closure using libguile or manually
-;; binding the ffi.hapi i need, we'll see.
-#;(define (g-callable-info-prepare-closure info cif callback user-data)
-  (gi->scm (g_callable_info_prepare_closure info cif callback user-data)
+(define (g-callable-info-prepare-closure info
+                                         ffi-cif
+                                         ffi-closure-callback
+                                         user-data)
+  (gi->scm (g_callable_info_prepare_closure info
+                                            ffi-cif
+                                            ffi-closure-callback
+                                            user-data)
            'pointer))
 
 
@@ -81,9 +84,9 @@
 
 (define g_callable_info_prepare_closure
   (pointer->procedure '*		;; *ffi-closure
-                      (dynamic-func "g_callable_info_get_return_type"
+                      (dynamic-func "g_callable_info_prepare_closure"
 				    %libgirepository)
                       (list '*		;; *callback-info
                             '*		;; *ffi-cif
-                            '*		;; the ffi callback
+                            '*		;; *ffi-closure-callback
                             '*)))	;; user-data

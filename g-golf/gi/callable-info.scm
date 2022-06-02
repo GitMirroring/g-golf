@@ -44,7 +44,8 @@
             g-callable-info-get-instance-ownership-transfer
 	    g-callable-info-get-return-type
             g-callable-info-is-method
-	    g-callable-info-may-return-null))
+	    g-callable-info-may-return-null
+            g-callable-info-create-closure))
 
 
 ;;;
@@ -112,6 +113,16 @@
 (define (g-callable-info-may-return-null info)
   (gi->scm (g_callable_info_may_return_null info) 'boolean))
 
+(define (g-callable-info-create-closure info
+                                        ffi-cif
+                                        ffi-closure-callback
+                                        user-data)
+  (gi->scm (g_callable_info_create_closure info
+                                           ffi-cif
+                                           ffi-closure-callback
+                                           user-data)
+           'pointer))
+
 
 ;;;
 ;;; GI Bindings
@@ -158,3 +169,12 @@
                       (dynamic-func "g_callable_info_may_return_null"
 				    %libgirepository)
                       (list '*)))
+
+(define g_callable_info_create_closure
+  (pointer->procedure '*		;; *ffi-closure
+                      (dynamic-func "g_callable_info_create_closure"
+				    %libgirepository)
+                      (list '*		;; *callback-info
+                            '*		;; *ffi-cif
+                            '*		;; *ffi-closure-callback
+                            '*)))	;; user-data

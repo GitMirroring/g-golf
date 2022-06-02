@@ -20,6 +20,7 @@ girffi — TODO.
 @table @code
 @item @ref{gi-type-tag-get-ffi-type}
 @item @ref{g-type-info-get-ffi-type}
+@item @ref{g-callable-info-prepare-closure}
 @end table
 @end indentedblock
 
@@ -74,4 +75,21 @@ Returns an (pointer to) @code{ffi-type} corresponding to the platform
 default C ABI for @var{info}.
 
 The @var{info} argument is [must be] a pointer to a @code{GITypeInfo}.
+@end deffn
+
+
+@anchor{g-callable-info-prepare-closure}
+@deffn Procedure g-callable-info-prepare-closure info @
+                 ffi-cif ffi-closure-callback user-data
+
+Returns the native address of the closure or @code{#f} on error.
+
+@example
+The procedure has been deprecated since version @code{1.72} and should
+not be used in newly-written code. Use
+@ref{g-callable-info-create-closure} instead.
+@end example
+
+The return value should be freed by calling
+@code{g-callable-info-free-closure}.
 @end deffn
