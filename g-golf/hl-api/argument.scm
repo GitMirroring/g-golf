@@ -57,6 +57,7 @@
 
 
 (g-export describe
+          !type-info
           !g-name
           !name
           !closure
@@ -90,6 +91,7 @@
 ;;;
 
 (define-class <argument> ()
+  (type-info #:accessor !type-info)
   (g-name #:accessor !g-name #:init-keyword #:g-name)
   (name #:accessor !name #:init-keyword #:name)
   (closure #:accessor !closure)
@@ -145,9 +147,10 @@
               (forced-type (arg-info-forced-type direction type-tag is-pointer?)))
          (receive (type-desc array-type-desc)
              (type-description type-info #:type-tag type-tag)
-           (g-base-info-unref type-info)
+           #;(g-base-info-unref type-info)
            (g-base-info-unref info)
            (mslot-set! self
+                       'type-info type-info
                        'g-name g-name
                        'name name
                        'closure closure
