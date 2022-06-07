@@ -35,6 +35,7 @@
 
   #:export (gi-type-tag-get-ffi-type
             g-type-info-get-ffi-type
+            gi-type-info-extract-ffi-return-value
             g-callable-info-prepare-closure))
 
 
@@ -53,6 +54,13 @@
 (define (g-type-info-get-ffi-type info)
   (gi->scm (g_type_info_get_ffi_type info)
            'pointer))
+
+(define (gi-type-info-extract-ffi-return-value type-info
+                                               ffi-value
+                                               gi-argument)
+  (gi_type_info_extract_ffi_return_value type-info
+                                         ffi-value
+                                         gi-argument))
 
 (define (g-callable-info-prepare-closure info
                                          ffi-cif
@@ -81,6 +89,14 @@
                       (dynamic-func "g_type_info_get_ffi_type"
 				    %libgirepository)
                       (list '*)))	;; *callback-info
+
+(define gi_type_info_extract_ffi_return_value
+  (pointer->procedure void
+                      (dynamic-func "gi_type_info_extract_ffi_return_value"
+				    %libgirepository)
+                      (list '*		;; *type-info
+                            '*		;; *ffi-value
+                            '*)))	;; *gi-argument
 
 (define g_callable_info_prepare_closure
   (pointer->procedure '*		;; *ffi-closure

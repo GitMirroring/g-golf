@@ -20,6 +20,7 @@ girffi — TODO.
 @table @code
 @item @ref{gi-type-tag-get-ffi-type}
 @item @ref{g-type-info-get-ffi-type}
+@item @ref{gi-type-info-extract-ffi-return-value}
 @item @ref{g-callable-info-prepare-closure}
 @end table
 @end indentedblock
@@ -75,6 +76,21 @@ Returns an (pointer to) @code{ffi-type} corresponding to the platform
 default C ABI for @var{info}.
 
 The @var{info} argument is [must be] a pointer to a @code{GITypeInfo}.
+@end deffn
+
+
+@anchor{gi-type-info-extract-ffi-return-value}
+@deffn Procedure gi-type-info-extract-ffi-return-value type-info @
+       ffi-value gi-argument
+
+Returns nothing.
+
+Extract the correct bits from @var{ffi-value} into @var{gi-argument}.
+
+The @var{type-info} argument is the GITypeInfo of @var{ffi-value}. The
+@var{ffi-value} argument is a pointer to a GIFFIReturnValue union
+containing the value from the @code{ffi_call()}. The @var{gi-argument}
+argument is a pointer to an allocated GIArgument.
 @end deffn
 
 
