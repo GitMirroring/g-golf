@@ -712,6 +712,12 @@
     ((gtype)
      (let ((val (gi-argument-ref gi-argument 'v-ulong)))
        (g-type->symbol val)))
+    ((void)
+     (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
+            (foreign (if is-pointer?
+                         (dereference-pointer gi-arg-val)
+                         gi-arg-val)))
+       (gi->scm foreign 'pointer)))
     (else
      ;; Here starts 'simple' types, but we still need to check the
      ;; forced-type: when it is 'pointer (which happens for 'inout and
@@ -740,7 +746,8 @@
                       (else
                        val))))
                  (else
-                  (warning "Unimplemeted (pointer to) type-tag: " type-tag))))))
+                  (warning "Unimplemeted (pointer to) type-tag: " type-tag)
+                  (gi->scm foreign 'pointer))))))
        (else
         (gi-argument-ref gi-argument
                          (gi-type-tag->field type-tag)))))))
