@@ -34,7 +34,7 @@
             ;; %libgdk
 	    %libgobject
             %libg-golf
-            %use-par-map))
+            %debug))
 
 
 (define %libgirepository (dynamic-link "libgirepository-1.0"))
@@ -44,4 +44,4 @@
 
 (define %libg-golf (dynamic-link "libg-golf"))
 
-(define %use-par-map (make-parameter #t))
+(define %debug (make-parameter #f))
