@@ -45,7 +45,8 @@
 		last)
 
   #:export (<callable>
-            <callback>))
+            <callback>
+            <callback-closure>))
 
 
 
@@ -74,7 +75,10 @@
           !gi-args-out-bv
           !gi-arg-result
 
-          !ffi-cif)			;; callback
+          !ffi-cif		;; callback
+
+          !callback		;; callback-closure
+          !function)
 
 
 ;;;
@@ -114,3 +118,12 @@
 
 (define-class <callback> (<callable>)
   (ffi-cif #:accessor !ffi-cif))
+
+
+;;;
+;;; Callback Closure
+;;;
+
+(define-class <callback-closure> ()
+  (callback #:accessor !callback #:init-keyword #:callback)
+  (function #:accessor !function #:init-keyword #:function))
