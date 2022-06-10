@@ -75,7 +75,8 @@
   (let* ((namespace (g-base-info-get-namespace info))
          (g-name (g-base-info-get-name info))
          (name (g-name->name g-name)))
-    (dimfi 'import-callback namespace name)
+    (when (%debug)
+      (dimfi 'import-callback namespace name))
     (or (gi-callback-inst-cache-ref name)
         (let ((callback (make <callback> #:info info
                               #:namespace namespace
@@ -123,20 +124,78 @@
               (loop rest
                     (gi-pointer-inc w-ptr))))))))))
 
+(define (make-ffi-closure)
+  (if (gi-check-version 1 71 0)
+      g-callable-info-create-closure
+      g-callable-info-prepare-closure))
 
-;;;
-;;; Dynamic FFI C closure for GICallbackInfo
-;;;
+(define (g-golf-callback-closure-marshal ffi-cif
+                                         return-value
+                                         ffi-args
+                                         user-data)
+  (let* ((%gi-argument->scm
+          (@ (g-golf hl-api callable) gi-argument->scm))
+         (%scm->gi-argument
+          (@ (g-golf hl-api callable) scm->gi-argument))
+         (callback-closure (pointer->scm user-data))
+         (callback (!callback callback-closure))
+         (function (!function callback-closure))
+         (return-type (!return-type callback))
+         (arguments (!arguments callback))
+         (n-arg (!n-arg callback))
+         (gi-argument (!gi-arg-result callback)))
+    (when (%debug)
+      (dimfi 'g-golf-callback-closure-marshal)
+      (dimfi "  " (!name callback)))
+    (let loop ((i 0)
+               (ffi-arg ffi-args)
+               (args '()))
+      (if (= i n-arg)
+          (let* ((args (reverse args))
+                 (r-val (apply function args)))
+            (when (%debug)
+              (dimfi "       arguments:" args)
+              (dimfi "    return-value:" r-val))
+            (%scm->gi-argument return-type
+                               (!type-desc callback)
+                               return-value
+                               r-val
+                               callback
+                               args
+                               #:may-be-null-acc !may-return-null?
+                               #:is-method? (!is-method? callback)
+                               #:forced-type return-type))
+          (let* ((argument (list-ref arguments i))
+                 (type-info (!type-info argument)))
+            (gi-type-info-extract-ffi-return-value type-info ffi-arg gi-argument)
+            (loop (+ i 1)
+                  (gi-pointer-inc ffi-arg)
+                  (cons (%gi-argument->scm (!type-tag argument)
+                                           (!type-desc argument)
+                                           gi-argument
+                                           argument
+                                           #:forced-type (!forced-type argument)
+                                           #:is-pointer? (!is-pointer? argument))
+                        args)))))))
+
+(define %g-golf-callback-closure-marshal
+  (procedure->pointer void
+                      g-golf-callback-closure-marshal
+                      (list '*			;; ffi-cif
+                            '*			;; return-value
+                            '*			;; ffi-args
+                            '*)))		;; user-data
 
 (define (g-golf-callback-closure name info proc)
-  (dimfi "g-golf-callback-closure")
-  (dimfi "  " name " " (g-base-info-get-name info))
-  (let ((callback (gi-import-callback info)))
-    (describe callback))
-  ;; Currently returns NULL - Wip ...
-  (g_golf_callback_closure (string->pointer (symbol->string name))
-                           info		;; a GICallbackInfo ptr
-                           (scm->pointer proc)))
+  (let* ((%make-ffi-closure (make-ffi-closure))
+         (callback (gi-import-callback info))
+         (callback-closure (make <callback-closure>
+                             #:callback callback
+                             #:function proc)))
+    (%make-ffi-closure info
+                       (!ffi-cif callback)
+                       %g-golf-callback-closure-marshal
+                       (scm->pointer callback-closure))))
 
 
 ;;;
