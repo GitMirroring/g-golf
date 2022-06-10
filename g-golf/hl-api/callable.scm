@@ -50,8 +50,10 @@
 		last)
 
   #:export (callable-prepare-gi-arguments
+            scm->gi-argument
             callable-return-value->scm
-            callable-arg-out->scm))
+            callable-arg-out->scm
+            gi-argument->scm))
 
 
 #;(g-export )
@@ -232,205 +234,219 @@
   (memq name %allow-none-exceptions))
 
 (define (callable-prepare-gi-args-in callable args)
+  (let ((is-method? (!is-method? callable)))
+    (let loop ((arguments (!args-in callable)))
+      (match arguments
+        (() 'done)
+        ((argument . rest)
+         (let* ((arg-pos (!arg-pos argument))
+                (value (list-ref args #;i arg-pos))
+                (is-pointer? (!is-pointer? argument))
+                (gi-argument (!gi-argument-in argument))
+                (field (!gi-argument-field argument)))
+           (scm->gi-argument (!type-tag argument)
+                             (!type-desc argument)
+                             gi-argument
+                             value
+                             argument
+                             args
+                             #:may-be-null-acc !may-be-null?
+                             #:is-method? is-method?
+                             #:forced-type (!forced-type argument))
+           (loop rest)))))))
+
+(define* (scm->gi-argument type-tag
+                           type-desc
+                           gi-argument
+                           value	;; the scheme value
+                           clb/arg	;; a <callable> or an <argument> instance
+                           args
+                           #:key (may-be-null-acc #f)
+                           (is-method? #f)
+                           (forced-type #f))
   (let ((%g-golf-callback-closure
          (@ (g-golf hl-api callback) g-golf-callback-closure))
-        (is-method? (!is-method? callable))
-        (n-gi-arg-in (!n-gi-arg-in callable))
-        (args-in (!args-in callable)))
-    (let loop ((i 0))
-      (if (= i n-gi-arg-in)
-          #t
-          (let* ((arg-in (list-ref args-in i))
-                 (arg-pos (!arg-pos arg-in))
-                 (arg (list-ref args #;i arg-pos))
-                 (type-tag (!type-tag arg-in))
-                 (type-desc (!type-desc arg-in))
-                 (is-pointer? (!is-pointer? arg-in))
-                 (may-be-null? (!may-be-null? arg-in))
-                 (forced-type (!forced-type arg-in))
-                 (gi-argument-in (!gi-argument-in arg-in))
-                 (field (!gi-argument-field arg-in)))
-            ;; clearing the string pointer reference kept from a previous
-            ;; call.
-            (set! (!string-pointer arg-in) #f)
-            (case type-tag
-              ((interface)
-               (match type-desc
-                 ((type name gi-type g-type confirmed?)
-                  (case type
-                    ((enum)
-                     (let ((e-val (enum->value gi-type arg)))
-                       (if e-val
-                           (gi-argument-set! gi-argument-in 'v-int e-val)
-                           (error "No such symbol " arg " in " gi-type))))
-                    ((flags)
-                     (let ((f-val (flags->integer gi-type arg)))
-                       (if f-val
-                           (gi-argument-set! gi-argument-in 'v-int f-val)
-                           (error "No such flag(s) " arg " in " gi-type))))
-                    ((struct)
-                     (case name
-                       ((void
-                         g-value)
-                        ;; Struct for which the (symbol) name is void
-                        ;; should be considerd opaque.
-                        ;; Functions and methods that use GValue(s)
-                        ;; should be overridden-ed/manually wrapped to
-                        ;; initialize those g-value(s) - and here, arg
-                        ;; is supposed to (always) be a valid pointer to
-                        ;; an initialized GValue.
-                        (gi-argument-set! gi-argument-in 'v-pointer arg))
-                       (else
-                        (gi-argument-set! gi-argument-in 'v-pointer
-                                          (cond ((or (!is-opaque? gi-type)
-                                                     (!is-semi-opaque? gi-type))
-                                                 arg)
-                                                (else
-                                                 (make-c-struct (!scm-types gi-type)
-                                                                arg)))))))
-                    ((union)
-                     (gi-argument-set! gi-argument-in 'v-pointer arg))
-                    ((object
-                      interface)
-                     (gi-argument-set! gi-argument-in 'v-pointer
-                                       (if arg
-                                           (!g-inst arg)
-                                           (if may-be-null?
-                                               %null-pointer
-                                               (error "Invalid arg: " arg)))))
-                    ((callback)
-                     (gi-argument-set! gi-argument-in 'v-pointer
-                                       (if arg
-                                           (%g-golf-callback-closure (!name callable)
-                                                                     gi-type
-                                                                     arg)
-                                           (if (or may-be-null?
-                                                   (allow-none-exception? name))
-                                               #f
-                                               (error "Invalid arg: " arg)))))))))
-              ((array)
-               (if (or (not arg)
-                       (null? arg))
-                   (if may-be-null?
-                       (gi-argument-set! gi-argument-in 'v-pointer #f)
-                       (error "Invalid array argument: " arg))
-                   (match type-desc
-                     ((array fixed-size is-zero-terminated param-n param-tag)
-                      (let* ((param-n (case param-n
-                                        ((-1) param-n)
+        (may-be-null? (may-be-null-acc clb/arg)))
+    ;; clearing references kept from a previous call.
+    (mslot-set! clb/arg
+                'string-pointer #f
+                'bv-cache #f
+                'bv-cache-ptr #f)
+    (case type-tag
+      ((interface)
+       (match type-desc
+         ((type name gi-type g-type confirmed?)
+          (case type
+            ((enum)
+             (let ((e-val (enum->value gi-type value)))
+               (if e-val
+                   (gi-argument-set! gi-argument 'v-int e-val)
+                   (error "No such symbol " value " in " gi-type))))
+            ((flags)
+             (let ((f-val (flags->integer gi-type value)))
+               (if f-val
+                   (gi-argument-set! gi-argument 'v-int f-val)
+                   (error "No such flag(s) " value " in " gi-type))))
+            ((struct)
+             (case name
+               ((void
+                 g-value)
+                ;; Struct for which the (symbol) name is void should be
+                ;; considerd opaque.  Functions and methods that use
+                ;; GValue(s) should be overridden-ed/manually wrapped to
+                ;; initialize those g-value(s) - and here, value is
+                ;; supposed to (always) be a valid pointer to an
+                ;; initialized GValue.
+                (gi-argument-set! gi-argument 'v-pointer value))
+               (else
+                (gi-argument-set! gi-argument 'v-pointer
+                                  (cond ((or (!is-opaque? gi-type)
+                                             (!is-semi-opaque? gi-type))
+                                         value)
                                         (else
-                                         (if is-method? (+ param-n 1) param-n))))
-                             (arg-n (list-ref args param-n)))
-                      (case param-tag
-                        ((utf8
-                          filename)
-                         (gi-argument-set! gi-argument-in 'v-pointer
-                                           (if (or is-zero-terminated
-                                                   (= arg-n -1))
-                                               (scm->gi-strings arg)
-                                               (scm->gi-n-string arg arg-n))))
-                        ((gtype)
-                         (gi-argument-set! gi-argument-in 'v-pointer
-                                           (if (or is-zero-terminated
-                                                   (= arg-n -1))
-                                               (warning
-                                                "Unimplemented (prepare args-in) scm->gi-gtypes."
-                                                "")
-                                               (scm->gi-n-gtype arg arg-n))))
-                        ((uint8)
-                         ;; this is most likely a string, but we will
-                         ;; check and also (blindingly) accept a pointer.
-                         (cond ((string? arg)
-                                (let ((string-pointer (string->pointer arg)))
-                                  (set! (!string-pointer arg-in) string-pointer)
-                                  ;; don't use 'v-string, which expects a
-                                  ;; string, calls string->pointer (and
-                                  ;; does not keep a reference).
-                                  (gi-argument-set! gi-argument-in 'v-pointer string-pointer)))
-                               ((pointer? arg)
-                                ;; as said above, we blindingly accept a pointer
-                                (gi-argument-set! gi-argument-in 'v-pointer arg))
-                               (else
-                                (error "Invalid (uint8 array) argument: " arg))))
-                        (else
-                         (warning "Unimplemented (prepare args-in) type - array;"
-                                  (format #f "~S" type-desc)))))))))
-              ((glist)
-               (if (or (not arg)
-                       (null? arg))
-                   (if may-be-null?
-                       (gi-argument-set! gi-argument-in 'v-pointer #f)
-                       (error "Invalid glist argument: " arg))
-                   (warning "Unimplemented type" (symbol->string type-tag))))
-              ((gslist)
-               (if (or (not arg)
-                       (null? arg))
-                   (if may-be-null?
-                       (gi-argument-set! gi-argument-in 'v-pointer #f)
-                       (error "Invalid gslist argument: " arg))
-                   (match type-desc
-                     ((type name gi-type g-type confirmed?)
-                      (case type
-                        ((object)
-                         (gi-argument-set! gi-argument-in 'v-pointer
-                                           (scm->gi-gslist (map !g-inst arg))))
-                        (else
-                         (warning "Unimplemented gslist subtype" type-desc)))))))
-              ((ghash
-                error)
-               (if (not arg)
-                   (if may-be-null?
-                       (gi-argument-set! gi-argument-in 'v-pointer #f)
-                       (error "Invalid " type-tag " argument: " arg))
-                   (warning "Unimplemented type" (symbol->string type-tag))))
-              ((utf8
-                filename)
-               ;; we need to keep a reference to string pointers,
-               ;; otherwise the C string will be freed, which might happen
-               ;; before the C call actually occurred.
-               (if (not arg)
-                   (if may-be-null?
-                       (gi-argument-set! gi-argument-in 'v-pointer #f)
-                       (error "Invalid " type-tag " argument: " #f))
-                   (let ((string-pointer (string->pointer arg)))
-                     (set! (!string-pointer arg-in) string-pointer)
-                     ;; don't use 'v-string, which expects a string, calls
-                     ;; string->pointer (and does not keep a reference).
-                     (gi-argument-set! gi-argument-in 'v-pointer string-pointer))))
-              (else
-               ;; Here starts fundamental types. However, we still need to
-               ;; check the forced-type slot-value, and when it is a
-               ;; pointer, allocate mem for the type-tag, then set the
-               ;; value and initialize the gi-argument to a pointer to the
-               ;; alocated mem.
-               (case forced-type
-                 ((pointer)
-                  (if (not arg)
-                      (if may-be-null?
-                          (gi-argument-set! gi-argument-in 'v-pointer #f)
-                          (error "Invalid (pointer to) " type-tag " argument: " arg))
-                      (case type-tag
-                        ((int32)
-                         (let* ((bv-cache (!bv-cache arg-in))
-                                (s32 (or bv-cache
-                                         (make-s32vector 1 0)))
-                                (s32-ptr (or (!bv-cache-ptr arg-in)
-                                             (bytevector->pointer s32))))
-                           (unless bv-cache
-                             (mslot-set! arg-in
-                                         'bv-cache s32
-                                         'bv-cache-ptr s32-ptr))
-                           (s32vector-set! s32 0 arg)
-                           (gi-argument-set! gi-argument-in
-                                             (gi-type-tag->field forced-type)
-                                             s32-ptr)))
-                        (else
-                         (warning "Unimplemented (pointer to): " type-tag)))))
-                 (else
-                  (gi-argument-set! gi-argument-in
-                                    (gi-type-tag->field forced-type)
-                                    arg)))))
-            (loop (+ i 1)))))))
+                                         (make-c-struct (!scm-types gi-type)
+                                                        value)))))))
+            ((union)
+             (gi-argument-set! gi-argument 'v-pointer value))
+            ((object
+              interface)
+             (gi-argument-set! gi-argument 'v-pointer
+                               (if value
+                                   (!g-inst value)
+                                   (if may-be-null?
+                                       %null-pointer
+                                       (error "Invalid argument: " value)))))
+            ((callback)
+             (gi-argument-set! gi-argument 'v-pointer
+                               (if value
+                                   (%g-golf-callback-closure (!name clb/arg)
+                                                             gi-type
+                                                             value)
+                                   (if (or may-be-null?
+                                           (allow-none-exception? name))
+                                       #f
+                                       (error "Invalid argument: " value)))))))))
+      ((array)
+       (if (or (not value)
+               (null? value))
+           (if may-be-null?
+               (gi-argument-set! gi-argument 'v-pointer #f)
+               (error "Invalid array argument: " value))
+           (match type-desc
+             ((array fixed-size is-zero-terminated param-n param-tag)
+              (let* ((param-n (case param-n
+                                ((-1) param-n)
+                                (else
+                                 (if is-method? (+ param-n 1) param-n))))
+                     (arg-n (list-ref args param-n)))
+                (case param-tag
+                  ((utf8
+                    filename)
+                   (gi-argument-set! gi-argument 'v-pointer
+                                     (if (or is-zero-terminated
+                                             (= arg-n -1))
+                                         (scm->gi-strings value)
+                                         (scm->gi-n-string value arg-n))))
+                  ((gtype)
+                   (gi-argument-set! gi-argument 'v-pointer
+                                     (if (or is-zero-terminated
+                                             (= arg-n -1))
+                                         (warning
+                                          "Unimplemented (prepare args-in) scm->gi-gtypes."
+                                          "")
+                                         (scm->gi-n-gtype value arg-n))))
+                  ((uint8)
+                   ;; this is most likely a string, but we will check
+                   ;; and also (blindingly) accept a pointer.
+                   (cond ((string? value)
+                          (let ((string-pointer (string->pointer value)))
+                            (set! (!string-pointer clb/arg) string-pointer)
+                            ;; don't use 'v-string, which expects a
+                            ;; string, calls string->pointer (and does
+                            ;; not keep a reference).
+                            (gi-argument-set! gi-argument 'v-pointer string-pointer)))
+                         ((pointer? value)
+                          ;; as said above, we blindingly accept a pointer
+                          (gi-argument-set! gi-argument 'v-pointer value))
+                         (else
+                          (error "Invalid (uint8 array) argument: " value))))
+                  (else
+                   (warning "Unimplemented (prepare args-in) type - array;"
+                            (format #f "~S" type-desc)))))))))
+      ((glist)
+       (if (or (not value)
+               (null? value))
+           (if may-be-null?
+               (gi-argument-set! gi-argument 'v-pointer #f)
+               (error "Invalid glist argument: " value))
+           (warning "Unimplemented type" (symbol->string type-tag))))
+      ((gslist)
+       (if (or (not value)
+               (null? value))
+           (if may-be-null?
+               (gi-argument-set! gi-argument 'v-pointer #f)
+               (error "Invalid gslist argument: " value))
+           (match type-desc
+             ((type name gi-type g-type confirmed?)
+              (case type
+                ((object)
+                 (gi-argument-set! gi-argument 'v-pointer
+                                   (scm->gi-gslist (map !g-inst value))))
+                (else
+                 (warning "Unimplemented gslist subtype" type-desc)))))))
+      ((ghash
+        error)
+       (if (not value)
+           (if may-be-null?
+               (gi-argument-set! gi-argument 'v-pointer #f)
+               (error "Invalid " type-tag " argument: " value))
+           (warning "Unimplemented type" (symbol->string type-tag))))
+      ((utf8
+        filename)
+       ;; we need to keep a reference to string pointers, otherwise the
+       ;; C string will be freed, which might happen before the C call
+       ;; actually occurred.
+       (if (not value)
+           (if may-be-null?
+               (gi-argument-set! gi-argument 'v-pointer #f)
+               (error "Invalid " type-tag " argument: " #f))
+           (let ((string-pointer (string->pointer value)))
+             (set! (!string-pointer clb/arg) string-pointer)
+             ;; don't use 'v-string, which expects a string, calls
+             ;; string->pointer (and does not keep a reference).
+             (gi-argument-set! gi-argument 'v-pointer string-pointer))))
+      (else
+       ;; Here starts fundamental types. However, we still need to check
+       ;; the forced-type slot-value, and when it is a pointer, allocate
+       ;; mem for the type-tag, then set the value and initialize the
+       ;; gi-argument to a pointer to the alocated mem.
+       (case forced-type
+         ((pointer)
+          (if (not value)
+              (if may-be-null?
+                  (gi-argument-set! gi-argument 'v-pointer #f)
+                  (error "Invalid (pointer to) " type-tag " argument: " value))
+              (case type-tag
+                ((int32)
+                 (let* ((bv-cache (!bv-cache clb/arg))
+                        (s32 (or bv-cache
+                                 (make-s32vector 1 0)))
+                        (s32-ptr (or (!bv-cache-ptr clb/arg)
+                                     (bytevector->pointer s32))))
+                   (unless bv-cache
+                     (mslot-set! clb/arg
+                                 'bv-cache s32
+                                 'bv-cache-ptr s32-ptr))
+                   (s32vector-set! s32 0 value)
+                   (gi-argument-set! gi-argument
+                                     (gi-type-tag->field forced-type)
+                                     s32-ptr)))
+                (else
+                 (warning "Unimplemented (pointer to): " type-tag)))))
+         (else
+          (gi-argument-set! gi-argument
+                            (gi-type-tag->field type-tag)
+                            value)))))))
 
 (define (callable-prepare-gi-args-out callable args args-length n-arg)
   (let ((n-gi-arg-out (!n-gi-arg-out callable))
@@ -440,8 +456,8 @@
           #t
           (let ((arg-out (list-ref args-out i)))
             (cond ((eq? (!direction arg-out) 'inout)
-                   ;; Then we 'merely' copy the content of the gi-argument-in
-                   ;; to the gi-argument-out.
+                   ;; Then we 'merely' copy the content of the
+                   ;; gi-argument-in to the gi-argument-out.
                    (let ((gi-argument-size %gi-argument-size)
                          (in-bv (!gi-args-in-bv callable))
                          (in-bv-pos (!gi-argument-in-bv-pos arg-out))

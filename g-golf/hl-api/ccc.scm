@@ -61,6 +61,7 @@
           !return-type
           !type-desc
           !array-type-desc
+          !string-pointer
           !bv-cache
           !bv-cache-ptr
           !may-return-null?
@@ -97,6 +98,7 @@
   (return-type #:accessor !return-type)
   (type-desc #:accessor !type-desc)
   (array-type-desc #:accessor !array-type-desc)
+  (string-pointer #:accessor !string-pointer)
   (bv-cache #:accessor !bv-cache #:init-value #f)
   (bv-cache-ptr #:accessor !bv-cache-ptr #:init-value #f)
   (may-return-null? #:accessor !may-return-null?)
