@@ -129,8 +129,10 @@
          (inst (and g-inst
                     (g-inst-cache-ref g-inst))))
     (if inst
-        (let ((its-class (class-of inst)))
-          (if (eq? its-class class)
+        (let* ((its-class (class-of inst))
+               (derived? (!derived its-class)))
+          (if (or derived?
+                  (eq? its-class class))
               inst
               (begin
                 ;; This means that g-inst points to a new gobject
