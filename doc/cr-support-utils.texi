@@ -16,6 +16,7 @@
 @item @ref{g-name->name}
 @item @ref{g-name->class-name}
 @item @ref{g-name->short-name}
+@item @ref{class-name->g-name}
 @item @ref{syntax-name->method-name}
 @item @ref{gi-type-tag->ffi}
 @item @ref{gi-type-tag->init-val}
@@ -145,6 +146,21 @@ cases:
 
 (g-name->short-name "gtk_drag_begin" "GtkWidget")
 @result{} drag-begin
+@end lisp
+@end deffn
+
+
+@anchor{class-name->g-name}
+@deffn Procedure class-name->g-name class-name
+
+Returns a string.
+
+Obtains and returns the StudlyCaps string reprentation for
+@var{class-name}. For example:
+
+@lisp
+(class-name->g-name '<foo-bar>)
+@result{} "FooBar"
 @end lisp
 @end deffn
 

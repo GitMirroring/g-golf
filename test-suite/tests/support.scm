@@ -190,4 +190,11 @@
   (assert-equal 'begin_ (syntax-name->method-name 'begin)))
 
 
+(define-method (test-utils-4 (self <g-golf-test-support>))
+  (assert-true (string=? (class-name->g-name '<peg-solitaire>)
+                         "PegSolitaire"))
+  (assert-true (string=? (class-name->g-name '<foo2-bar3>)
+                         "Foo2Bar3")))
+
+
 (exit-with-summary (run-all-defined-test-cases))
