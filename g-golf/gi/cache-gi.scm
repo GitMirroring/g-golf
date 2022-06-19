@@ -80,7 +80,12 @@
   ;; m-key, s-key stand for main key, secondary key
   (let ((subcache (assq-ref %gi-cache m-key)))
     (and subcache
-         (assq-remove! subcache s-key))))
+         (let ((m-entry (assq-remove! subcache s-key)))
+           (if (null? m-entry)
+               (set! %gi-cache
+                     (assq-remove! %gi-cache m-key))
+               (set! %gi-cache
+                     (assq-set! %gi-cache m-key m-entry)))))))
 
 (define* (gi-cache-show #:optional (m-key #f))
   (format #t "%gi-cache~%")

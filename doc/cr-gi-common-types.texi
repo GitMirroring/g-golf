@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2020 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2022 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -14,6 +14,15 @@ G-Golf Common Types low level API.@*
 common types - TODO
 
 
+@subheading Procedures
+
+@indentedblock
+@table @code
+@item @ref{g-type-tag-to-string}
+@end table
+@end indentedblock
+
+
 @subheading Types and Values
 
 @indentedblock
@@ -22,6 +31,26 @@ common types - TODO
 @item @ref{%gi-array-type}
 @end table
 @end indentedblock
+
+
+@subheading Procedures
+
+
+@anchor{g-type-tag-to-string}
+@deffn Procedure g-type-tag-to-string type-tag
+
+Returns a string or @code{#f}.
+
+Obtains the string representation for @var{type-tag} or @code{#f} if it
+does not exist (note that in this case, the upstream function returns
+@code{"unknown"}).
+
+@var{type-tag} can either be an @code{id} or a @code{symbol}, a member
+of the @code{enum-set} of @ref{%gi-type-tag}.
+@end deffn
+
+
+@subheading Types and Values
 
 
 @anchor{%gi-type-tag}

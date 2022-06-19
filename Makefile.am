@@ -37,10 +37,11 @@ SOURCES = \
 	g-golf/support/push.scm			\
 	g-golf/support/keyword.scm		\
 	g-golf/support/enum.scm			\
-	g-golf/support/flags.scm			\
+	g-golf/support/flags.scm		\
 	g-golf/support/struct.scm		\
 	g-golf/support/union.scm		\
 	g-golf/support/bytevector.scm		\
+	g-golf/support/ffi.scm			\
 	g-golf/support.scm			\
 	g-golf/init.scm				\
 	g-golf/glib/mem-alloc.scm		\
@@ -66,6 +67,8 @@ SOURCES = \
 	g-golf/gi/cache-gi.scm			\
 	g-golf/gi/cache-others.scm		\
 	g-golf/gi/repository.scm		\
+	g-golf/gi/typelib.scm			\
+	g-golf/gi/version.scm			\
 	g-golf/gi/common-types.scm		\
 	g-golf/gi/base-info.scm			\
 	g-golf/gi/callable-info.scm		\
@@ -82,7 +85,7 @@ SOURCES = \
 	g-golf/gi/field-info.scm		\
 	g-golf/gi/property-info.scm		\
 	g-golf/gi/type-info.scm			\
-	g-golf/gi/typelib.scm			\
+	g-golf/gi/gir-ffi.scm			\
 	g-golf/gi.scm				\
 	g-golf/gdk/events.scm			\
 	g-golf/gdk.scm				\
@@ -90,14 +93,19 @@ SOURCES = \
 	g-golf/override/gdk.scm			\
 	g-golf/override/gtk.scm			\
 	g-golf/override.scm			\
+	g-golf/hl-api/n-decl.scm		\
 	g-golf/hl-api/gtype.scm			\
 	g-golf/hl-api/gobject.scm		\
+	g-golf/hl-api/events.scm		\
+	g-golf/hl-api/argument.scm		\
+	g-golf/hl-api/ccc.scm			\
+	g-golf/hl-api/callable.scm		\
+	g-golf/hl-api/callback.scm		\
 	g-golf/hl-api/function.scm		\
 	g-golf/hl-api/object.scm		\
 	g-golf/hl-api/closure.scm		\
 	g-golf/hl-api/signal.scm		\
 	g-golf/hl-api/glib.scm			\
-	g-golf/hl-api/callback.scm		\
 	g-golf/hl-api/import.scm		\
 	g-golf/hl-api/utils.scm			\
 	g-golf/hl-api.scm			\

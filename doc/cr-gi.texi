@@ -23,10 +23,9 @@ Intropection (manual) section, but there are some exceptions, such as
 
 
 @menu
-
-@subheading GIRepository
-
-* Repository::            GObject Introspection repository manager.
+* Repository::		  GObject Introspection repository manager.
+* Typelib::		  Layout and accessors for typelib.
+* Version Information::	  Procedures to check the GIRepository version.
 * Common Types::          GObject Introspection common types. 
 * Base Info::             Base struct for all GITypelib structs.
 * Callable Info::	  Struct representing a callable.
@@ -43,17 +42,19 @@ Intropection (manual) section, but there are some exceptions, such as
 * Field Info::		  Struct representing a struct or a union field.
 * Property Info::	  Struct representing a property.
 * Type Info::		  Struct representing a type.
-
-@subheading GITypelib
-
-* Typelib::		  Layout and accessors for typelib.
+* FFI Interface::	  FFI Interface.
 * Utilities::		  (G-Golf) Utilities.
-
 @end menu
 
 
 @include cr-gi-repository.texi
+
+@include cr-gi-typelib.texi
+
 @include cr-gi-common-types.texi
+
+@include cr-gi-version.texi
+
 @include cr-gi-base-info.texi
 @include cr-gi-callable-info.texi
 @include cr-gi-signal-info.texi
@@ -69,5 +70,6 @@ Intropection (manual) section, but there are some exceptions, such as
 @include cr-gi-field-info.texi
 @include cr-gi-property-info.texi
 @include cr-gi-type-info.texi
-@include cr-gi-typelib.texi
+@include cr-gi-gir-ffi.texi
+
 @include cr-gi-utilities.texi

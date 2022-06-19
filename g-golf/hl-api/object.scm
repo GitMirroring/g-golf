@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2020
+;;;; Copyright (C) 2019 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -35,9 +35,10 @@
   #:use-module (g-golf gi)
   #:use-module (g-golf glib)
   #:use-module (g-golf gobject)
+  #:use-module (g-golf hl-api n-decl)
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api gobject)
-  #:use-module (g-golf hl-api function)
+  ;; #:use-module (g-golf hl-api function)
 
   #:duplicates (merge-generics
 		replace
@@ -53,7 +54,7 @@
 
 (define* (gi-import-object info #:key (with-methods? #t) (force? #f))
   (let* ((namespace (g-base-info-get-namespace info))
-         (with-methods? (if (is-namespace-import-exception? namespace)
+         (with-methods? (if (gi-namespace-import-exception? namespace)
                             #f
                             with-methods?))
          (module (resolve-module '(g-golf hl-api gobject)))
@@ -155,7 +156,9 @@
 
 (define* (gi-import-object-methods info
                                    #:key (force? #f))
-  (let ((namespace (g-base-info-get-namespace info))
+  (let ((%gi-import-function
+         (@ (g-golf hl-api function) gi-import-function))
+        (namespace (g-base-info-get-namespace info))
         (n-method (g-object-info-get-n-methods info)))
     (do ((i 0
             (+ i 1)))
@@ -168,11 +171,13 @@
         ;; GIFuncInfo entry in the namespace (methods do not). We do not
         ;; (re)import those here.
         (unless (g-irepository-find-by-name namespace name)
-          (gi-import-function m-info #:force? force?))))))
+          (%gi-import-function m-info #:force? force?))))))
 
 (define* (gi-import-object-class-methods info
                                          #:key (force? #f))
-  (let ((namespace (g-base-info-get-namespace info))
+  (let ((%gi-import-function
+         (@ (g-golf hl-api function) gi-import-function))
+        (namespace (g-base-info-get-namespace info))
         (class-struct (g-object-info-get-class-struct info)))
     (when class-struct
       (let ((n-method (g-struct-info-get-n-methods class-struct)))
@@ -187,7 +192,7 @@
             ;; GIFuncInfo entry in the namespace (methods do not). We do not
             ;; (re)import those here.
             (unless (g-irepository-find-by-name namespace name)
-              (gi-import-function m-info #:force? force?))))))))
+              (%gi-import-function m-info #:force? force?))))))))
 
 #!
 
@@ -231,7 +236,7 @@
 
 (define* (gi-import-interface info #:key (with-methods? #t) (force? #f))
   (let* ((namespace (g-base-info-get-namespace info))
-         (with-methods? (if (is-namespace-import-exception? namespace)
+         (with-methods? (if (gi-namespace-import-exception? namespace)
                             #f
                             with-methods?))
          (module (resolve-module '(g-golf hl-api gobject))))
@@ -264,7 +269,9 @@
 
 (define* (gi-import-interface-methods info
                                       #:key (force? #f))
-  (let ((namespace (g-base-info-get-namespace info))
+  (let ((%gi-import-function
+         (@ (g-golf hl-api function) gi-import-function))
+        (namespace (g-base-info-get-namespace info))
         (n-method (g-interface-info-get-n-methods info)))
     (do ((i 0
             (+ i 1)))
@@ -277,4 +284,4 @@
         ;; GIFuncInfo entry in the namespace (methods do not). We do not
         ;; (re)import those here.
         (unless (g-irepository-find-by-name namespace name)
-          (gi-import-function m-info #:force? force?))))))
+          (%gi-import-function m-info #:force? force?))))))

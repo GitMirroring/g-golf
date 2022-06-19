@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2018 - 2021
+;;;; Copyright (C) 2018 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -34,11 +34,12 @@
   #:use-module (g-golf gi)
   #:use-module (g-golf glib)
   #:use-module (g-golf gobject)
+  #:use-module (g-golf hl-api n-decl)
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api gobject)
+  #:use-module (g-golf hl-api argument)
   #:use-module (g-golf hl-api function)
   #:use-module (g-golf hl-api object)
-  #:use-module (g-golf hl-api callback)  
 
   #:duplicates (merge-generics
 		replace
@@ -51,8 +52,7 @@
             gi-is-info-a?
             gi-import
             gi-import-by-name
-            gi-import-info
-            gi-import-constant))
+            gi-import-info))
 
 
 #;(g-export )
@@ -88,7 +88,7 @@
                             (with-methods? #t)
                             (force? #f))
   (when (or force?
-            (not (is-namespace-import-exception? namespace)))
+            (not (gi-namespace-import-exception? namespace)))
     (g-irepository-require namespace #:version version)
     (let ((info (g-irepository-find-by-name namespace name)))
       (if info
@@ -159,16 +159,3 @@
                          i-type
                          "not imported"))))
            #f)))))
-
-(define* (gi-import-constant info)
-  (let* ((g-name (g-base-info-get-name info))
-         ;; (name (g-name->name g-name))
-         (type-info (g-constant-info-get-type info))
-         (type-tag (g-type-info-get-tag type-info))
-         (field (gi-type-tag->field type-tag))
-         (value (make-gi-argument))
-         (dummy (g-constant-info-get-value info value))
-         (constant (gi-argument-ref value field)))
-    (g-base-info-unref type-info)
-    (values constant
-            g-name)))

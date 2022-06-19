@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2019 - 2021 Free Software Foundation, Inc.
+@c Copyright (C) 2019 - 2022 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -161,27 +161,28 @@ instance @code{name} slot as the secondary key. Here is an example:
 
 @emph{Returned value(s):}
 
-In most situations, but when the @code{return-type} is @code{'void} (in
-which case nothing is returned), the function or method returned value
-comes first, then in order, if any, the @code{'inout} and/or
-@code{'out} argument(s).
+In most situations - unless the @code{return-type} is @code{'void} (in
+which case nothing is returned) - the function or method returned value
+comes first, then in order, if any, the value(s) of its @code{'inout}
+and @code{'out} argument(s).
 
 However, some function and method, that have at least one @code{'inout}
-or @code{'out} argument(s), do return a @code{'boolean}, but solely to
+or @code{'out} argument(s), do return @code{#t} or @code{#f} solely to
 indicate that the function or method call was successful or not. It is
-only if the call is successful that the @code{'inout} and/or @code{'out}
-argument(s) have been @samp{correctly} set and may be safely used.
+only if the call is successful that the @code{'inout} and @code{'out}
+argument(s) have been @samp{correctly} set and may safely be used.
 
 In scheme, when binding such a function or method, we would rather (a)
 when the call is successful, elude the boolean and return, in order,
 the @code{'inout} and/or @code{'out} argument(s) value(s); and (b), when
 the call is unsuccessful, raise an exception.
 
-Since it is not possible to automatically @samp{detect} these functions
-and methods, G-Golf defines a @ref{%gi-strip-boolean-result} variable,
-initially empty, that users may fill appropriately, using the function
-or method (symbol) name, as described in its documentation: make sure to
-carefully read and understand it.
+Since it is not possible to automatically detect these functions and
+methods, G-Golf provides a series of interfaces to maintain, at user
+discretion and responsibility, a list of GI typelib functions and
+methods for which G-Golf is expected to elude their result value from
+the returned value(s). G-Golf interfaces to maintain this list are
+documented in the @ref{Customization Square} section.
 @end deffn
 
 

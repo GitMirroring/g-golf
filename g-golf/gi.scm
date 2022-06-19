@@ -37,6 +37,8 @@
   #:use-module (g-golf gi cache-gi)
   #:use-module (g-golf gi cache-others)
   #:use-module (g-golf gi repository)
+  #:use-module (g-golf gi typelib)
+  #:use-module (g-golf gi version)
   #:use-module (g-golf gi common-types)
   #:use-module (g-golf gi base-info)
   #:use-module (g-golf gi callable-info)
@@ -53,7 +55,7 @@
   #:use-module (g-golf gi field-info)
   #:use-module (g-golf gi property-info)
   #:use-module (g-golf gi type-info)
-  #:use-module (g-golf gi typelib)
+  #:use-module (g-golf gi gir-ffi)
 
   #:duplicates (merge-generics
 		replace
@@ -73,6 +75,8 @@
                               (g-golf gi cache-gi)
                               (g-golf gi cache-others)
                               (g-golf gi repository)
+                              (g-golf gi typelib)
+                              (g-golf gi version)
                               (g-golf gi common-types)
                               (g-golf gi base-info)
                               (g-golf gi callable-info)
@@ -89,4 +93,4 @@
                               (g-golf gi field-info)
                               (g-golf gi property-info)
                               (g-golf gi type-info)
-                              (g-golf gi typelib)))
+                              (g-golf gi gir-ffi)))

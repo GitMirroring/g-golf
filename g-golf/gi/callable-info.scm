@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2018
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -27,18 +27,63 @@
 
 
 (define-module (g-golf gi callable-info)
+  #:use-module (ice-9 format)
   #:use-module (system foreign)
   #:use-module (g-golf support enum)
   #:use-module (g-golf init)
   #:use-module (g-golf gi utils)
+  #:use-module (g-golf gi base-info)
   #:use-module (g-golf gi arg-info)
+  #:use-module (g-golf gi type-info)
 
-  #:export (g-callable-info-get-n-args
+  #:export (gi-callable-show
+
+            g-callable-info-get-n-args
 	    g-callable-info-get-arg
-            g-callable-info-get-instance-ownership-transfer
 	    g-callable-info-get-caller-owns
+            g-callable-info-get-instance-ownership-transfer
 	    g-callable-info-get-return-type
-	    g-callable-info-may-return-null))
+            g-callable-info-is-method
+	    g-callable-info-may-return-null
+            g-callable-info-create-closure))
+
+
+;;;
+;;; Misc.
+;;;
+
+(define %callable-fmt
+  "
+~S is a (pointer to a) GICallableInfo:
+
+          namespace: ~S
+               name: ~S
+               type: ~S
+              n-arg: ~A
+        caller-owns: ~S
+                iot: ~S	 [ instance-ownership-transfer
+        return-type: ~S
+          is-method: ~S
+    may-return-null: ~S
+
+")
+
+(define* (gi-callable-show info
+                           #:optional (port (current-output-port)))
+  (let* ((return-type-info (g-callable-info-get-return-type info))
+         (return-type (g-type-info-get-tag return-type-info)))
+    (g-base-info-unref return-type-info)
+    (format port "~?" %callable-fmt
+            (list info
+                  (g-base-info-get-namespace info)
+                  (g-base-info-get-name info)
+                  (g-base-info-get-type info)
+                  (g-callable-info-get-n-args info)
+                  (g-callable-info-get-caller-owns info)
+                  (g-callable-info-get-instance-ownership-transfer info)
+                  return-type
+                  (g-callable-info-is-method info)
+                  (g-callable-info-may-return-null info)))))
 
 
 ;;;
@@ -51,19 +96,32 @@
 (define (g-callable-info-get-arg info n)
   (gi->scm (g_callable_info_get_arg info n) 'pointer))
 
-(define (g-callable-info-get-instance-ownership-transfer info)
-  (enum->symbol %gi-transfer
-                (g_callable_info_get_instance_ownership_transfer info)))
-
 (define (g-callable-info-get-caller-owns info)
   (enum->symbol %gi-transfer
                 (g_callable_info_get_caller_owns info)))
 
+(define (g-callable-info-get-instance-ownership-transfer info)
+  (enum->symbol %gi-transfer
+                (g_callable_info_get_instance_ownership_transfer info)))
+
 (define (g-callable-info-get-return-type info)
   (gi->scm (g_callable_info_get_return_type info) 'pointer))
 
+(define (g-callable-info-is-method info)
+  (gi->scm (g_callable_info_is_method info) 'boolean))
+
 (define (g-callable-info-may-return-null info)
   (gi->scm (g_callable_info_may_return_null info) 'boolean))
+
+(define (g-callable-info-create-closure info
+                                        ffi-cif
+                                        ffi-closure-callback
+                                        user-data)
+  (gi->scm (g_callable_info_create_closure info
+                                           ffi-cif
+                                           ffi-closure-callback
+                                           user-data)
+           'pointer))
 
 
 ;;;
@@ -82,15 +140,15 @@
 				    %libgirepository)
                       (list '* int)))
 
-(define g_callable_info_get_instance_ownership_transfer
-  (pointer->procedure int
-                      (dynamic-func "g_callable_info_get_instance_ownership_transfer"
-				    %libgirepository)
-                      (list '*)))
-
 (define g_callable_info_get_caller_owns
   (pointer->procedure int
                       (dynamic-func "g_callable_info_get_caller_owns"
+				    %libgirepository)
+                      (list '*)))
+
+(define g_callable_info_get_instance_ownership_transfer
+  (pointer->procedure int
+                      (dynamic-func "g_callable_info_get_instance_ownership_transfer"
 				    %libgirepository)
                       (list '*)))
 
@@ -99,9 +157,24 @@
                       (dynamic-func "g_callable_info_get_return_type"
 				    %libgirepository)
                       (list '*)))
-					
+
+(define g_callable_info_is_method
+  (pointer->procedure int
+                      (dynamic-func "g_callable_info_is_method"
+				    %libgirepository)
+                      (list '*)))
+
 (define g_callable_info_may_return_null
   (pointer->procedure int
                       (dynamic-func "g_callable_info_may_return_null"
 				    %libgirepository)
                       (list '*)))
+
+(define g_callable_info_create_closure
+  (pointer->procedure '*		;; *ffi-closure
+                      (dynamic-func "g_callable_info_create_closure"
+				    %libgirepository)
+                      (list '*		;; *callback-info
+                            '*		;; *ffi-cif
+                            '*		;; *ffi-closure-callback
+                            '*)))	;; user-data

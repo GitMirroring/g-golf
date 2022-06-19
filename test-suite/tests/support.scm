@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2021
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -139,7 +139,11 @@
 ;;; Utils
 ;;;
 
-(define-method (test-utils (self <g-golf-test-support>))
+(define-method (test-utils-1 (self <g-golf-test-support>))
+  (assert-equal (flatten '(1 2 (3) (4 (5 (6 (7 8) 9) (10 11))) 12))
+                '(1 2 3 4 5 6 7 8 9 10 11 12)))
+
+(define-method (test-utils-2 (self <g-golf-test-support>))
   (assert-equal "g-studly-caps-expand"
                 (g-studly-caps-expand "GStudlyCapsExpand"))
   (assert-equal "webkit-web-content"
@@ -165,6 +169,32 @@
   (assert-equal 'drag-begin
                 (g-name->short-name "gtk_drag_begin"
                                     "GtkWidget")))
+
+(define-method (test-utils-3 (self <g-golf-test-support>))
+  (assert-equal 'begin_ (syntax-name->method-name 'begin))
+  (assert (syntax-name-protect-prefix-set '_))
+  (assert-equal '_begin_ (syntax-name->method-name 'begin))
+  (assert (syntax-name-protect-postfix-set #f))
+  (assert-equal '_begin (syntax-name->method-name 'begin))
+  (assert (syntax-name-protect-prefix-set #f))
+  (assert-exception (syntax-name->method-name 'begin))
+  (assert (syntax-name-protect-renamer-set
+           (lambda (name)
+             (symbol-append 'blue- name '-fox))))
+  (assert-equal 'blue-begin-fox (syntax-name->method-name 'begin))
+  (assert (syntax-name-protect-prefix-reset))
+  (assert (syntax-name-protect-postfix-reset))
+  (assert (syntax-name-protect-renamer-reset))
+  (assert-equal 'begin_ (syntax-name->method-name 'begin))
+  (assert (syntax-name-protect-reset))
+  (assert-equal 'begin_ (syntax-name->method-name 'begin)))
+
+
+(define-method (test-utils-4 (self <g-golf-test-support>))
+  (assert-true (string=? (class-name->g-name '<peg-solitaire>)
+                         "PegSolitaire"))
+  (assert-true (string=? (class-name->g-name '<foo2-bar3>)
+                         "Foo2Bar3")))
 
 
 (exit-with-summary (run-all-defined-test-cases))

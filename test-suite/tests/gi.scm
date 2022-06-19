@@ -43,80 +43,6 @@
 
 
 ;;;
-;;; Utils
-;;;
-
-(define-method (test-utils (self <g-golf-test-gi>))
-  (assert (gi-pointer-new))
-  (assert (gi-pointer-inc (gi-pointer-new) 0))
-  (assert (gi-attribute-iter-new)))
-
-(define-method (test-utils-n-string (self <g-golf-test-gi>))
-  (let ((a '("the" "bluefox" "and" "the" "red" "bear")))
-    (assert-true
-     (receive (ptr i-ptrs)
-         (scm->gi a 'n-string)
-       (let ((b (gi->scm ptr 'n-string 6)))
-         (and (= (length a) (length b))
-              (every string=? a b)))))))
-
-(define-method (test-utils-strings (self <g-golf-test-gi>))
-  (let ((a '("the" "bluefox" "and" "the" "red" "bear")))
-    (receive (ptr i-ptrs)
-        (scm->gi a 'strings)
-    (assert-true
-     (let ((b (gi->scm ptr 'strings)))
-       (and (= (length a) (length b))
-            (every string=? a b)))))))
-
-(define-method (test-utils-n-pointer (self <g-golf-test-gi>))
-  (let ((a '("the" "bluefox" "and" "the" "red" "bear")))
-    (assert-true
-     (receive (ptr i-ptrs)
-         (scm->gi a 'n-string)
-       (let* ((b (scm->gi i-ptrs 'n-pointer))
-              (c (gi->scm b 'n-pointer 6)))
-         (and (= (length i-ptrs) (length c))
-              (every (lambda (p1 p2)
-                       (= (pointer-address p1)
-                          (pointer-address p2)))
-                     i-ptrs
-                     c)))))))
-
-(define-method (test-utils-pointers (self <g-golf-test-gi>))
-  (let ((a '("the" "bluefox" "and" "the" "red" "bear")))
-    (assert-true
-     (receive (ptr i-ptrs)
-         (scm->gi a 'strings)
-       (let* ((b (scm->gi i-ptrs 'pointers))
-              (c (gi->scm b 'pointers)))
-         (and (= (length i-ptrs) (length c))
-              (every (lambda (p1 p2)
-                       (= (pointer-address p1)
-                          (pointer-address p2)))
-                     i-ptrs
-                     c)))))))
-
-(define-method (test-utils-n-gtype (self <g-golf-test-gi>))
-  (let ((a '(int double object)))
-    (assert-true
-     (receive (ptr)
-         (scm->gi a 'n-gtype 3)
-       (let ((b (gi->scm ptr 'n-gtype 3)))
-         (and (= (length a) (length b))
-              (every eq? a (map g-type->symbol b))))))))
-
-(define-method (test-utils-gtypes (self <g-golf-test-gi>))
-  (let ((a '(int double object)))
-    (assert-true
-     (receive (ptr)
-         (scm->gi a 'gtypes)
-       (let ((b (gi->scm ptr 'gtypes)))
-         (and (= (length a) (length b))
-              (every eq? a (map g-type->symbol b))))))))
-
-
-;;;
 ;;; Repository
 ;;;
 
@@ -130,6 +56,70 @@
   (assert-false (g-irepository-find-by-name "Gtk" "button"))
   (assert-true (g-irepository-find-by-name "Gtk" "Button"))
   (assert-true (g-irepository-get-version "Gtk")))
+
+
+;;;
+;;; Typelib
+;;;
+
+(define-method (test-type-lib (self <g-golf-test-gi>))
+  (let ((filename (g-irepository-get-typelib-path "Clutter")))
+    (assert-equal "Clutter"
+		  (call-with-input-typelib filename
+					   (lambda (typelib)
+					     (g-typelib-get-name-space typelib))))))
+
+
+;;;
+;;; Version Information
+;;;
+
+(define %gi-get-major-version
+  (@@ (g-golf gi version) gi-get-major-version))
+
+(define %gi-get-minor-version
+  (@@ (g-golf gi version) gi-get-minor-version))
+
+(define %gi-get-micro-version
+  (@@ (g-golf gi version) gi-get-micro-version))
+
+(define-method (test-version-information (self <g-golf-test-gi>))
+  (let ((gi-major (%gi-get-major-version))
+        (gi-minor (%gi-get-minor-version))
+        (gi-micro (%gi-get-micro-version)))
+    (assert (gi-version))
+    (assert (gi-effective-version))
+    (assert (gi-major-version))
+    (assert (gi-minor-version))
+    (assert (gi-micro-version))
+    (assert-true (= gi-major (gi-major-version 'as-integer)))
+    (assert-true (= gi-minor (gi-minor-version 'as-integer)))
+    (assert-true (= gi-micro (gi-micro-version 'as-integer)))
+    (assert-true (gi-check-version gi-major gi-minor gi-micro))
+    (assert-true (gi-check-version gi-major gi-minor (1- gi-micro)))
+    (assert-true (gi-check-version gi-major (1- gi-minor) gi-micro))
+    (assert-true (gi-check-version (1- gi-major) gi-minor gi-micro))
+    (assert-false (gi-check-version gi-major gi-minor (1+ gi-micro)))
+    (assert-false (gi-check-version gi-major (1+ gi-minor) 0))
+    (assert-false (gi-check-version (1+ gi-major) 0 0))))
+
+
+;;;
+;;; Common Types
+;;;
+
+(define-method (test-common-types (self <g-golf-test-gi>))
+  ;; not perfect, but better then nothing. it checks the correspondence
+  ;; between the g-golf (manually built) %gi-type-tag and upstream names
+  ;; for each entry. The only change that this test wouldn't find is if
+  ;; new type-tag(s) is(are) added - so we need to keep an eye on GI
+  ;; release NEWS.
+  (let* ((g-golf-type-tags (enum->names %gi-type-tag))
+         (n-tags (length g-golf-type-tags))
+         (gi-type-tags (map g-type-tag-to-string (iota n-tags))))
+    (assert-true (every string-contains-ci
+                        gi-type-tags
+                        g-golf-type-tags))))
 
 
 ;;;
@@ -278,14 +268,9 @@
          (type-tag (g-type-info-get-tag type-info))
          (interface (g-type-info-get-interface type-info))
          (i-type (g-base-info-get-type interface)))
-    (assert (g-type-tag-to-string type-tag))
-    (assert (g-type-tag-to-string 'interface))
-    (assert-false (g-type-tag-to-string 1000))
-    (assert-false (g-type-tag-to-string 'blue))
     (assert (g-info-type-to-string i-type))
     (assert (g-info-type-to-string 'struct))
     (assert-false (g-info-type-to-string 1000))
-    (assert-false (g-type-tag-to-string 'fox))
     (assert-false (g-type-info-is-pointer type-info))
     (assert-false (g-type-info-get-param-type type-info 0))
     (assert-true (= (g-type-info-get-array-length type-info) -1))
@@ -295,15 +280,77 @@
 
 
 ;;;
-;;; Typelib
+;;; Utils
 ;;;
 
-(define-method (test-type-lib (self <g-golf-test-gi>))
-  (let ((filename (g-irepository-get-typelib-path "Clutter")))
-    (assert-equal "Clutter"
-		  (call-with-input-typelib filename
-					   (lambda (typelib)
-					     (g-typelib-get-name-space typelib))))))
+(define-method (test-utils (self <g-golf-test-gi>))
+  (assert (gi-pointer-new))
+  (assert (gi-pointer-inc (gi-pointer-new) 0))
+  (assert (gi-attribute-iter-new)))
+
+(define-method (test-utils-n-string (self <g-golf-test-gi>))
+  (let ((a '("the" "bluefox" "and" "the" "red" "bear")))
+    (assert-true
+     (receive (ptr i-ptrs)
+         (scm->gi a 'n-string)
+       (let ((b (gi->scm ptr 'n-string 6)))
+         (and (= (length a) (length b))
+              (every string=? a b)))))))
+
+(define-method (test-utils-strings (self <g-golf-test-gi>))
+  (let ((a '("the" "bluefox" "and" "the" "red" "bear")))
+    (receive (ptr i-ptrs)
+        (scm->gi a 'strings)
+    (assert-true
+     (let ((b (gi->scm ptr 'strings)))
+       (and (= (length a) (length b))
+            (every string=? a b)))))))
+
+(define-method (test-utils-n-pointer (self <g-golf-test-gi>))
+  (let ((a '("the" "bluefox" "and" "the" "red" "bear")))
+    (assert-true
+     (receive (ptr i-ptrs)
+         (scm->gi a 'n-string)
+       (let* ((b (scm->gi i-ptrs 'n-pointer))
+              (c (gi->scm b 'n-pointer 6)))
+         (and (= (length i-ptrs) (length c))
+              (every (lambda (p1 p2)
+                       (= (pointer-address p1)
+                          (pointer-address p2)))
+                     i-ptrs
+                     c)))))))
+
+(define-method (test-utils-pointers (self <g-golf-test-gi>))
+  (let ((a '("the" "bluefox" "and" "the" "red" "bear")))
+    (assert-true
+     (receive (ptr i-ptrs)
+         (scm->gi a 'strings)
+       (let* ((b (scm->gi i-ptrs 'pointers))
+              (c (gi->scm b 'pointers)))
+         (and (= (length i-ptrs) (length c))
+              (every (lambda (p1 p2)
+                       (= (pointer-address p1)
+                          (pointer-address p2)))
+                     i-ptrs
+                     c)))))))
+
+(define-method (test-utils-n-gtype (self <g-golf-test-gi>))
+  (let ((a '(int double object)))
+    (assert-true
+     (receive (ptr)
+         (scm->gi a 'n-gtype 3)
+       (let ((b (gi->scm ptr 'n-gtype 3)))
+         (and (= (length a) (length b))
+              (every eq? a (map g-type->symbol b))))))))
+
+(define-method (test-utils-gtypes (self <g-golf-test-gi>))
+  (let ((a '(int double object)))
+    (assert-true
+     (receive (ptr)
+         (scm->gi a 'gtypes)
+       (let ((b (gi->scm ptr 'gtypes)))
+         (and (= (length a) (length b))
+              (every eq? a (map g-type->symbol b))))))))
 
 
 (exit-with-summary (run-all-defined-test-cases))

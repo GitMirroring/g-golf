@@ -20,10 +20,12 @@ GICallableInfo — Struct representing a callable.
 @table @code
 @item @ref{g-callable-info-get-n-args}
 @item @ref{g-callable-info-get-arg}
-@item @ref{g-callable-info-get-instance-ownership-transfer}
 @item @ref{g-callable-info-get-caller-owns}
+@item @ref{g-callable-info-get-instance-ownership-transfer}
 @item @ref{g-callable-info-get-return-type}
+@item @ref{g-callable-info-is-method}
 @item @ref{g-callable-info-may-return-null}
+@item @ref{g-callable-info-create-closure}
 @end table
 @end indentedblock
 
@@ -43,6 +45,7 @@ GICallableInfo — Struct representing a callable.
 GIBaseInfoInfo         	                     @*
 @ @ +--- GICallableInfo	                     @*
 @ @ @ @ @ @ @ @ @ @ @ +--- GIFunctionInfo    @*
+@ @ @ @ @ @ @ @ @ @ @ +--- GICallbackInfo    @*
 @ @ @ @ @ @ @ @ @ @ @ +--- GISignalInfo      @*
 @ @ @ @ @ @ @ @ @ @ @ +--- GIVFuncInfo
 @end indentedblock
@@ -50,9 +53,9 @@ GIBaseInfoInfo         	                     @*
 
 @subheading Description
 
-@code{GICallableInfo} represents an entity which is callable. Currently
-a function (@code{GIFunctionInfo}), virtual function,
-(@code{GIVFuncInfo}) or callback (@code{GICallbackInfo}).
+@code{GICallableInfo} represents an entity which is callable. Examples
+of callable are: functions (@code{GIFunctionInfo}), virtual functions,
+(@code{GIVFuncInfo}), callbacks (@code{GICallbackInfo}).
 
 A callable has a list of arguments (@code{GIArgInfo}), a return type,
 direction and a flag which decides if it returns null.
@@ -84,22 +87,22 @@ the data.
 @end deffn
 
 
-@anchor{g-callable-info-get-instance-ownership-transfer}
-@deffn Procedure g-callable-info-get-instance-ownership-transfer info
-
-Returns a @code{GITransfer} enumerated value.
-
-Obtains the ownership transfer for the instance argument. See
-@ref{%gi-transfer} for the list of possible values.
-@end deffn
-
-
 @anchor{g-callable-info-get-caller-owns}
 @deffn Procedure g-callable-info-get-caller-owns info
 
 Returns a @code{GITransfer} enumerated value.
 
 See whether the caller owns the return value of this callable. See
+@ref{%gi-transfer} for the list of possible values.
+@end deffn
+
+
+@anchor{g-callable-info-get-instance-ownership-transfer}
+@deffn Procedure g-callable-info-get-instance-ownership-transfer info
+
+Returns a @code{GITransfer} enumerated value.
+
+Obtains the ownership transfer for the instance argument. See
 @ref{%gi-transfer} for the list of possible values.
 @end deffn
 
@@ -114,12 +117,41 @@ the data.
 @end deffn
 
 
+@anchor{g-callable-info-is-method}
+@deffn Procedure g-callable-info-is-method info
+
+Returns @code{#t} if the callable @var{info} is a method, otherwise it
+return @code{#f}.
+
+Determines if the callable @var{info} is a method. For
+@code{GIVFuncInfo} and @code{GISignalInfo}, this is always
+true. Otherwise, this looks at the @code{GI_FUNCTION_IS_METHOD} flag on
+the @code{GIFunctionInfo}.
+
+Concretely, this function returns whether
+@ref{g-callable-info-get-n-args} matches the number of arguments in the
+raw C method. For methods, there is one more C argument than is exposed
+by introspection: the @samp{self} or @samp{this} object.
+@end deffn
+
+
 @anchor{g-callable-info-may-return-null}
 @deffn Procedure g-callable-info-may-return-null info
 
 Returns @code{#t} if the callable @var{info} could return @code{NULL}.
 
 See if a callable could return NULL.
+@end deffn
+
+
+@anchor{g-callable-info-create-closure}
+@deffn Procedure g-callable-info-create-closure info @
+                 ffi-cif ffi-closure-callback user-data
+
+Returns the ffi-closure or @code{#f} on error.
+
+The return value should be freed by calling
+@code{g-callable-info-destroy-closure}.
 @end deffn
 
 

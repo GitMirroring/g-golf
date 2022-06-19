@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2021
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -33,6 +33,7 @@
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
   #:use-module (system foreign)
+  #:use-module (g-golf hl-api n-decl)
 
   #:export (storage-get
 	    storage-set
@@ -46,16 +47,11 @@
             explode
 
             g-studly-caps-expand
-	    %g-name-transform-exceptions
-            %g-studly-caps-expand-token-exceptions
 	    g-name->name
-            g-name->short-name
 	    g-name->class-name
+            g-name->short-name
 	    #;gi-class-name->method-name
-
-            %syntax-name-protect-prefix
-            %syntax-name-protect-postfix
-            %syntax-name-protect-renamer
+            class-name->g-name
             syntax-name->method-name
 
             gi-type-tag->ffi
@@ -138,14 +134,18 @@
   args)
 
 (define (flatten lst)
-  (reverse! (let loop ((lst lst)
-                       (result '()))
-              (match lst
-                (() result)
-                ((x . rests)
-                 (if (pair? x)
-                     (loop rests (append (loop x '()) result))
-                     (loop rests (cons x result))))))))
+ (let loop ((item lst)
+            (result '()))
+   (match item
+     (()
+      result)
+     ((elt . rests)
+      (loop elt
+            (loop rests
+                  result)))
+     (else
+      (cons item
+            result)))))
 
 (define (explode lst)
   ;; Generate the (first level only [*]) combinatorial lists for LST.
@@ -196,37 +196,33 @@
 ;;; Name Transformation
 ;;;
 
-;; Initially based on Guile-Gnome (gobject gw utils), from which we keep
+;; Initially based on Guile-GNOME (gobject gw utils), from which we keep
 ;; one algorithm - see caps-expand-token-2 - the original idea and
 ;; procedures have been enhanced to allow special treatment of any token
 ;; that compose the name to be transformed. A typical example of such a
-;; need is from the WebKit2 namespace, where most users prefer that
-;; class names use webkit- as their prefix, not web-kit. Up to the point
-;; that we made this a default in G-Golf. Those who would prefer not to
-;; do this may of course remove the assoc pair from
-;; %g-studly-caps-expand-token-exceptions.
-
-(define %g-name-transform-exceptions
-  ;; Default name transformations can be overridden, but g-golf won't
-  ;; define exceptions for now, let's see.
-  '(#;("GEnum" . "genum")  	;; no sure yet
-    ("GObject" . "gobject")))
+;; need is from the WebKit2 namespace, where the "WebKit' studly caps
+;; expand (token) procedure is expected to return "webkit", not
+;; "web-kit".
 
 (define* (g-name->name g-name #:optional (as-string? #f))
-  (let ((name (or (assoc-ref %g-name-transform-exceptions g-name)
+  (let ((name (or (g-name-transform-exception? g-name)
                   (g-studly-caps-expand g-name))))
     (if as-string?
         name
         (string->symbol name))))
 
-(define %g-short-name-transform-exceptions
-  '(("GObject" . "g-object")))
+(define* (g-name->class-name g-name #:optional (as-string? #f))
+  (let* ((name (g-name->name g-name 'as-string))
+         (class-name (string-append "<" name ">")))
+    (if as-string?
+        class-name
+        (string->symbol class-name))))
 
 (define* (g-name->short-name g-name
                              g-parent-name
                              #:optional (as-string? #f))
   (let* ((name (g-name->name g-name 'as-string))
-         (parent-name (or (assoc-ref %g-short-name-transform-exceptions g-parent-name)
+         (parent-name (or (g-short-name-transform-exception? g-parent-name)
                           (g-name->name g-parent-name 'as-string)))
          (short-name
           (if (string-contains name parent-name)
@@ -241,13 +237,6 @@
         short-name
         (string->symbol short-name))))
 
-(define* (g-name->class-name g-name #:optional (as-string? #f))
-  (let* ((name (g-name->name g-name 'as-string))
-         (class-name (string-append "<" name ">")))
-    (if as-string?
-        class-name
-        (string->symbol class-name))))
-
 ;; Not sure this is used but let's keep it as well
 #;(define (gi-class-name->method-name class-name name)
   (let ((class-string (symbol->string class-name)))
@@ -255,8 +244,55 @@
      (string-append (substring class-string 1 (1- (string-length class-string)))
                     ":" (symbol->string name)))))
 
-(define %g-studly-caps-expand-token-exceptions
-  '(("WebKit" . "webkit")))
+#!
+
+The class-name->g-name procedure is based on class-name->gtype-name, used by
+Guile-GNOME.
+
+!#
+
+(define (class-name->g-name class-name)
+  (let loop ((cn-chars (string->list (symbol->string class-name)))
+             (result '())
+             (caps? #t))
+    (match cn-chars
+      (()
+       (list->string (reverse! result)))
+      ((x . rest)
+       (cond ((char-alphabetic? x)
+              (loop rest
+                    (cons (if caps?
+                              (char-upcase x)
+                              x)
+                          result)
+                    #f))
+             ((char-numeric? x)
+              (loop rest
+                    (cons x result)
+                    #f))
+             (else
+              (loop rest
+                    result
+                    #t)))))))
+
+#!
+
+The g-studly-caps-expand procedure is based on the version that
+is used by Guile-GNOME, where it is named GStudlyCapsExpand.
+
+It itself is based on the slib's strcase.scm Written 1992 by Dirk
+Lutzebaeck (lutzeb@cs.tu-berlin.de), and the code is in the public
+domain.
+
+It has then be modified by Aubrey Jaffer Nov 1992.
+SYMBOL-APPEND and StudlyCapsExpand added by A. Jaffer 2001.
+Authors of the original version were Ken Dickey and Aubrey Jaffer.
+
+For G-Golf, in 2019, I - David Pirotte - modified the code, so that it
+allows for exception treatment on inner token, such as "WebKit"
+-> "webkit", not "web-kit".
+
+!#
 
 (define (g-studly-caps-expand name)
   (let loop ((tokens (string-split name #\_))
@@ -276,7 +312,7 @@
   ;; #\- to.
   (if (string-null? token)
       token
-      (or (assoc-ref %g-studly-caps-expand-token-exceptions token)
+      (or (g-studly-caps-expand-token-exception? token)
           (caps-expand-token-1 token '()))))
 
 (define (caps-expand-token-1 token subtokens)
@@ -323,7 +359,7 @@
                                            (string-length token))))))))
 
 (define (any-caps-expand-token-exception token)
-  (let loop ((exceptions %g-studly-caps-expand-token-exceptions))
+  (let loop ((exceptions (g-studly-caps-expand-token-exception)))
     (match exceptions
       (()
        (values 0 #f))
@@ -336,13 +372,12 @@
 
 
 ;;;
-;;; Syntax names -> method names
+;;; Syntax name -> method name
 ;;;
 
-;; The following variables and procedure are related to the so called
-;; GI method short names, which are obtained by dropping the container
-;; name (and its trailing hyphen) from the GI method full/long names,
-;; which are (Gnome method long names), by definition, always unique.
+;; When G-Golf creates a method short name, it obtains it by dropping
+;; the container name (and its trailing hyphen) from the GI method full
+;; name, which is (the GNOME method name), by definition, always unique.
 
 ;; GI methods are added to their respective generic function, which is
 ;; created if it does not already exist. When a generic function is
@@ -356,26 +391,20 @@
 ;; 'user provided'), or by adding a prefix, a postfix or both to its
 ;; argument (symbol) name.
 
-(define %syntax-name-protect-prefix #f)
-(define %syntax-name-protect-postfix '_)
-(define %syntax-name-protect-renamer #f)
-
 (define (syntax-name->method-name name)
-  (cond (%syntax-name-protect-renamer
-         (%syntax-name-protect-renamer name))
-        ((and %syntax-name-protect-prefix
-              %syntax-name-protect-postfix)
-         (symbol-append %syntax-name-protect-prefix
-                        name
-                        %syntax-name-protect-postfix))
-        (%syntax-name-protect-prefix
-         (symbol-append %syntax-name-protect-prefix
-                        name))
-        (%syntax-name-protect-postfix
-         (symbol-append name
-                        %syntax-name-protect-postfix))
+  (let ((snp-prefix (syntax-name-protect-prefix))
+        (snp-postfix (syntax-name-protect-postfix))
+        (snp-renamer (syntax-name-protect-renamer)))
+    (cond (snp-renamer (snp-renamer name))
+          ((and snp-prefix
+                snp-postfix)
+           (symbol-append snp-prefix name snp-postfix))
+          (snp-prefix
+           (symbol-append snp-prefix name))
+        (snp-postfix (symbol-append name snp-postfix))
         (else
-         (error "At least one of %syntax-name-protect-prefix, %syntax-name-protect-postfix or %syntax-name-protect-renamer variable must be defined: " %syntax-name-protect-prefix %syntax-name-protect-postfix %syntax-name-protect-renamer))))
+         (error "At least one of syntax name protect prefix, postfix or
+renamer must be defined: " snp-prefix snp-postfix snp-renamer)))))
 
 
 ;;;

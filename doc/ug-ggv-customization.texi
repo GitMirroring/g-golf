@@ -1,0 +1,491 @@
+@c -*-texinfo-*-
+@c This is part of the GNU G-Golf Reference Manual.
+@c Copyright (C) 2022 Free Software Foundation, Inc.
+@c See the file g-golf.texi for copying conditions.
+
+
+@node Customization Square
+@subsection Customization Square
+
+Customization Square - G-Golf customization functionality.
+
+
+@subheading Procedures and Syntax
+
+@indentedblock
+@table @code
+@item @ref{g-name-transform-exception}
+@item @ref{g-name-transform-exception?}
+@item @ref{g-name-transform-exception-add}
+@item @ref{g-name-transform-exception-remove}
+@item @ref{g-name-transform-exception-reset}
+@item @ref{g-studly-caps-expand-token-exception}
+@item @ref{g-studly-caps-expand-token-exception?}
+@item @ref{g-studly-caps-expand-token-exception-add}
+@item @ref{g-studly-caps-expand-token-exception-remove}
+@item @ref{g-studly-caps-expand-token-exception-reset}
+@c g-short-name-transform-exception
+@c g-short-name-transform-exception?
+@item @ref{gi-strip-boolean-result}
+@item @ref{gi-strip-boolean-result?}
+@item @ref{gi-strip-boolean-result-add}
+@item @ref{gi-strip-boolean-result-remove}
+@item @ref{gi-strip-boolean-result-reset}
+@item @ref{gi-method-short-name-skip}
+@item @ref{gi-method-short-name-skip?}
+@item @ref{gi-method-short-name-skip-all}
+@item @ref{gi-method-short-name-skip-add}
+@item @ref{gi-method-short-name-skip-remove}
+@item @ref{gi-method-short-name-skip-reset}
+@item @ref{syntax-name-protect-prefix}
+@item @ref{syntax-name-protect-prefix-set}
+@item @ref{syntax-name-protect-prefix-reset}
+@item @ref{syntax-name-protect-postfix}
+@item @ref{syntax-name-protect-postfix-set}
+@item @ref{syntax-name-protect-postfix-reset}
+@item @ref{syntax-name-protect-renamer}
+@item @ref{syntax-name-protect-renamer-set}
+@item @ref{syntax-name-protect-renamer-reset}
+@item @ref{syntax-name-protect-reset}
+@end table
+@end indentedblock
+
+
+@c @subheading Variables
+
+@c @indentedblock
+@c @table @code
+@c @item @ref{%gi-cache}
+@c @end table
+@c @end indentedblock
+
+
+@subheading Description
+
+Welcome to the G-Golf Customization Square.
+
+This section is organized per customization theme: (-) @emph{GI Name
+Transformation}; (-) @emph{GI Strip Boolean Result}; (-) @emph{GI Method
+Short Name Skip} and (-) @emph{GI Syntax Name Protect}.
+
+
+@subheading GI Name Transformation
+
+In this corner of the square, we expose how you may customize G-Golf
+with respect to @emph{GI Name Transformation} that occurs when importing
+GNOME libraries.
+
+When G-Golf imports a GNOME library, its classes, properties, methods,
+functions, types and constants are renamed (@xref{Naming Conventions}),
+mainly to (a) avoid @samp{@uref{@value{UWIKI-CAMELCASE}, Camel Case}},
+(b) surround class names by @samp{<} @samp{>} and (c) replace @samp{_}
+(underscore) occurrences using the @samp{-} (hyphen) character.
+
+
+As the context of name transformation is GNOME in general, as opposed to
+GI more specifically, (all) procedures involved are named using a
+@code{g-} prefix.
+
+Here is a summary of how the name transformation happens:
+
+@itemize
+@item
+Class names are obtained by calling @ref{g-name->class-name}, which
+calls @ref{g-name->name};
+@*@*
+
+@item
+@ref{g-name->name} first calls @ref{g-name-transform-exception?} and
+returns its value if it found one, otherwise, it calls
+@ref{g-studly-caps-expand};
+@*@*
+
+@item
+@ref{g-studly-caps-expand}, which does the core of the job, uses
+@ref{g-studly-caps-expand-token-exception?} to specially treat its
+listed token exceptions.
+@end itemize
+
+
+@anchor{g-name-transform-exception}
+@deffn Procedure g-name-transform-exception
+
+Returns an alist.
+
+Obtains and returns the list of GI name transform exception @code{(key
+. value)} pairs. Both @code{key} and @code{value} are strings.
+
+The GI name transform exception alist is never empty, as it is
+initialized and always kept to at least contain the @code{'("GObject"
+. "gobject")} pair@footnote{This is the only name for which G-Golf
+maintains compatibility with Guile-GNOME (which has a long list of
+exceptions)..}.
+
+ As a consequence @ref{<gobject>} (as opposed to @code{<g-object>} is
+the G-Golf class name for the base class of the GLib Object
+System.
+
+This only affects the class name though - any procedure or method name
+that comes from the @code{"GObject"} namespace is transformed using the
+@code{g-object} prefix, as the upstream library prefix is
+@code{g_object}.
+@end deffn
+
+
+@anchor{g-name-transform-exception?}
+@deffn Procedure g-name-transform-exception? key
+
+Returns @code{#t} if @var{key} is a key member of the GI name transform
+exception alist. Otherwise, it returns @code{#f}.
+@end deffn
+
+
+@anchor{g-name-transform-exception-add}
+@anchor{g-name-transform-exception-remove}
+@deffn Procedure g-name-transform-exception-add key value
+@deffnx Procedure g-name-transform-exception-remove key
+
+Returns nothing.
+
+Add (remove) a @var{(key . value)} pair to (from) the GI name transform
+exception alist.
+@end deffn
+
+
+@anchor{g-name-transform-exception-reset}
+@deffn Procedure g-name-transform-exception-reset
+
+Returns nothing.
+
+This procedure resets the GI name transform exception alist to its
+default value - which is to contain the single @code{'("GObject"
+. "gobject")} pair.
+@end deffn
+
+
+@anchor{g-studly-caps-expand-token-exception}
+@deffn Procedure g-studly-caps-expand-token-exception
+
+Returns an alist.
+
+Obtains and returns the list of GI studly caps expand token exception
+@code{(key . value)} pairs. Both @code{key} and @code{value} are
+strings.
+
+The GI studly caps expand token exception alist is never empty, as it is
+initialized and always kept to at least contain the @code{'("WebKit"
+. "webkit")} pair.
+@end deffn
+
+
+@anchor{g-studly-caps-expand-token-exception?}
+@deffn Procedure g-studly-caps-expand-token-exception? key
+
+Returns @code{#t} if @var{key} is a key member of the GI studly caps
+expand token exception alist. Otherwise, it returns @code{#f}.
+@end deffn
+
+
+@anchor{g-studly-caps-expand-token-exception-add}
+@anchor{g-studly-caps-expand-token-exception-remove}
+@deffn Procedure g-studly-caps-expand-token-exception-add key value
+@deffnx Procedure g-studly-caps-expand-token-exception-remove key
+
+Returns nothing.
+
+Add (remove) a @var{(key . value)} pair to (from) the GI studly caps
+expand token exception alist.
+@end deffn
+
+
+@anchor{g-studly-caps-expand-token-exception-reset}
+@deffn Procedure g-studly-caps-expand-token-exception-reset
+
+Returns nothing.
+
+This procedure resets the GI studly caps expand token exception alist to
+its default value - which is to contain the single @code{'("WebKit"
+. "webkit")} pair.
+@end deffn
+
+
+@subheading GI Strip Boolean Result
+
+In this corner of the square, we expose how you may customize G-Golf
+with respect to @emph{GI Strip Boolean Result}, which addresses the
+problem of typelib functions and methods that (1) have at least one
+@code{'inout} or @code{'out} argument(s) and (2) return either @code{#t}
+or @code{#f}, solely to indicate that the function or method call was
+successful or not.
+
+The default G-Golf behavior, when there is at least one @code{'inout} or
+@code{'out} argument(s), is to return multiple values. The first
+returned value is the function or method result, followed by the
+@code{'inout} and @code{'out} values, in order of appearance in the
+function or method call.
+
+G-Golf also offers - through a series of interfaces to get, check, add,
+remove and reset a list of such function or methods names - to instead
+elude the function or method returned value when it is @code{#t} and
+raise an exception if the returned value is @code{#f}.
+
+Here is a concrete example, for the @code{"Clutter"} namespace and
+the @code{clutter-color-from-string} procedure:
+
+@lisp
+,use (g-golf)
+(gi-import "Clutter")
+
+(clutter-color-from-string "Blue")
+@result{} $2 = #t
+@result{} $3 = (0 0 255 255)
+@end lisp
+
+And call it with an undefined color name:
+
+@lisp
+(clutter-color-from-string "Bluee")
+@result{} $4 = #f
+@result{} $5 = (0 0 0 0)
+@end lisp
+
+Now, let's add @code{clutter-color-from-string} to the list of GI
+funtions and methods for which we wish to elude the result of the call
+from the returned value(s), then experiment the above calls and see how
+G-Golf changed the way it handles the results:
+
+@lisp
+(gi-strip-boolean-result-add clutter-color-from-string)
+
+(clutter-color-from-string "Blue")
+@result{} $7 = (0 0 255 255)
+@end lisp
+
+As expected, if we call it with an undefined color name, it will raise
+an exception@footnote{Note that the raised exception message and
+formatting depends on the version of guile you are using. Fwiw, this
+example was produced using @code{GNU Guile 3.0.8}.}
+
+@lisp
+(clutter-color-from-string "Bluee")
+@print{} ice-9/boot-9.scm:1686:16: In procedure raise-exception:
+@print{}   clutter-color-from-string " failed."
+@print{}
+@print{} Entering a new prompt.  Type `,bt' for a backtrace or `,q' to continue.
+@end lisp
+
+G-Golf default is that the list of GI funtions and methods for which to
+elude the result of the call from the returned value(s) is empty. It is
+a user responsibility to fill it appropriately, for each namespace they
+are importing.
+
+
+@anchor{gi-strip-boolean-result}
+@deffn Procedure gi-strip-boolean-result
+
+Returns a (possibly empty) list of (symbol) name(s).
+
+Obtains and returns the list of GI funtions and methods for which G-Golf
+will elude the result of the call from the returned value(s).
+@end deffn
+
+
+@anchor{gi-strip-boolean-result?}
+@deffn Procedure gi-strip-boolean-result? name
+
+Returns @code{#t} if @var{name} is a member of the list of GI funtions
+and methods for which G-Golf will elude the result of the call from the
+returned value(s). Otherwise, it returns @code{#f}.
+@end deffn
+
+
+@anchor{gi-strip-boolean-result-add}
+@anchor{gi-strip-boolean-result-remove}
+@deffn Syntax gi-strip-boolean-result-add name @dots{}
+@deffnx Syntax gi-strip-boolean-result-remove name @dots{}
+
+Add (remove) the @var{names} to (from) the list of GI funtions and
+methods for which G-Golf will elude the result of the call from the
+returned value(s).
+@end deffn
+
+
+@anchor{gi-strip-boolean-result-reset}
+@deffn Procedure gi-strip-boolean-result-reset
+
+Resets the list of GI funtions and methods for which G-Golf will elude
+the result of the call from the returned value(s) to the empty list.
+@end deffn
+
+
+@subheading GI Method Short Name Skip
+
+In this corner of the square, we expose how you may customize G-Golf
+with respect to @emph{GI Method Short Name}, more specifically, whether
+you wish to skip the method short name creation, and doing so
+individually or for all GI imported methods.
+
+By default, as it imports a GI typelib, G-Golf creates a method short
+name for each imported method, obtained by dropping the container name
+(and its trailing hyphen) from the GI typelib method full/long name.
+
+For example, the @code{<gtk-label>} class, which defines the
+@code{gtk-label-get-text} method, would also define, using G-Golf's
+default settings, the @code{get-text} method. To be more precise, G-Golf
+would create (if it does not exist) or reuse (if it exists) the
+@code{get-text} generic function, make and add a method with its
+specializer(s), in this case @code{<gtk-label>}.
+
+Now, let's add @code{gtk-label-get-text} to the list of the GI methods
+for which we wish to skip the short name creation step. In this case, as
+G-Golf imports the @code{GtkLabel} class, it would only create the
+@code{gtk-label-get-text} method, but not the @code{get-text} method
+anymore.
+
+@anchor{gi-method-short-name-skip}
+@deffn Procedure gi-method-short-name-skip
+
+Returns a (possibly empty) list of (symbol) name(s).
+
+Obtains and returns the list of GI method long name for which G-Golf
+will skip the method short name creation step.
+@end deffn
+
+
+@anchor{gi-method-short-name-skip?}
+@deffn Procedure gi-method-short-name-skip? name
+
+Returns @code{#t} if @var{name} is a member of the list of GI method
+long name for which G-Golf will skip the method short name creation
+step. Otherwise, it returns @code{#f}.
+@end deffn
+
+
+@anchor{gi-method-short-name-skip-all}
+@deffn Procedure gi-method-short-name-skip-all
+
+Returns nothing.
+
+Sets the GI method short name skip creation step to @code{'all}.
+@end deffn
+
+
+@anchor{gi-method-short-name-skip-add}
+@anchor{gi-method-short-name-skip-remove}
+@deffn Syntax gi-method-short-name-skip-add name @dots{}
+@deffnx Syntax gi-method-short-name-skip-remove name @dots{}
+
+Add (remove) the @var{names} to (from) the list of GI method long name
+for which G-Golf will skip the method short name creation step.
+@end deffn
+
+
+@anchor{gi-method-short-name-skip-reset}
+@deffn Procedure gi-method-short-name-skip-reset
+
+Resets the list of GI method long name for which G-Golf will skip the
+method short name creation step to the empty list.
+@end deffn
+
+
+@subheading GI Syntax Name Protect
+
+In this corner of the square, we expose how you may customize G-Golf
+with respect to @emph{GI Syntax Name Protect}.
+
+When G-Golf creates a method short name, obtained by dropping the
+container name (and its trailing hyphen) from the GI typelib method
+full/long name, it may lead to a @samp{name clash}, with an already
+defined procedure or syntax.
+
+GI methods are added to their respective generic function, which is
+created if it does not already exist. When a generic function is
+created, G-Golf checks if the name is used, and when it is bound to a
+procedure, the procedure is @samp{captured} into an unspecialized
+method, which is added to the newly created generic function.
+
+However, when the name is used but its variable value is a syntax, the
+above can't be done and the name must be @samp{protected}, which is what
+@ref{syntax-name->method-name} does@footnote{Users should normally not
+call this procedure - except for testing purposes, if/when they
+customize its default settings - it is appropriately and automatically
+called by G-Golf when importing a GI typelib.}, using a @emph{renamer},
+or by adding a @emph{prefix}, a @emph{postfix} or both to its (symbol)
+@var{name} argument.
+
+G-Golf defines the following interfaces to get, set and reset the syntax
+name protect @emph{prefix}, @emph{postfix} and @emph{renamer}, of which
+at least one must be set.
+
+@anchor{syntax-name-protect-prefix}
+@anchor{syntax-name-protect-prefix-set}
+@anchor{syntax-name-protect-prefix-reset}
+@deffn Procedure syntax-name-protect-prefix
+@deffnx Procedure syntax-name-protect-prefix-set prefix
+@deffnx Procedure syntax-name-protect-prefix-reset
+
+Respectively get, set and reset the syntax name protect
+@var{prefix}. Its default value is @code{#f}.
+@end deffn
+
+
+@anchor{syntax-name-protect-postfix}
+@anchor{syntax-name-protect-postfix-set}
+@anchor{syntax-name-protect-postfix-reset}
+@deffn Procedure syntax-name-protect-postfix
+@deffnx Procedure syntax-name-protect-postfix-set postfix
+@deffnx Procedure syntax-name-protect-postfix-reset
+
+Respectively get, set and reset the syntax name protect
+@var{postfix}. Its default value is @code{'_} (the symbol _).
+@end deffn
+
+
+@anchor{syntax-name-protect-renamer}
+@anchor{syntax-name-protect-renamer-set}
+@anchor{syntax-name-protect-renamer-reset}
+@deffn Procedure syntax-name-protect-renamer
+@deffnx Procedure syntax-name-protect-renamer-set renamer
+@deffnx Procedure syntax-name-protect-renamer-reset
+
+Respectively get, set and reset the syntax name protect
+@var{renamer}. Its default value is @code{'_} (the symbol _).
+
+The syntax name protect @var{renamer}, unless set to @code{#f}, must be
+a procedure that takes a (symbol) name as its single argument, and
+return a @samp{none clashing} (symbol) name.
+@end deffn
+
+
+@anchor{syntax-name-protect-reset}
+@deffn Procedure syntax-name-protect-reset
+
+This procedure will conveniently reset all three syntax name protect
+@emph{prefix}, @emph{postfix} and @emph{renamer} to their default value,
+which are:
+
+@indentedblock
+@multitable @columnfractions .30 .05 .25
+@item @ref{syntax-name-protect-prefix}
+@tab @code{#f}
+
+@item @ref{syntax-name-protect-postfix}
+@tab @code{'_}
+@tab (the symbol _)
+
+@item @ref{syntax-name-protect-renamer}
+@tab @code{#f}
+@end multitable
+@end indentedblock
+
+@end deffn
+
+
+@c @subheading Variables
+
+@c @anchor{%gi-cache}
+@c @defvar %gi-cache
+
+@c Holds a reference the the G-Golf @code{main cache}, which as said
+@c earlier, currently is composed of two nested association lists.
+@c @end defvar

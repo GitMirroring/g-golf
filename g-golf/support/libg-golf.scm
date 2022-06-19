@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2021
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -30,7 +30,10 @@
   #:use-module (system foreign)
   #:use-module (g-golf init)
   
-  #:export (;; Misc.
+  #:export (;; FFI
+            ffi_type_size
+
+            ;; Misc.
             pointer_address_size
 
             ;; Floats
@@ -48,6 +51,9 @@
             g_closure_ref_count
             g_param_spec_get_flags
 
+            ;; Callback
+            g_golf_callback_closure
+
             ;; Gdk
             ;; gdk_event_get_changed_mask
             ;; gdk_event_get_new_window_state
@@ -55,6 +61,17 @@
             ;; Test suite
             test_suite_n_string_ptr
             test_suite_strings_ptr))
+
+
+;;;
+;;; FFI
+;;;
+
+(define ffi_type_size
+  (pointer->procedure size_t
+                      (dynamic-func "ffi_type_size"
+                                    %libg-golf)
+                      (list)))
 
 
 ;;;
@@ -152,6 +169,20 @@ later.
                       (dynamic-func "g_param_spec_get_flags"
                                     %libg-golf)
                       (list '*)))
+
+
+;;;
+;;; Callback
+;;;
+
+
+(define g_golf_callback_closure
+  (pointer->procedure '*
+                      (dynamic-func "g_golf_callback_closure"
+                                    %libg-golf)
+                      (list '*		;; name
+                            '*		;; cb-info
+                            '*)))	;; s-proc
 
 
 ;;;

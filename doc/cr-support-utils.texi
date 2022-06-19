@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2021 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2022 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -14,27 +14,22 @@
 @table @code
 @item @ref{g-studly-caps-expand}
 @item @ref{g-name->name}
-@item @ref{g-name->short-name}
 @item @ref{g-name->class-name}
+@item @ref{g-name->short-name}
+@item @ref{class-name->g-name}
+@item @ref{syntax-name->method-name}
 @item @ref{gi-type-tag->ffi}
 @item @ref{gi-type-tag->init-val}
-@item @ref{syntax-name->method-name}
 @end table
 @end indentedblock
 
 
-@subheading Variables
+@c @subheading Variables
 
-@indentedblock
-@table @code
-@item @ref{%g-name-transform-exceptions}
-@item @ref{%g-studly-caps-expand-token-exceptions}
-@item @ref{%gi-method-short-names-skip}
-@item @ref{%syntax-name-protect-prefix}
-@item @ref{%syntax-name-protect-postfix}
-@item @ref{%syntax-name-protect-renamer}
-@end table
-@end indentedblock
+@c @indentedblock
+@c @table @code
+@c @end table
+@c @end indentedblock
 
 
 @subheading Description
@@ -45,76 +40,99 @@ G-Golf utilities low level API.@*
 @subheading Procedures
 
 
-
 @anchor{g-studly-caps-expand}
 @deffn Procedure g-studly-caps-expand str
 
-Returns a string.
-
-Given a @samp{@uref{@value{UWIKI-CAMELCASE}, Camel Case}} string, this
-procedure@footnote{This procedure, as well as @ref{g-name->name} and
-@ref{g-name->class-name} come from @uref{@value{UGG}, Guile-Gnome},
+Returns a string@footnote{This procedure, as well as @ref{g-name->name}
+and @ref{g-name->class-name} come from @uref{@value{UGG}, Guile-GNOME},
 where there are named @code{GStudlyCapsExpand},
-@code{gtype-name->scm-name} and @code{gtype-name->class-name}, in the
-(Guile-Gnome) module (gnome gobject utils).  In G-Golf, these will also
-be used to transform other (Gobject Inptrospection given) names, such as
-function names, hence their @code{g-name->} prefix instead} returns a
-new string, with all @samp{_} transformed into @samp{-}, uppercase
-letters are transformed into their corresponding lowercase letter, and a
-@code{#\-} is inserted in between occurrences of two consecutive
-uppercase letters, unless the sequence analysed is part of a prefix
-defined in the @ref{%g-studly-caps-expand-token-exceptions} alist.
+@code{gtype-name->scm-name} and @code{gtype-name->class-name}.@*@*In
+G-Golf, these procedures are also be used to transform other (GObject
+Introspection) names, such as function names, hence they use the
+@code{g-name->} prefix instead}.
 
-Here are two examples:
+Expand the StudlyCaps @var{str} to a more schemey-form, according to the
+conventions of GLib libraries. For example:
 
 @lisp
 (g-studly-caps-expand "GStudlyCapsExpand")
 @result{} "g-studly-caps-expand"
+
+(g-studly-caps-expand "GSource")
+@result{} "g-source"
+
+(g-studly-caps-expand "GtkIMContext")
+@result{} "im-context"
 @end lisp
+
+G-Golf slightly modified the original code to also allow the possibility
+to specially treat the @var{str} (expanded) tokens, such as:
 
 @lisp
 (g-studly-caps-expand "WebKitWebContext")
-@result{} "webkit-web-context"
+@result{} "webkit-web-context" ;; not "web-kit-web-context"
 @end lisp
+
+The list of StudlyCaps token exception pairs are maintained in the
+@ref{g-studly-caps-expand-token-exception} alist.
 @end deffn
 
 
 @anchor{g-name->name}
-@anchor{g-name->short-name}
 @anchor{g-name->class-name}
 @deffn Procedure g-name->name g-name [as-string? #f]
-@deffnx Procedure g-name->short-name g-name g-parent-name [as-string? #f]
 @deffnx Procedure g-name->class-name g-name [as-string? #f]
 
 Return a symbol name, or a string name if @var{as-string} is #t.
 
-@ref{g-name->name} first obtains the scheme representation string for
-@var{g-name}, by looking for a possible entry in
-@ref{%g-name-transform-exceptions}, or if it failed, by calling
-@ref{g-studly-caps-expand}. Then, if @var{as-string} is #t, it returns
+@ref{g-name->name} first obtains, the scheme representation of
+@var{g-name}, as a string, by looking for a possible entry in
+@ref{g-name-transform-exception}, or if it failed, by calling
+@ref{g-studly-caps-expand}.
+
+If the optional @var{as-string} argument is #t, it returns
 that string, otherwise, it calls and returns the result of
 @code{string->symbol}.
 
-@ref{g-name->short-name} returns a (method) short name for
-@var{g-name}. It first obtains the scheme representation string for both
-argument, @var{name} and @var{parent-name}, which is the container
-(class) name, then:
+@ref{g-name->class-name} calls @ref{g-name->name}, surrounds the result
+using @code{#\<} and @code{#\>} characters then either return that
+string, if @var{as-string?} is @code{#t}, otherwise it calls and returns
+the result of @code{string->symbol}:
+
+@lisp
+(g-name->class-name "GtkWindow")
+@result{} <gtk-window>
+@end lisp
+@end deffn
+
+
+@anchor{g-name->short-name}
+@deffn Procedure g-name->short-name g-name g-class-name [as-string? #f]
+
+Return a symbol name, or a string name if @var{as-string} is #t.
+
+Obtains and returns a (method) short name for @var{g-name}. It first
+obtains the @abbr{sro, scheme representation of} both @var{g-name} and
+@var{g-class-name} (which is expected to be the upstream method
+container (class) name), as a string, then:
 
 @itemize
 @item
-if @var{parent-name} is (fully) contained in @var{name}, it drops the
-@var{parent-name} prefix - or its plural form - and its trailing #\-
-(hiphen) delimiter from @var{name};
+if the sro @var{g-class-name} is (fully) contained in the sro
+@var{g-name}, it drops the sro @var{g-class-name} prefix - or its plural
+form - and its trailing #\- (hiphen) delimiter from the sro
+@var{g-name};
 @ifhtml
 @*@*
 @end ifhtml
 
 @item
-otherwise, it drops the longest common string prefix it finds.
+otherwise, it drops the longest common sro string prefix it finds.
 @end itemize
 
-Then, if @var{as-string} is #t, it returns that string, otherwise, it
-calls and returns the result of @code{string->symbol}.
+If the optional @var{as-string} argument is #t, it returns
+that string, otherwise, it calls and returns the result of
+@code{string->symbol}.
 
 To illustrate, here is an example for each of the three above exposed
 cases:
@@ -129,16 +147,82 @@ cases:
 (g-name->short-name "gtk_drag_begin" "GtkWidget")
 @result{} drag-begin
 @end lisp
+@end deffn
 
-@ref{g-name->class-name} calls @ref{g-name->name}, surrounds the result
-using @code{#\<} and @code{#\>} characters then either return that
-string, if @var{as-string?} is @code{#t}, otherwise it calls and returns
-the result of @code{string->symbol}:
+
+@anchor{class-name->g-name}
+@deffn Procedure class-name->g-name class-name
+
+Returns a string.
+
+Obtains and returns the StudlyCaps string reprentation for
+@var{class-name}. For example:
 
 @lisp
-(g-name->class-name "GtkWindow")
-@result{} <gtk-window>
+(class-name->g-name '<foo-bar>)
+@result{} "FooBar"
 @end lisp
+@end deffn
+
+
+@anchor{syntax-name->method-name}
+@deffn Procedure syntax-name->method-name name
+
+Returns a (symbol) name.
+
+This procedure is used to @samp{protect} syntax names, from being
+redefined as generic functions and methods.
+
+Users should normally not call this procedure - except for testing
+purposes, if/when they customize its default settings - it is
+appropriately and automatically called by G-Golf when importing a GI
+typelib.
+
+Here is what it does:
+
+@itemize
+@item
+it first checks if a renamer is available, by calling
+@ref{syntax-name-protect-renamer}, and if so, calls it passing
+@var{name} and returns the result;
+@*@*
+
+@item
+if no renamer is available, it checks if either or both
+@ref{syntax-name-protect-prefix} and @ref{syntax-name-protect-postfix}
+is(are) available, calls @code{symbol-append} adequately passing either
+or both and @var{name} and returns the result.
+@*@*
+
+@item
+It will raise an exception if none of the syntax name protect
+prefix, postfix and renamer is available.
+@end itemize
+
+@xref{Customization Square} - @emph{GI Syntax Name Protect}. G-Golf GI
+Syntax Name Protect default values are:
+
+@indentedblock
+@multitable @columnfractions .30 .05 .25
+@item @ref{syntax-name-protect-prefix}
+@tab @code{#f}
+
+@item @ref{syntax-name-protect-postfix}
+@tab @code{'_}
+@tab (the symbol _)
+
+@item @ref{syntax-name-protect-renamer}
+@tab @code{#f}
+@end multitable
+@end indentedblock
+
+As an example, using these default settings, the method short name for
+@code{gcr-secret-exchange-begin} would be @code{begin_}.
+
+@c If the @code{(ice-9 receive)} has also been imported, then the short
+@c name method for @code{gcr-secret-exchange-receive} would be
+@c @code{receive_}, otherwise, since there would be no syntax name
+@c @samp{clash}, it would be @code{receive}.
 @end deffn
 
 
@@ -165,158 +249,4 @@ will either be @code{0} (zero), or @code{%null-pointer}.
 @end deffn
 
 
-@anchor{syntax-name->method-name}
-@deffn Procedure syntax-name->method-name name
-
-Returns a (symbol) name.
-
-This procedure is used to @samp{protect} syntax names, from being
-redefined as generic functions and methods.
-
-Users should normally not call this procedure - except for testing
-purposes, if/when they customize its default settings - it is
-appropriately and automatically called by G-Golf when importing a GI
-typelib.
-
-Unless otherwise specified (see @ref{%gi-method-short-names-skip}),
-when a GI typelib is imported, G-Golf also creates so called short name
-methods, obtained by dropping the container name (and its trailing
-hyphen) from the GI typelib method full/long names.
-
-GI methods are added to their respective generic function, which is
-created if it does not already exist. When a generic function is
-created, G-Golf checks if the name is used, and when it is bound to a
-procedure, the procedure is 'captured' into an unspecialized method,
-which is added to the newly created generic function.
-
-However, when the name is used but its variable value is a syntax, the
-above can't be done and the name must be @samp{protected}, which is what
-@ref{syntax-name->method-name} does, using a renamer, or by adding a
-prefix, a postfix or both to its (symbol) @var{name} argument.
-
-By default, the renamer (@ref{%syntax-name-protect-renamer}) and prefix
-(@ref{%syntax-name-protect-prefix}) variables are set to @code{#f}. The
-the postfix (@ref{%syntax-name-protect-postfix}) variable is set to
-@code{_} (the underscore symbol).
-
-As an example, using these default settings, the short name method for
-@code{gcr-secret-exchange-begin} would be @code{begin_}.
-
-@c If the @code{(ice-9 receive)} has also been imported, then the short
-@c name method for @code{gcr-secret-exchange-receive} would be
-@c @code{receive_}, otherwise, since there would be no syntax name
-@c @samp{clash}, it would be @code{receive}.
-@end deffn
-
-
-@subheading Variables
-
-@anchor{%g-name-transform-exceptions}
-@defvar %g-name-transform-exceptions
-
-Contains an alist where each @code{key} is a @code{GType} name exception
-for the @ref{g-name->name} procedure, and the corresponding @code{value}
-is the name @ref{g-name->name} should use instead.
-
-Its default value contains an entry for @code{GObject}, which should not
-(never) be removed:
-
-@lisp
-(define %g-name-transform-exceptions
-  '(("GObject" . "gobject")))
-@end lisp
-
-@c However currently it is an exmpty list@footnote{@uref{@value{UGG},
-@c Guile-Gnome} defines a relatively long list of those GType name
-@c exceptions, including GEnum, but I'm still not sure about what G-Golf
-@c will do and currently decided not to apply any exception.  Will this
-@c change in the future? Maybe, but it will become stable before G-Golf
-@c 1.0.}.
-@end defvar
-
-
-@anchor{%g-studly-caps-expand-token-exceptions}
-@defvar %g-studly-caps-expand-token-exceptions
-
-Contains an alist where each @code{key} is a @code{token} exception for
-the @ref{g-studly-caps-expand} procedure, and the corresponding
-@code{value} the string that @ref{g-studly-caps-expand} will use for
-that @code{token} transformation instead.
-
-Its default value contains an entry for the @code{WebKit} token:
-
-@lisp
-(define %g-studly-caps-expand-token-exceptions
-  '(("WebKit" . "webkit")))
-@end lisp
-
-Users may add or remove alist pairs to satisfy their needs.
-@end defvar
-
-
-@anchor{%gi-method-short-names-skip}
-@defvar %gi-method-short-names-skip
-
-This variable is used by G-Golf to decide, while importing a GI typelib,
-if a short name method should be created or not (@samp{skipped}, hence
-the variable name).
-
-It can take the following values:
-
-@indentedblock
-@table @code
-
-@item '()
-This is the default value. In this case, a short name method is created
-for every full/long name method, or in other words, no short name method
-creation process is skipped.
-
-@item 'all
-In this case, no short name method is created, or in other words, all
-short name method creation process is skipped.
-
-@item a list of short name(s)
-In this case, for each short name in the list, the short name method
-creation process is skipped.
-@end table
-@end indentedblock
-
-@end defvar
-
-
-@anchor{%syntax-name-protect-prefix}
-@anchor{%syntax-name-protect-postfix}
-@anchor{%syntax-name-protect-renamer}
-@defvar %syntax-name-protect-prefix
-@defvarx %syntax-name-protect-postfix
-@defvarx %syntax-name-protect-renamer
-
-These variables are used by @ref{syntax-name->method-name} and may be
-customized. Their default values are:
-
-@indentedblock
-@table @var
-@item %syntax-name-protect-prefix #f
-@item %syntax-name-protect-postfix '_ (the underscore symbol)
-@item %syntax-name-protect-renamer #f
-@end table
-@end indentedblock
-
-@var{%syntax-name-protect-prefix} and @var{%syntax-name-protect-postfix}
-may be defined as @code{#f} or a symbol name. Unless a renamer is set,
-at least one of these two variables must be defined as a symbol name.
-
-The @var{%syntax-name-protect-renamer} may be defined as @code{#f} or a
-procedure, that takes one argument - a symbol name - and returns a
-symbol name.
-
-@ref{syntax-name->method-name} first checks for a
-@var{%syntax-name-protect-renamer}, and calls it if it has been defined,
-igoring the other variables.
-
-Otherwise, @ref{syntax-name->method-name} returns a symbol name prefixed
-using @var{%syntax-name-protect-prefix} when not @code{#f} and/or
-postfixed using @var{%syntax-name-protect-postfix} when not @code{#f}.
-As mentioned above, unless a renamer is set, at least one of these two
-variables must be defined as a symbol name.
-@end defvar
+@c @subheading Variables

@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2018 - 2020
+;;;; Copyright (C) 2018 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -31,14 +31,19 @@
   #:use-module (g-golf support utils)
   #:use-module (g-golf support module)
   #:use-module (g-golf support goops)
+  #:use-module (g-golf hl-api n-decl)
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api glib)
   #:use-module (g-golf hl-api gobject)
+  #:use-module (g-golf hl-api events)
+  #:use-module (g-golf hl-api argument)
+  #:use-module (g-golf hl-api ccc)
+  #:use-module (g-golf hl-api callable)
+  #:use-module (g-golf hl-api callback)
   #:use-module (g-golf hl-api function)
   #:use-module (g-golf hl-api object)
   #:use-module (g-golf hl-api closure)
   #:use-module (g-golf hl-api signal)
-  #:use-module (g-golf hl-api callback)
   #:use-module (g-golf hl-api import)
   #:use-module (g-golf hl-api utils)
 
@@ -52,13 +57,18 @@
 (re-export-public-interface (oop goops)
                             (g-golf support utils)
                             (g-golf support goops)
+                            (g-golf hl-api n-decl)
                             (g-golf hl-api gtype)
                             (g-golf hl-api glib)
                             (g-golf hl-api gobject)
+                            (g-golf hl-api events)
                             (g-golf hl-api function)
+                            (g-golf hl-api argument)
+                            (g-golf hl-api ccc)
+                            (g-golf hl-api callable)
+                            (g-golf hl-api callback)
                             (g-golf hl-api object)
                             (g-golf hl-api closure)
                             (g-golf hl-api signal)
-                            (g-golf hl-api callback)
                             (g-golf hl-api import)
                             (g-golf hl-api utils))

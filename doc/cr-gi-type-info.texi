@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2020 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2022 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -18,7 +18,6 @@ GITypeInfo — Struct representing a type.
 
 @indentedblock
 @table @code
-@item @ref{g-type-tag-to-string}
 @item @ref{g-info-type-to-string}
 @item @ref{g-type-info-is-pointer}
 @item @ref{g-type-info-get-tag}
@@ -58,20 +57,6 @@ that interface.
 
 Note: in this section, the @var{info} argument is [must be] a pointer to
 a @code{GITypeInfo}.
-
-
-@anchor{g-type-tag-to-string}
-@deffn Procedure g-type-tag-to-string type-tag
-
-Returns a string or @code{#f}.
-
-Obtains the string representation for @var{type-tag} or @code{#f} if it
-does not exists.
-
-@var{type-tag} can either be a @code{symbol} or an @code{id}, a member
-of the @code{enum-set} of @ref{%gi-type-tag} (otherwise, @code{#f} is
-returned).
-@end deffn
 
 
 @anchor{g-info-type-to-string}

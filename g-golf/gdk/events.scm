@@ -35,7 +35,8 @@
 		warn
 		last)
 
-  #:export (gdk-event-class))
+  #:export (gdk-event-class
+            gdk-event-slot))
 
 
 (define (gdk-event-class)

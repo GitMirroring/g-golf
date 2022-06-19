@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2021
+;;;; Copyright (C) 2019 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -65,6 +65,117 @@
 
 (define-class <g-golf-test-hl-api> (<test-case>))
 
+
+;;;
+;;; n-decl
+;;;
+
+(define-method (test-n-decl-1.1 (self <g-golf-test-hl-api>))
+  (assert (g-name-transform-exception))
+  (assert-true (g-name-transform-exception? "GObject"))
+  (assert-false (g-name-transform-exception? "GEnum"))
+  (assert (g-name-transform-exception-add "GEnum" "genum"))
+  (assert-true (g-name-transform-exception? "GEnum"))
+  (assert (g-name-transform-exception-remove "GEnum"))
+  (assert-false (g-name-transform-exception? "GEnum"))
+  ;; removing "GObject" is a no op
+  (assert (g-name-transform-exception-remove "GObject"))
+  (assert-true (g-name-transform-exception? "GObject"))
+  (assert (g-name-transform-exception-add "GEnum" "genum"))
+  (assert (g-name-transform-exception-reset))
+  (assert-false (g-name-transform-exception? "GEnum"))
+  (assert-true (g-name-transform-exception? "GObject")))
+
+(define-method (test-n-decl-1.2 (self <g-golf-test-hl-api>))
+  (assert (g-studly-caps-expand-token-exception))
+  (assert-true (g-studly-caps-expand-token-exception? "WebKit"))
+  (assert-false (g-studly-caps-expand-token-exception? "BlueFox"))
+  (assert (g-studly-caps-expand-token-exception-add "BlueFox" "bluefox"))
+  (assert-true (g-studly-caps-expand-token-exception? "BlueFox"))
+  (assert (g-studly-caps-expand-token-exception-remove "BlueFox"))
+  (assert-false (g-studly-caps-expand-token-exception? "BlueFox"))
+  ;; removing "GObject" is a no op
+  (assert (g-studly-caps-expand-token-exception-remove "WebKit"))
+  (assert-true (g-studly-caps-expand-token-exception? "WebKit"))
+  (assert (g-studly-caps-expand-token-exception-add "BlueFox" "bluefos"))
+  (assert (g-studly-caps-expand-token-exception-reset))
+  (assert-false (g-studly-caps-expand-token-exception? "BlueFox"))
+  (assert-true (g-studly-caps-expand-token-exception? "WebKit")))
+
+(define-method (test-n-decl-2 (self <g-golf-test-hl-api>))
+  (assert-true (eq? (gi-strip-boolean-result) '()))
+  (assert-false (gi-strip-boolean-result? 'gdk-event-get-axis))
+  (assert (gi-strip-boolean-result-add gdk-event-get-axis
+                                       gdk-event-get-button
+                                       gdk-event-get-click-count
+                                       gdk-event-get-coords
+                                       gdk-event-get-keycode
+                                       gdk-event-get-keyval
+                                       gdk-event-get-root-coords
+                                       gdk-event-get-scroll-direction
+                                       gdk-event-get-scroll-deltas
+                                       gdk-event-get-state))
+  (gi-strip-boolean-result-add gdk-event-get-axis)
+  (assert-true (= 10 (length (gi-strip-boolean-result))))
+  (assert-true (gi-strip-boolean-result? 'gdk-event-get-axis))
+  (assert (gi-strip-boolean-result-remove gdk-event-get-axis))
+  (assert-false (gi-strip-boolean-result? 'gdk-event-get-axis))
+  (assert (gi-strip-boolean-result-reset))
+  (assert-true (eq? (gi-strip-boolean-result) '())))
+
+(define-method (test-n-decl-3.1 (self <g-golf-test-hl-api>))
+  (assert-true (eq? (gi-method-short-name-skip) '()))
+  (assert-false (gi-method-short-name-skip? 'gdk-event-get-axis))
+  (assert (gi-method-short-name-skip-add gdk-event-get-axis
+                                         gdk-event-get-button
+                                         gdk-event-get-click-count
+                                         gdk-event-get-coords
+                                         gdk-event-get-keycode
+                                         gdk-event-get-keyval
+                                         gdk-event-get-root-coords
+                                         gdk-event-get-scroll-direction
+                                         gdk-event-get-scroll-deltas
+                                         gdk-event-get-state))
+  (gi-method-short-name-skip-add gdk-event-get-axis)
+  (assert-true (= 10 (length (gi-method-short-name-skip))))
+  (assert-true (gi-method-short-name-skip? 'gdk-event-get-axis))
+  (assert (gi-method-short-name-skip-remove gdk-event-get-axis))
+  (assert-false (gi-method-short-name-skip? 'gdk-event-get-axis))
+  (assert (gi-method-short-name-skip-all))
+  (assert-true (eq? (gi-method-short-name-skip) 'all))
+  (assert (gi-method-short-name-skip-reset))
+  (assert-true (eq? (gi-method-short-name-skip) '())))
+
+(define-method (test-n-decl-4.1 (self <g-golf-test-hl-api>))
+  (assert (syntax-name-protect-prefix))
+  (assert-false (syntax-name-protect-prefix))
+  (assert (syntax-name-protect-prefix-set '_))
+  (assert-equal '_ (syntax-name-protect-prefix))
+  (assert (syntax-name-protect-prefix-reset))
+  (assert-false (syntax-name-protect-prefix)))
+
+(define-method (test-n-decl-4.2 (self <g-golf-test-hl-api>))
+  (assert (syntax-name-protect-postfix))
+  (assert-equal '_ (syntax-name-protect-postfix))
+  (assert (syntax-name-protect-postfix-set #f))
+  (assert-false (syntax-name-protect-postfix))
+  (assert (syntax-name-protect-postfix-reset))
+  (assert-equal '_ (syntax-name-protect-postfix)))
+
+(define-method (test-n-decl-4.3 (self <g-golf-test-hl-api>))
+  (assert (syntax-name-protect-renamer))
+  (assert-false (syntax-name-protect-renamer))
+  (assert (syntax-name-protect-renamer-set
+           (lambda (name)
+             (symbol-append 'blue- name '-fox))))
+  (assert-true (procedure? (syntax-name-protect-renamer)))
+  (assert (syntax-name-protect-renamer-reset))
+  (assert-false (syntax-name-protect-renamer)))
+
+
+;;;
+;;;
+;;;
 
 (define-method (test-g-property-accessor (self <g-golf-test-hl-api>))
   (let ((a-grid (make <clutter-grid-layout>)))

@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2016 - 2021
+#### Copyright (C) 2016 - 2022
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -43,15 +43,17 @@ g_golf_TEXINFOS = \
   ug-bys-goops-notes-and-conventions.texi	\
   ug-bys-configuring-guile-for-g-golf.texi	\
   ug-bys-customizing-g-golf.texi		\
-  ug-g-golf-cache.texi		\
   ug-gswg.texi			\
   ug-gswg-hello-world.texi	\
   ug-gswg-selective-import.texi	\
   ug-gswg-scripting.texi	\
+  ug-wwg.texi			\
   ug-wwg-import.texi		\
   ug-wwg-events.texi		\
   ug-wwg-gobject.texi		\
-  ug-wwg.texi			\
+  ug-ggv.texi			\
+  ug-ggv-cache.texi		\
+  ug-ggv-customization.texi	\
   cr.texi			\
   cr-overview.texi		\
   cr-ov-structure-and-naming-conventions.texi	\
@@ -76,6 +78,8 @@ g_golf_TEXINFOS = \
   cr-gobject-signals.texi	\
   cr-gi.texi			\
   cr-gi-repository.texi		\
+  cr-gi-typelib.texi		\
+  cr-gi-version.texi		\
   cr-gi-common-types.texi	\
   cr-gi-base-info.texi		\
   cr-gi-callable-info.texi	\
@@ -92,7 +96,7 @@ g_golf_TEXINFOS = \
   cr-gi-field-info.texi		\
   cr-gi-property-info.texi	\
   cr-gi-type-info.texi		\
-  cr-gi-typelib.texi		\
+  cr-gi-gir-ffi.texi		\
   cr-gi-utilities.texi		\
   cr-support.texi		\
   cr-support-module.texi	\
@@ -121,4 +125,6 @@ EXTRA_DIST = \
 	$(DOC_CSS)
 
 AM_MAKEINFOHTMLFLAGS = \
-	-c DOCTYPE='<!DOCTYPE html>' --css-ref=../css/manual.css
+	-c DOCTYPE='<!DOCTYPE html>'	\
+	-c FORMAT_MENU='menu'		\
+	--css-ref=../css/manual.css

@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2020 - 2021
+;;;; Copyright (C) 2020 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -141,13 +141,15 @@
     (if (= i n-method)
         (newline port)
         (let ((m-info (g-interface-info-get-method info i)))
-          (receive (name short-name c-name namespace shadows?)
+          (receive (namespace b-name name m-name c-name)
               (gi-function-info-names m-info)
-            (if shadows?
+            #;(if shadows?
                 (format port "~?" %iface-method-shadows-fmt
-                        (list i short-name name c-name))
+                        (list i m-name name c-name))
                 (format port "~?" %iface-method-fmt
-                        (list i short-name name)))
+                        (list i m-name name)))
+            (format port "~?" %iface-method-fmt
+                    (list i m-name name))
             (loop n-method
                   (+ i 1)))))))
 

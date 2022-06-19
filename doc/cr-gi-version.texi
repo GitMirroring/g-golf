@@ -1,0 +1,85 @@
+@c -*-texinfo-*-
+@c This is part of the GNU G-Golf Reference Manual.
+@c Copyright (C) 2022 Free Software Foundation, Inc.
+@c See the file g-golf.texi for copying conditions.
+
+
+@c @defindex tl
+
+
+@node Version Information
+@subsection Version Information
+
+G-Golf GIRepository Version Informatrion low level API.@*
+Version Information - Procedures to check the GIRepository version.
+
+
+@subheading Procedures
+
+@indentedblock
+@table @code
+@item @ref{gi-version}
+@item @ref{gi-effective-version}
+@item @ref{gi-major-version}
+@item @ref{gi-minor-version}
+@item @ref{gi-micro-version}
+@item @ref{gi-check-version}
+@end table
+@end indentedblock
+
+
+@c @subheading Types and Values
+
+@c @indentedblock
+@c @table @code
+@c @item @ref{%g-arg-info-transfer}
+@c @end table
+@c @end indentedblock
+
+
+@c @subheading Struct Hierarchy
+
+@c @indentedblock
+@c GIBaseInfo           	       		@*
+@c @ @ +--- GIRegisteredTypeInfo  		@*
+@c @ @ @ @ @ @ @ @ @ @ @  +--- GIEnumInfo
+@c @end indentedblock
+
+
+@subheading Description
+
+ Procedures to check the GIRepository version.
+
+
+@subheading Procedures
+
+
+@anchor{gi-version}
+@anchor{gi-effective-version}
+@anchor{gi-major-version}
+@anchor{gi-minor-version}
+@anchor{gi-micro-version}
+@deffn Procedure gi-version
+@deffnx Procedure gi-effective-version
+@deffnx Procedure gi-major-version [as-integer? #f]
+@deffnx Procedure gi-minor-version [as-integer? #f]
+@deffnx Procedure gi-micro-version [as-integer? #f]
+
+Returns a string describing GIRepository full version number, effective
+version number, major, minor or micro version number, respectively.
+
+The last three procedures will return the major, minor or micro version
+number as an integer if the optional @var{as-integer?} argument is
+@code{#t}.
+@end deffn
+
+
+@anchor{gi-check-version}
+@deffn Procedure gi-check-version major minor micro
+
+Returns @code{#t} if the GIRepository version is the same as or newer
+than the @var{major} @var{minor} @var{micro} passed-in version.
+@end deffn
+
+
+@c @subheading Types and Values
