@@ -73,8 +73,7 @@
   (assert-false (g-type-from-name "GObject3")))
 
 (define-method (test-g-type-class-* (self <g-golf-test-gobject>))
-  (let* ((container (gi-import-by-name "Gtk" "Container" #:version "3.0"))
-         (g-type (!g-type container))
+  (let* ((g-type (!g-type <gobject>))
          (g-class (assert (g-type-class-ref g-type))))
     (assert (g-type-class-peek g-type))
     (assert (g-type-ensure g-type))
