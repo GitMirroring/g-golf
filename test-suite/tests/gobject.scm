@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2021
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -200,7 +200,7 @@
     (close port)))
 
 (define-method (test-g-value-boxed-g-strv (self <g-golf-test-gobject>))
-  (let* ((g-type (g-type-from-name "GStrv"))
+  (let* ((g-type (g-strv-get-type))
          (g-value (g-value-init g-type))
          (value '("one" "two" "three")))
     (assert (g-value-set! g-value '()))
