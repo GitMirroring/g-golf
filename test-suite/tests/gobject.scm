@@ -79,6 +79,10 @@
     (assert (g-type-ensure g-type))
     (assert (g-type-class-unref g-class))))
 
+(define-method (test-g-type-query (self <g-golf-test-gobject>))
+  (let ((g-type (!g-type <gobject>)))
+    (assert (g-type-query g-type))))
+
 
 ;;;
 ;;; Genric values

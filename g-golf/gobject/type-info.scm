@@ -27,6 +27,7 @@
 
 
 (define-module (g-golf gobject type-info)
+  #:use-module (ice-9 match)
   #:use-module (oop goops)
   #:use-module (system foreign)
   #:use-module (rnrs arithmetic bitwise)
@@ -51,6 +52,7 @@
             g-type-class-ref
             g-type-class-peek
             g-type-class-unref
+            g-type-query
             g-type-fundamental
             g-type-ensure
 
@@ -112,6 +114,30 @@
 (define (g-type-class-unref g-class)
   (g_type_class_unref g-class))
 
+(define %g-type-query-struct
+  (list unsigned-long	;; g-type
+        '*		;; type-name
+        unsigned-int	;; class-size
+        unsigned-int))	;; instance-size
+
+(define (g-type-query-new)
+  (make-c-struct %g-type-query-struct
+                 (list 0
+                       %null-pointer
+                       0
+                       0)))
+
+(define (g-type-query g-type)
+  (let ((type-query (g-type-query-new)))
+    (g_type_query g-type type-query)
+    (match (parse-c-struct type-query
+                           %g-type-query-struct)
+      ((g-type type-name class-size instance-size)
+       (list g-type
+             (gi->scm type-name 'string)
+             class-size
+             instance-size)))))
+
 (define (g-type-fundamental g-type)
   (g_type_fundamental g-type))
 
@@ -165,6 +191,13 @@
                       (dynamic-func "g_type_class_unref"
 				    %libgobject)
                       (list '*)))
+
+(define g_type_query
+  (pointer->procedure void
+                      (dynamic-func "g_type_query"
+				    %libgobject)
+                      (list unsigned-long
+                            '*)))
 
 (define g_type_fundamental
   (pointer->procedure size_t
