@@ -71,10 +71,10 @@ Frees the boxed structure at @var{pointer}, which is of type
 
 Returns a GType.
 
-Register (unless already registered) the GStrv GLib type in GObject, and
-returns its GType. Note that this procedure must have been called at
-least once before @code{(g-type-from-name "GStrv")} calls may be
-honoured.
+Registers (unless already registered) the GStrv GLib type in GObject and
+returns its GType, the GType for a boxed type holding a NULL-terminated
+array of strings. This procedure must have been called at least once
+before @code{(g-type-from-name "GStrv")} calls may be honoured.
 @end deffn
 
 
