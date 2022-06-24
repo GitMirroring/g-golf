@@ -238,19 +238,21 @@
   ;; "ParamSpec", it's ok to manually import it here anyway: (a) some
   ;; namespace define classes that inherit from it, like "Clutter"
   ;; "ParamSpecUnit" and (b) it is the returned type of some gtk class
-  ;; methods, like gtk-container-class-find-child-property. In all use
-  ;; cases - see (g-golf hl-api function) gi-argument->scm - G-Golf never
-  ;; creates <g-param> instances, and 'blindingly' receive and pass
-  ;; GParamSpec pointers from/to GObject (just like opaque
-  ;; structures). Note that the base info name is "ParamSpec" but the
-  ;; registered type name is "GParam", hence the class is imported as
-  ;; <g-param>.
+  ;; methods, like gtk-container-class-find-child-property.
+
+  ;; In all use cases - see (g-golf hl-api argument) gi-argument->scm - G-Golf
+  ;; never creates <g-param> instances, and 'blindingly' receive and pass
+  ;; GParamSpec pointers from/to GObject (just like opaque structures).
+
+  ;; Finally, note that the base info name is "ParamSpec" but the registered
+  ;; type name is "GParam", hence the class is imported as <g-param>.
 
   (gi-import-by-name "GObject" "ParamSpec"
                      #:with-methods? #f #:force? #t)
 
   (gi-import-by-name "GObject" "Binding" #:force? #t)
   (gi-import-by-name "GObject" "BindingFlags" #:force? #t)
+  (gi-import-by-name "GObject" "TypeFlags" #:force? #t)
 
   (let ((%gi-import-object-methods
          (@@ (g-golf hl-api object) gi-import-object-methods))
