@@ -27,6 +27,7 @@
 
 
 (define-module (tests gobject)
+  #:use-module (ice-9 match)
   #:use-module (oop goops)
   #:use-module (unit-test)
   #:use-module (g-golf)
@@ -83,6 +84,16 @@
   (let ((g-type (!g-type <gobject>)))
     (assert (g-type-query g-type))))
 
+(define-method (test-g-type-register-static-simple (self <g-golf-test-gobject>))
+  (match (g-type-query (!g-type <gobject>))
+    ((g-type type-name class-size instance-size)
+     (assert (g-type-register-static-simple g-type
+                                            (class-name->g-name '<foo-bar>)
+                                            136
+                                            #f  ;; class-init-func
+                                            24
+                                            #f  ;; instance-init-func
+                                            '())))))
 
 ;;;
 ;;; Genric values

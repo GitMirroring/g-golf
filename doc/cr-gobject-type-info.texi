@@ -25,6 +25,7 @@ Type Information — The GLib Runtime type identification and management system
 @item @ref{g-type-class-peek}
 @item @ref{g-type-class-unref}
 @item @ref{g-type-query}
+@item @ref{g-type-register-static-simple}
 @item @ref{g-type-fundamental}
 @item @ref{g-type-ensure}
 @end table
@@ -175,6 +176,19 @@ Returns a list.
 
 Obtains and returns the @code{(g-type type-name class-size
 instance-size)} list for @var{g-type}.
+@end deffn
+
+
+@anchor{g-type-register-static-simple}
+@deffn Procedure g-type-register-static-simple parent-type type-name @
+         class-size class-init-func instance-size instance-init-func flags
+
+Returns a new type ID.
+
+Registers @var{type-name} as the name of a new static type derived from
+@var{parent-type}. The value of @var{flags} determines the nature
+(e.g. abstract or not) of the type. It works by filling a
+@code{GTypeInfo} struct and calling @code{g_type_register_static}.
 @end deffn
 
 

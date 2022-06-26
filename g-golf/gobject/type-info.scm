@@ -32,6 +32,8 @@
   #:use-module (system foreign)
   #:use-module (rnrs arithmetic bitwise)
   #:use-module (g-golf init)
+  #:use-module (g-golf support flags)
+  #:use-module (g-golf gi cache-gi)
   #:use-module (g-golf gi utils)
   #:use-module (g-golf support enum)
   #:use-module (g-golf support flags)
@@ -53,6 +55,7 @@
             g-type-class-peek
             g-type-class-unref
             g-type-query
+            g-type-register-static-simple
             g-type-fundamental
             g-type-ensure
 
@@ -138,6 +141,34 @@
              class-size
              instance-size)))))
 
+(define %class-init-func
+  (procedure->pointer void
+                      (lambda (g-class class-data)
+                        (values))
+                      (list '* '*)))
+
+(define %instance-init-func
+  (procedure->pointer void
+                      (lambda (instance g-class)
+                        (values))
+                      (list '* '*)))
+
+(define (g-type-register-static-simple parent-type
+                                       type-name
+                                       class-size
+                                       class-init-func
+                                       instance-size
+                                       instance-init-func
+                                       flags)
+  (let ((type-flags (gi-cache-ref 'flags 'g-object-type-flags)))
+    (g_type_register_static_simple parent-type
+                                   (scm->gi type-name 'string)
+                                   class-size
+                                   (or class-init-func %class-init-func)
+                                   instance-size
+                                   (or instance-init-func %instance-init-func)
+                                   (flags->integer type-flags flags))))
+
 (define (g-type-fundamental g-type)
   (g_type_fundamental g-type))
 
@@ -198,6 +229,18 @@
 				    %libgobject)
                       (list unsigned-long
                             '*)))
+
+(define g_type_register_static_simple
+  (pointer->procedure unsigned-long
+                      (dynamic-func "g_type_register_static_simple"
+				    %libgobject)
+                      (list unsigned-long	;; parent-type
+                            '*			;; type-name
+                            unsigned-int	;; class-size
+                            '*			;; class-init (func)
+                            unsigned-int	;; instance-size
+                            '*			;; instance-init (func)
+                            int)))		;; flags
 
 (define g_type_fundamental
   (pointer->procedure size_t
