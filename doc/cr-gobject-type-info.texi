@@ -26,6 +26,7 @@ Type Information — The GLib Runtime type identification and management system
 @item @ref{g-type-class-unref}
 @item @ref{g-type-query}
 @item @ref{g-type-register-static-simple}
+@item @ref{g-type-add-interface-static}
 @item @ref{g-type-fundamental}
 @item @ref{g-type-ensure}
 @end table
@@ -189,6 +190,22 @@ Registers @var{type-name} as the name of a new static type derived from
 @var{parent-type}. The value of @var{flags} determines the nature
 (e.g. abstract or not) of the type. It works by filling a
 @code{GTypeInfo} struct and calling @code{g_type_register_static}.
+@end deffn
+
+
+@anchor{g-type-add-interface-static}
+@deffn Procedure g-type-add-interface-static g-type iface-type iface-info
+
+Returns nothing.
+
+Adds @var{iface-type} to the static @var{g-type}. The information
+contained in the @code{GInterfaceInfo} structure pointed to by
+@var{iface-info} is used to manage the relationship.
+
+If @var{iface-info} is @code{#f}, a new @code{GInterfaceInfo} structure
+is made, with @code{iface-init-func} and @code{iface-finalize-func} set
+to no-op procedures, and @code{iface-data} set to the %null-pointer
+(this is only meant to be used for testing and debugging purposes).
 @end deffn
 
 

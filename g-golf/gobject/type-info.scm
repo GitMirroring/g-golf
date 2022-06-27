@@ -56,6 +56,7 @@
             g-type-class-unref
             g-type-query
             g-type-register-static-simple
+            g-type-add-interface-static
             g-type-fundamental
             g-type-ensure
 
@@ -169,6 +170,35 @@
                                    (or instance-init-func %instance-init-func)
                                    (flags->integer type-flags flags))))
 
+(define %g-interface-info-struct
+  (list '*		;; iface-init-func
+        '*		;; iface-finalize-func
+        '*))		;; iface-data
+
+(define %iface-init-func
+  (procedure->pointer void
+                      (lambda (g-iface iface-data)
+                        (values))
+                      (list '* '*)))
+
+(define %iface-finalize-func
+  (procedure->pointer void
+                      (lambda (g-iface iface-data)
+                        (values))
+                      (list '* '*)))
+
+(define (g-interface-info-new)
+  (make-c-struct %g-interface-info-struct
+                 (list %iface-init-func
+                       %iface-finalize-func
+                       %null-pointer)))
+
+(define (g-type-add-interface-static g-type iface-type iface-info)
+  (g_type_add_interface_static g-type
+                               iface-type
+                               (or iface-info
+                                   (g-interface-info-new))))
+
 (define (g-type-fundamental g-type)
   (g_type_fundamental g-type))
 
@@ -241,6 +271,14 @@
                             unsigned-int	;; instance-size
                             '*			;; instance-init (func)
                             int)))		;; flags
+
+(define g_type_add_interface_static
+  (pointer->procedure void
+                      (dynamic-func "g_type_add_interface_static"
+				    %libgobject)
+                      (list unsigned-long	;; g-type
+                            unsigned-long	;; iface-type
+                            '*)))		;; iface-info
 
 (define g_type_fundamental
   (pointer->procedure size_t
