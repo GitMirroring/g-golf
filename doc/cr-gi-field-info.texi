@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2019 Free Software Foundation, Inc.
+@c Copyright (C) 2019 - 2022 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -18,6 +18,7 @@ GIFieldInfo — Struct representing a struct or union field.
 
 @indentedblock
 @table @code
+@item @ref{g-field-info-get-offset}
 @item @ref{g-field-info-get-type}
 @end table
 @end indentedblock
@@ -55,6 +56,16 @@ offset asssociated and a set of flags, which is currently
 
 Note: in this section, unless otherwise specified, the @var{info}
 argument is [must be] a pointer to a @code{GIFieldInfo}.
+
+
+@anchor{g-field-info-get-offset}
+@deffn Procedure g-field-info-get-offset info
+
+Returns an unsigned integer.
+
+Obtains and returns the offset in bytes for @var{info}, the field
+member, this is relative to the beginning of the struct or union.
+@end deffn
 
 
 @anchor{g-field-info-get-type}

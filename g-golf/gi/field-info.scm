@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019
+;;;; Copyright (C) 2019 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -41,12 +41,16 @@
 		warn
 		last)
 
-  #:export (g-field-info-get-type))
+  #:export (g-field-info-get-offset
+            g-field-info-get-type))
 
 
 ;;;
 ;;; Low level API
 ;;;
+
+(define (g-field-info-get-offset info)
+  (g_field_info_get_offset info))
 
 (define (g-field-info-get-type info)
   (gi->scm (g_field_info_get_type info) 'pointer))
@@ -55,6 +59,12 @@
 ;;;
 ;;; GI Bindings
 ;;;
+
+(define g_field_info_get_offset
+  (pointer->procedure unsigned-int
+                      (dynamic-func "g_field_info_get_offset"
+				    %libgirepository)
+                      (list '*)))
 
 (define g_field_info_get_type
   (pointer->procedure '*
