@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2020 - 2021 Free Software Foundation, Inc.
+@c Copyright (C) 2020 - 2022 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -101,27 +101,56 @@ pointed to by @var{info}:
 
 @lisp
 ,use (g-golf)
-(g-irepository-require "Gtk")
+ (g-irepository-require "Gdk" #:version "4.0")
 @result{} $2 = #<pointer 0x55649014c780>
 
-(g-irepository-find-by-name "Gtk" "Orientable")
+(g-irepository-find-by-name "Gdk" "Paintable")
 @result{} $3 = #<pointer 0x5564901531e0>
 
 (gi-interface-show $3)
 @print{} #<pointer 0x5564901531e0> is a (pointer to a) GIInterfaceInfo:
 @print{}
-@print{}           namespace: "Gtk"
-@print{}                name: "Orientable"
-@print{}              g-type: 93890405098944
-@print{}         g-type-name: "GtkOrientable"
-@print{}     n-prerequisites: 0
-@print{}        n-properties: 1
-@print{}           n-methods: 2
-@print{}           n-signals: 0
-@print{}           n-vfuncts: 0
-@print{}         n-constants: 0
-@print{}        iface-struct: #<pointer 0x556490153140>
-@print{}   iface-struct-name: "OrientableIface"
+@print{}          namespace: "Gdk"
+@print{}               name: "Paintable"
+@print{}             g-type: 93947637686432
+@print{}        g-type-name: "GdkPaintable"
+@print{}    n-prerequisites: 0
+@print{}       n-properties: 0
+@print{}          n-methods: 10
+@print{}          n-signals: 2
+@print{}          n-vfuncts: 6
+@print{}        n-constants: 0
+@print{}       iface-struct: #<pointer 0x5571e38ec190>
+@print{}  iface-struct-name: "PaintableInterface"
+@print{}
+@print{}  Methods:
+@print{}
+@print{}      0. #f
+@print{}         gdk-paintable-new-empty
+@print{}
+@print{}      1. compute-concrete-size
+@print{}         gdk-paintable-compute-concrete-size
+@print{}
+@print{}      2. get-current-image
+@print{}         gdk-paintable-get-current-image
+@print{}
+@print{}      3. get-flags
+@print{}         gdk-paintable-get-flags
+@print{}      @dots{}
+@print{}
+@print{}   VFuncs:
+@print{}
+@print{}       0. get-current-image
+@print{}
+@print{}       1. get-flags
+@print{}
+@print{}       2. get-intrinsic-aspect-ratio
+@print{}
+@print{}       3. get-intrinsic-height
+@print{}
+@print{}       4. get-intrinsic-width
+@print{}
+@print{}       5. snapshot
 @end lisp
 @end deffn
 

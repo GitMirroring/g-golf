@@ -118,12 +118,18 @@
              iface-struct
              iface-struct-name))
     (gi-interface-show-methods info port)
+    (gi-interface-show-vfuncs info port)
     (values)))
 
 (define %iface-method-fmt
   "
      ~2,,,' @A. ~A
          ~A
+")
+
+(define %iface-vfunc-fmt
+  "
+     ~2,,,' @A. ~A
 ")
 
 (define %iface-method-shadows-fmt
@@ -152,6 +158,21 @@
                     (list i m-name name))
             (loop n-method
                   (+ i 1)))))))
+
+(define* (gi-interface-show-vfuncs info
+                                   #:optional (port (current-output-port)))
+  (format port "  VFuncs:\n")
+  (let loop ((n-vfunc (g-interface-info-get-n-vfuncs info))
+             (i 0))
+    (if (= i n-vfunc)
+        (newline port)
+        (let* ((v-info (g-interface-info-get-vfunc info i))
+               (g-name (g-base-info-get-name v-info))
+               (name (g-name->name g-name)))
+            (format port "~?" %iface-vfunc-fmt
+                    (list i name))
+            (loop n-vfunc
+                  (+ i 1))))))
 
 
 ;;;
