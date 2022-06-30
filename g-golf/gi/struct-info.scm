@@ -46,6 +46,7 @@
 		last)
 
   #:export (gi-struct-import
+            gi-struct-field-desc
             gi-struct-field-types
 
             g-struct-info-get-alignment
@@ -74,6 +75,30 @@
       #:is-gtype-struct? (g-struct-info-is-gtype-struct info)
       #:is-foreign? (g-struct-info-is-foreign info)
       #:field-types field-types)))
+
+(define (gi-struct-field-desc info)
+  (letrec ((struct-field-desc
+	    (lambda (info n i desc)
+	      (if (= i n)
+		  (reverse desc)
+		  (let* ((field-info (g-struct-info-get-field info i))
+                         (name (g-base-info-get-name field-info))
+                         (type-info (g-field-info-get-type field-info))
+                         (name (g-base-info-get-name field-info))
+                         (type-tag (g-type-info-get-tag type-info))
+                         (offset (g-field-info-get-offset field-info))
+                         (f-flags (g-field-info-get-flags field-info)))
+		    (g-base-info-unref field-info)
+                    (g-base-info-unref type-info)
+		    (struct-field-desc info
+				       n
+				       (+ i 1)
+				       (cons (list name type-tag offset f-flags)
+                                             desc)))))))
+    (struct-field-desc info
+		       (g-struct-info-get-n-fields info)
+		       0
+		       '())))
 
 (define (gi-struct-field-types info)
   (letrec ((struct-field-types
