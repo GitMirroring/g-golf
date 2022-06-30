@@ -18,6 +18,7 @@ GIFieldInfo — Struct representing a struct or union field.
 
 @indentedblock
 @table @code
+@item @ref{g-field-info-get-flags}
 @item @ref{g-field-info-get-offset}
 @item @ref{g-field-info-get-type}
 @end table
@@ -48,7 +49,7 @@ A @code{GIFieldInfo} struct represents a field of a struct (see
 @ref{Object Info}). The GIFieldInfo is fetched by calling
 @ref{g-struct-info-get-field}, @code{g-union-info-get-field} or
 @ref{g-object-info-get-field}. A field has a size, type and a struct
-offset asssociated and a set of flags, which is currently
+offset asssociated and a set of flags, which are currently
 @code{readable} or @code{writable}.
 
 
@@ -56,6 +57,16 @@ offset asssociated and a set of flags, which is currently
 
 Note: in this section, unless otherwise specified, the @var{info}
 argument is [must be] a pointer to a @code{GIFieldInfo}.
+
+
+@anchor{g-field-info-get-flags}
+@deffn Procedure g-field-info-get-flags info
+
+Returns a (possibly empty) list.
+
+Obtains and returns the flags for @var{info}, which currently are
+@code{readable} or @code{writable}.
+@end deffn
 
 
 @anchor{g-field-info-get-offset}

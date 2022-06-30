@@ -31,8 +31,10 @@
   #:use-module (system foreign)
   #:use-module (g-golf support utils)
   #:use-module (g-golf support enum)
+  #:use-module (g-golf support flags)
   #:use-module (g-golf init)
   #:use-module (g-golf gi utils)
+  #:use-module (g-golf gi cache-gi)
   #:use-module (g-golf gi base-info)
 
   #:duplicates (merge-generics
@@ -41,13 +43,19 @@
 		warn
 		last)
 
-  #:export (g-field-info-get-offset
+  #:export (g-field-info-get-flags
+            g-field-info-get-offset
             g-field-info-get-type))
 
 
 ;;;
 ;;; Low level API
 ;;;
+
+(define (g-field-info-get-flags info)
+  (let ((field-info-flags (gi-cache-ref 'flags 'gi-field-info-flags)))
+    (integer->flags field-info-flags
+                    (g_field_info_get_flags info))))
 
 (define (g-field-info-get-offset info)
   (g_field_info_get_offset info))
@@ -60,6 +68,12 @@
 ;;; GI Bindings
 ;;;
 
+(define g_field_info_get_flags
+  (pointer->procedure int
+                      (dynamic-func "g_field_info_get_flags"
+				    %libgirepository)
+                      (list '*)))
+
 (define g_field_info_get_offset
   (pointer->procedure unsigned-int
                       (dynamic-func "g_field_info_get_offset"
@@ -71,3 +85,16 @@
                       (dynamic-func "g_field_info_get_type"
 				    %libgirepository)
                       (list '*)))
+
+
+;;;
+;;; Type and Values
+;;;
+
+(eval-when (expand load eval)
+  (gi-cache-set! 'flags
+                 'gi-field-info-flags
+                 (make <gi-flags>
+                   #:g-name  "GIFieldInfoFlags"
+                   #:enum-set '((readable . 1)
+                                (writable . 2)))))
