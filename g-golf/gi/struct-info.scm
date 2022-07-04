@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2021
+;;;; Copyright (C) 2019 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -82,9 +82,9 @@
 	      (if (= i n)
 		  (reverse desc)
 		  (let* ((field-info (g-struct-info-get-field info i))
-                         (name (g-base-info-get-name field-info))
+                         (g-name (g-base-info-get-name field-info))
+                         (name (g-name->name g-name))
                          (type-info (g-field-info-get-type field-info))
-                         (name (g-base-info-get-name field-info))
                          (type-tag (g-type-info-get-tag type-info))
                          (offset (g-field-info-get-offset field-info))
                          (f-flags (g-field-info-get-flags field-info)))
