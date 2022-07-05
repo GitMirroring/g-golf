@@ -56,6 +56,7 @@
             g-type-class-unref
             g-type-query
             g-type-register-static-simple
+            g-iface-info-struct-new
             g-type-add-interface-static
             g-type-fundamental
             g-type-ensure
@@ -187,17 +188,22 @@
                         (values))
                       (list '* '*)))
 
-(define (g-interface-info-new)
+(define* (g-iface-info-struct-new #:optional
+                                  (iface-init-func %iface-init-func)
+                                  (iface-finalize-func %iface-finalize-func)
+                                  (iface-data %null-pointer))
   (make-c-struct %g-interface-info-struct
-                 (list %iface-init-func
-                       %iface-finalize-func
-                       %null-pointer)))
+                 (list iface-init-func
+                       iface-finalize-func
+                       iface-data)))
 
 (define (g-type-add-interface-static g-type iface-type iface-info)
   (g_type_add_interface_static g-type
                                iface-type
                                (or iface-info
-                                   (g-interface-info-new))))
+                                   (g-iface-info-struct-new %iface-init-func
+                                                            %iface-finalize-func
+                                                            %null-pointer))))
 
 (define (g-type-fundamental g-type)
   (g_type_fundamental g-type))
