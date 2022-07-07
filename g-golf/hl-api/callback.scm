@@ -52,6 +52,7 @@
   #:export (gi-import-callback
 
             g-golf-callback-closure
+            g-golf-vfunc-closure
 
             ;; <callback> inst cache
             gi-callback-inst-cache-ref
@@ -194,6 +195,23 @@
                              #:function proc)))
     (%make-ffi-closure info
                        (!ffi-cif callback)
+                       %g-golf-callback-closure-marshal
+                       (scm->pointer callback-closure))))
+
+
+;;;
+;;; VFuncs
+;;;
+
+(define (g-golf-vfunc-closure name f-inst proc)
+  (let* ((%make-ffi-closure (make-ffi-closure))
+         (callback-closure (make <callback-closure>
+                             #:callback f-inst
+                             #:function proc)))
+    (mslot-set! f-inst
+                'ffi-cif (make-ffi-cif f-inst))
+    (%make-ffi-closure (!info f-inst)
+                       (!ffi-cif f-inst)
                        %g-golf-callback-closure-marshal
                        (scm->pointer callback-closure))))
 
