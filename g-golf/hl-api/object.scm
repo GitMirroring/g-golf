@@ -349,16 +349,24 @@
          (@ (g-golf hl-api callback) g-golf-vfunc-closure)))
     (match vfunc-field-desc
       ((name type-tag iface-struct-offset flags)
-       ;; all vfunc have a corresponding method. when this procedure is called,
-       ;; they have been imported already. we retrieve it and use the <function>
-       ;; instance (which has all the callable info we need to make a callback),
-       ;; and the method itself, as this is what users will specialize.
+       ;; not all, but most vfunc have a corresponding method. when this
+       ;; procedure is called, they have been imported already. we retrieve it
+       ;; and use the <function> instance (which has all the callable info we
+       ;; need to make a callback), and the method itself, as this is what
+       ;; users will specialize.
        (let* ((method-name (symbol-append iface-name '- name))
               (method (module-ref module name))
               (f-inst (gi-cache-ref 'function method-name))
-              (closure (%g-golf-vfunc-closure method-name
-                                              f-inst
-                                              (lambda args (apply method args)))))
+              ;; i initially thought all vfunc have a corresponding method,
+              ;; but i was told on #introspection there are exceptions.
+              (closure (if f-inst
+                           (%g-golf-vfunc-closure method-name
+                                                  f-inst
+                                                  (lambda args (apply method args)))
+                           (begin
+                             (warning "VFunc with no corresponding method"
+                                      (cons iface-name name))
+                             %null-pointer))))
          (when (%debug)
            (dimfi 'vfunc-closure 'for: method-name)
            (dimfi "  " method)
