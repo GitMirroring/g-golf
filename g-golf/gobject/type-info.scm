@@ -61,6 +61,9 @@
             g-type-fundamental
             g-type-ensure
 
+            %iface-init-func
+            %iface-finalize-func
+
 	    %g-type-fundamental-flags
             %g-type-fundamental-types))
 

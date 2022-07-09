@@ -306,27 +306,32 @@
           (%gi-import-function m-info #:force? force?))))))
 
 (define (gi-iface-init-func-closure info)
-  (let* ((g-name (g-registered-type-info-get-type-name info))
+  (let* ((module (resolve-module '(g-golf hl-api gobject)))
+         (g-name (g-registered-type-info-get-type-name info))
          (name (g-name->name g-name))
          (iface-struct (g-interface-info-get-iface-struct info))
-         (field-desc (gi-struct-field-desc iface-struct))
-         (module (resolve-module '(g-golf hl-api gobject))))
-    (match field-desc
-      ((g-iface . vfunc-field-desc)
-       (let loop ((vfuncs vfunc-field-desc)
-                  (vfunc-closure-desc '()))
-         (match vfuncs
-           (()
-            (let ((iface-init-func-name (symbol-append name '-init-func))
-                  (iface-init-func
-                   (gi-iface-init-func-closure-1 vfunc-closure-desc)))
-              (gi-iface-init-func-cache-set! iface-init-func-name
-                                             iface-init-func)
-              iface-init-func))
-           ((vfunc . rest)
-            (loop rest
-                  (cons (gi-iface-vfunc-closure name vfunc module)
-                        vfunc-closure-desc)))))))))
+         (field-desc (and iface-struct
+                          (gi-struct-field-desc iface-struct))))
+    (if field-desc
+        (match field-desc
+          ((g-iface . vfunc-field-desc)
+           (let loop ((vfuncs vfunc-field-desc)
+                      (vfunc-closure-desc '()))
+             (match vfuncs
+               (()
+                (let ((iface-init-func-name (symbol-append name '-init-func))
+                      (iface-init-func
+                       (gi-iface-init-func-closure-1 vfunc-closure-desc)))
+                  (gi-iface-init-func-cache-set! iface-init-func-name
+                                                 iface-init-func)
+                  iface-init-func))
+               ((vfunc . rest)
+                (loop rest
+                      (cons (gi-iface-vfunc-closure name vfunc module)
+                            vfunc-closure-desc)))))))
+        (begin
+          (warning "No iface-struct:" g-name)
+          %iface-init-func))))
 
   (define (gi-iface-init-func-closure-1 vfunc-closure-desc)
     (procedure->pointer void
@@ -355,8 +360,8 @@
        ;; need to make a callback), and the method itself, as this is what
        ;; users will specialize.
        (let* ((method-name (symbol-append iface-name '- name))
-              (method (module-ref module name))
               (f-inst (gi-cache-ref 'function method-name))
+              (method (and f-inst (module-ref module name)))
               ;; i initially thought all vfunc have a corresponding method,
               ;; but i was told on #introspection there are exceptions.
               (closure (if f-inst
