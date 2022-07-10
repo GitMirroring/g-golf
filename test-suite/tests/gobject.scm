@@ -97,18 +97,12 @@
 
 (define-method (test-g-type-add-interface-static (self <g-golf-test-gobject>))
   (gi-import-by-name "Gio" "File")
-  (match (g-type-query (!g-type <gobject>))
-    ((g-type type-name class-size instance-size)
-     (let ((r-type (g-type-register-static-simple g-type
-                                                  (class-name->g-name '<foo-bar>)
-                                                  136
-                                                  #f  ;; class-init-func
-                                                  24
-                                                  #f  ;; instance-init-func
-                                                  '())))
-       (assert (g-type-add-interface-static r-type
-                                            (!g-type <g-file>)
-                                            #f))))))
+  ;; we registered the FooBar type in the above test, but at compile time,
+  ;; <foo-bar> would not be defined, hence we (exceptionally) call
+  ;; g-type-from-name.
+  (assert (g-type-add-interface-static (g-type-from-name "FooBar")
+                                       (!g-type <g-file>)
+                                       #f)))
 
 
 ;;;
