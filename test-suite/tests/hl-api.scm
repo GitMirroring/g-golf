@@ -196,13 +196,11 @@
 
 
 (define-method (test-accessor-inheritance (self <g-golf-test-hl-api>))
-  (let* ((module (resolve-module '(tests hl-api)))
-         (c-name '<foo>)
+  (let* ((c-name '<foo>)
          (c-inst (make-class (list <clutter-grid-layout>)
                              '()
                              #:name c-name))
-         (dummy (module-define! module c-name c-inst))
-         (a-foo (make <foo>)))
+         (a-foo (make c-inst)))
     (assert-true (eq? (!orientation a-foo) 'horizontal))
     (assert (set! (!orientation a-foo) 'vertical))
     (assert-true (eq? (!orientation a-foo) 'vertical))))
