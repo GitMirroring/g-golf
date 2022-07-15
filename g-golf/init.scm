@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2020
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -31,10 +31,11 @@
 
   #:export (%libgirepository
 	    %libglib
-            ;; %libgdk
 	    %libgobject
             %libg-golf
-            %debug))
+
+            %debug
+            %iface-vfunc-warnings))
 
 
 (define %libgirepository (dynamic-link "libgirepository-1.0"))
@@ -45,3 +46,4 @@
 (define %libg-golf (dynamic-link "libg-golf"))
 
 (define %debug (make-parameter #f))
+(define %iface-vfunc-warnings (make-parameter #f))
