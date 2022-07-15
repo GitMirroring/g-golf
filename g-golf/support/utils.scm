@@ -51,6 +51,8 @@
 	    g-name->class-name
             g-name->short-name
 	    #;gi-class-name->method-name
+
+            class-name->name
             class-name->g-name
             syntax-name->method-name
 
@@ -250,6 +252,11 @@ The class-name->g-name procedure is based on class-name->gtype-name, used by
 Guile-GNOME.
 
 !#
+
+(define (class-name->name class-name)
+  (let ((class-string (symbol->string class-name)))
+    (string->symbol
+     (substring class-string 1 (1- (string-length class-string))))))
 
 (define (class-name->g-name class-name)
   (let loop ((cn-chars (string->list (symbol->string class-name)))

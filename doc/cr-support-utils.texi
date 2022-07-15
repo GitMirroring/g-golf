@@ -16,6 +16,7 @@
 @item @ref{g-name->name}
 @item @ref{g-name->class-name}
 @item @ref{g-name->short-name}
+@item @ref{class-name->name}
 @item @ref{class-name->g-name}
 @item @ref{syntax-name->method-name}
 @item @ref{gi-type-tag->ffi}
@@ -146,6 +147,21 @@ cases:
 
 (g-name->short-name "gtk_drag_begin" "GtkWidget")
 @result{} drag-begin
+@end lisp
+@end deffn
+
+
+@anchor{class-name->name}
+@deffn Procedure class-name->name class-name
+
+Returns a (symbol) name.
+
+Obtains and returns the (symbol) name for @var{class-name}, by dropping
+the surrounding @code{'<'} and @code{'>'} characters. For example:
+
+@lisp
+(class-name->name '<foo-bar>)
+@result{} 'foo-bar
 @end lisp
 @end deffn
 
