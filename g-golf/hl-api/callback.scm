@@ -152,23 +152,37 @@
                (ffi-arg ffi-args)
                (args '()))
       (if (= i n-arg)
-          (let* ((args (reverse args))
-                 (r-val (apply function args)))
-            (when (%debug)
-              (dimfi "       arguments:" args)
-              (dimfi "    return-value:" r-val))
-            (%scm->gi-argument return-type
-                               (!type-desc callback)
-                               return-value
-                               r-val
-                               callback
-                               args
-                               #:may-be-null-acc !may-return-null?
-                               #:is-method? (!is-method? callback)
-                               #:forced-type return-type))
+          (let ((args (reverse args)))
+            (case return-type
+              ((void)
+               (when (%debug)
+                 (dimfi "       arguments:" args)
+                 (dimfi "    return-value: void"))
+               (apply function args))
+              (else
+               (let ((r-val (apply function args)))
+                 (when (%debug)
+                   (dimfi "       arguments:" args)
+                   (dimfi "    return-value:" r-val))
+                 (%scm->gi-argument return-type
+                                    (!type-desc callback)
+                                    return-value
+                                    r-val
+                                    callback
+                                    args
+                                    #:may-be-null-acc !may-return-null?
+                                    #:is-method? (!is-method? callback)
+                                    #:forced-type return-type)))))
           (let* ((argument (list-ref arguments i))
                  (type-info (!type-info argument)))
-            (gi-type-info-extract-ffi-return-value type-info ffi-arg gi-argument)
+            (if type-info
+                (gi-type-info-extract-ffi-return-value type-info ffi-arg gi-argument)
+                ;; a 'manually built' instance argument, the first argument of
+                ;; a method.
+                (gi-type-tag-extract-ffi-return-value 'interface
+                                                      'object
+                                                      ffi-arg
+                                                      gi-argument))
             (loop (+ i 1)
                   (gi-pointer-inc ffi-arg)
                   (cons (%gi-argument->scm (!type-tag argument)
