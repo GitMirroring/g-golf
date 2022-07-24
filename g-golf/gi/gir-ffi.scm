@@ -30,12 +30,14 @@
   #:use-module (system foreign)
   #:use-module (g-golf init)
   #:use-module (g-golf support enum)
-  #:use-module (g-golf gi common-types)
   #:use-module (g-golf gi utils)
+  #:use-module (g-golf gi common-types)
+  #:use-module (g-golf gi base-info)
 
   #:export (gi-type-tag-get-ffi-type
             g-type-info-get-ffi-type
             gi-type-info-extract-ffi-return-value
+            gi-type-tag-extract-ffi-return-value
             g-callable-info-prepare-closure))
 
 
@@ -61,6 +63,15 @@
   (gi_type_info_extract_ffi_return_value type-info
                                          ffi-value
                                          gi-argument))
+
+(define (gi-type-tag-extract-ffi-return-value return-tag
+                                              interface-type
+                                              ffi-value
+                                              gi-argument)
+  (gi_type_tag_extract_ffi_return_value (enum->value %gi-type-tag return-tag)
+                                        (enum->value %gi-info-type interface-type)
+                                        ffi-value
+                                        gi-argument))
 
 (define (g-callable-info-prepare-closure info
                                          ffi-cif
@@ -95,6 +106,15 @@
                       (dynamic-func "gi_type_info_extract_ffi_return_value"
 				    %libgirepository)
                       (list '*		;; *type-info
+                            '*		;; *ffi-value
+                            '*)))	;; *gi-argument
+
+(define gi_type_tag_extract_ffi_return_value
+    (pointer->procedure void
+                      (dynamic-func "gi_type_tag_extract_ffi_return_value"
+				    %libgirepository)
+                      (list int		;; return-tag
+                            int		;; interface-type
                             '*		;; *ffi-value
                             '*)))	;; *gi-argument
 

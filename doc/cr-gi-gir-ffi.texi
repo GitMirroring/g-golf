@@ -21,6 +21,7 @@ girffi — TODO.
 @item @ref{gi-type-tag-get-ffi-type}
 @item @ref{g-type-info-get-ffi-type}
 @item @ref{gi-type-info-extract-ffi-return-value}
+@item @ref{gi-type-tag-extract-ffi-return-value}
 @item @ref{g-callable-info-prepare-closure}
 @end table
 @end indentedblock
@@ -87,10 +88,29 @@ Returns nothing.
 
 Extract the correct bits from @var{ffi-value} into @var{gi-argument}.
 
-The @var{type-info} argument is the GITypeInfo of @var{ffi-value}. The
-@var{ffi-value} argument is a pointer to a GIFFIReturnValue union
+The @var{type-info} is the @code{GITypeInfo} of @var{ffi-value}. The
+@var{ffi-value} is a pointer to a @code{GIFFIReturnValue} union
 containing the value from the @code{ffi_call()}. The @var{gi-argument}
-argument is a pointer to an allocated GIArgument.
+is a pointer to an allocated @code{GIArgument}.
+@end deffn
+
+
+@anchor{gi-type-tag-extract-ffi-return-value}
+@deffn Procedure gi-type-tag-extract-ffi-return-value return-tag @
+       interface-type ffi-value gi-argument
+
+Returns nothing.
+
+Extract the correct bits from @var{ffi-value} into @var{gi-argument}.
+
+The @var{return-tag} is the @ref{%gi-type-tag} of @var{ffi-value}. The
+@var{interface-type} is the @ref{%gi-info-type} of the underlying
+interface. The @var{ffi-value} is a pointer to a @code{GIFFIReturnValue}
+union containing the value from the @code{ffi_call()}. The
+@var{gi-argument} is a pointer to an allocated @code{GIArgument}.
+
+The @var{interface-type} argument only applies if @var{return-tag} is
+@code{'interface}, otherwise it is ignored.
 @end deffn
 
 
