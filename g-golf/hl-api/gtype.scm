@@ -75,12 +75,11 @@
 ;; The metaclass of all GType classes.
 
 (define-class <gtype-class> (<class>)
-  (info #:accessor !info
-        #:init-keyword #:info)
+  (info #:accessor !info #:init-keyword #:info)
   (derived #:accessor !derived
            #:init-keyword #:derived #:init-value #f)
-  (namespace #:accessor !namespace)
-  (g-type #:accessor !g-type)
+  (namespace #:accessor !namespace #:init-value #f)
+  (g-type #:accessor !g-type #:init-keyword #:g-type)
   (g-name #:accessor !g-name)
   (g-class #:accessor !g-class))
 
@@ -88,17 +87,28 @@
   (let ((info (or (get-keyword #:info initargs #f)
                   (error "Missing #:info initarg: " initargs))))
     (next-method)
-    (unless (boolean? info) ;; it is #t for gtype instances
-      (let* ((namespace (g-base-info-get-namespace info))
-             (g-type (g-registered-type-info-get-g-type info))
-             (g-f-type (g-type-fundamental g-type))
-             (g-name (g-registered-type-info-get-type-name info))
-             (g-class (g-type-class info #:g-type g-type)))
-        (mslot-set! self
-                    'namespace namespace
-                    'g-type g-type
-                    'g-name g-name
-                    'g-class g-class)))))
+    (match info
+      (#t 'done)		;; it is #t for gtype instances
+      ((? pointer?)		;; a GI class definition
+       (let* ((namespace (g-base-info-get-namespace info))
+              (g-type (g-registered-type-info-get-g-type info))
+              (g-f-type (g-type-fundamental g-type))
+              (g-name (g-registered-type-info-get-type-name info))
+              (g-class (g-type-class info #:g-type g-type)))
+         (mslot-set! self
+                     'namespace namespace
+                     'g-type g-type
+                     'g-name g-name
+                     'g-class g-class)))
+      ((? number?)		;; either a runtime or a derived class
+       (let* ((g-type info)
+              (g-name (g-type-name g-type))
+              (g-class (g-type-class #f #:g-type g-type)))
+         (mslot-set! self
+                     'info #f
+                     'g-type g-type
+                     'g-name g-name
+                     'g-class g-class))))))
 
 (define* (g-type-class info #:key (g-type #f))
   (let* ((g-type (or g-type
