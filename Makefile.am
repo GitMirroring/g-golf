@@ -95,6 +95,7 @@ SOURCES = \
 	g-golf/override.scm			\
 	g-golf/hl-api/n-decl.scm		\
 	g-golf/hl-api/gtype.scm			\
+	g-golf/hl-api/iface.scm			\
 	g-golf/hl-api/gobject.scm		\
 	g-golf/hl-api/events.scm		\
 	g-golf/hl-api/argument.scm		\
