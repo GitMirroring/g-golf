@@ -56,6 +56,7 @@
   #:export (<gobject>
             gobject-class?
             <ginterface>
+            ginterface-class?
 
             g-object-find-class
             g-object-make-class
@@ -392,6 +393,11 @@
 (define-class <ginterface> (<gtype-instance>)
   #:info #t
   #:metaclass <gobject-class>)
+
+(define (ginterface-class? class)
+  (and (memq <ginterface>
+             (class-precedence-list class))
+       #t))
 
 
 ;;;
