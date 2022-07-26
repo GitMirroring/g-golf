@@ -244,19 +244,53 @@
      (next-method))))
 
 (define-method (initialize (class <gobject-class>) initargs)
-  (let ((info (get-keyword #:info initargs #f)))
+  (let ((info (get-keyword #:info initargs #f))
+        (g-type (get-keyword #:g-type initargs #f)))
     (next-method
      class
-     (if info
-         (cons* #:info info initargs)
-         (cons* #:derived #t
-                #:info (!info (find gobject-class?
-                                    (apply append
-                                           (map class-precedence-list
-                                             (get-keyword #:dsupers initargs '())))))
-                initargs))))
-  #;(install-properties!)
-  #;(install-signals! class))
+     (cond (info initargs)
+           (g-type (cons* #:info g-type initargs))
+           (else
+            (cons* #:derived #t
+                   #:info (g-golf-type-register class initargs)
+                   initargs))))))
+
+(define (g-golf-type-register class initargs)
+  (let* ((name (get-keyword #:name initargs #f))
+         (g-name (class-name->g-name name))
+         (dsupers (get-keyword #:dsupers initargs '()))
+         (p-type (!g-type (find gobject-class?
+                                (apply append
+                                       (map class-precedence-list dsupers))))))
+    (match (g-type-query p-type)
+      ((p-type p-name class-size instance-size)
+       (let ((g-type (g-type-register-static-simple p-type
+                                                    g-name
+                                                    class-size
+                                                    #f ;; class-init-func
+                                                    instance-size
+                                                    #f ;; instance-init-func
+                                                    '())))
+         (for-each (lambda (iface-class)
+                     (g-golf-type-add-interface g-type iface-class))
+             (filter-map (lambda (class)
+                           (and (ginterface-class? class) class))
+                 dsupers))
+         g-type)))))
+
+(define (g-golf-type-add-interface g-type iface-class)
+  (let* ((iface-info-struct-name
+          (symbol-append (class-name->name (class-name iface-class))
+                         '-info-struct))
+         (iface-info-struct
+          (or (gi-iface-info-struct-cache-ref iface-info-struct-name)
+              (gi-iface-info-struct-cache-set! iface-info-struct-name
+                                                (g-iface-info-struct-new
+                                                 (gi-iface-init-func-closure
+                                                  (!info iface-class)))))))
+    (g-type-add-interface-static g-type
+                                 (!g-type iface-class)
+                                 iface-info-struct)))
 
 (define (g-inst-get-property inst g-name g-type)
   (let* ((g-value (g-value-init g-type))
