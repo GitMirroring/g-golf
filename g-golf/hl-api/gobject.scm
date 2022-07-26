@@ -58,6 +58,7 @@
             <ginterface>
             ginterface-class?
 
+            g-object-find-class-by-g-type
             g-object-find-class
             g-object-make-class
             gi-add-method
@@ -399,7 +400,6 @@
              (class-precedence-list class))
        #t))
 
-
 ;;;
 ;;; Utils
 ;;;
@@ -420,34 +420,48 @@
 ;; (b) a subsequent call to webkit-web-view-get-tls-info could very well
 ;; return another certificate subclass type.
 
-(define (g-object-find-class foreign)
-  (let* ((module (resolve-module '(g-golf hl-api gobject)))
-         (g-type (g-object-type foreign))
-         (g-name (g-object-type-name foreign))
-         (name (g-name->class-name g-name))
-         (class-var (module-variable module name))
-         (class (and class-var (module-ref module name))))
-    (if class
-        (values class name g-type)
-        (values (g-object-make-class g-type g-name name module)
-                name
-                g-type))))
+;; Another example of a runtime class is the GdkWaylandClipboard, which
+;; subclass GdkClipboard.
 
-(define (g-object-make-class g-type g-name c-name module)
-  (let* ((parent (g-type-parent g-type))
-         (g-p-name (g-type-name parent))
-         (p-name (g-name->class-name g-p-name))
+(define (g-object-find-class-by-g-type g-type)
+  (let loop ((classes (class-subclasses <gobject>)))
+    (match classes
+      (() #f)
+      ((head . tail)
+       (if (= (!g-type head) g-type)
+           head
+           (loop tail))))))
+
+(define (g-object-find-class foreign)
+  (let* ((g-type (g-object-type foreign))
+         (class (g-object-find-class-by-g-type g-type)))
+    (if class
+        (values class (class-name class) g-type)
+        (g-object-make-class foreign g-type))))
+
+(define* (g-object-make-class foreign #:optional g-type)
+  (let* ((module (resolve-module '(g-golf hl-api gobject)))
+         (g-type (or g-type (g-object-type foreign)))
+         (g-name (g-object-type-name foreign))
+         (c-name (g-name->class-name g-name))
+         (parent (g-type-parent g-type))
+         (p-g-name (g-type-name parent))
+         (p-name (g-name->class-name p-g-name))
          (p-class-var (module-variable module p-name))
          (p-class (and p-class-var (module-ref module p-name))))
+    (when %debug
+      (dimfi 'g-object-make-class)
+      (dimfi "  " g-type g-name c-name 'p-name p-name))
     (if p-class
         (let ((public-i (module-public-interface module))
               (c-inst (make-class `(,p-class)
                                   '()
-                                  #:name c-name)))
+                                  #:name c-name
+                                  #:g-type g-type)))
           (module-define! module c-name c-inst)
           (module-add! public-i c-name
                        (module-variable module c-name))
-          c-inst)
+          (values c-inst c-name g-type))
         (error "Undefined (parent) class: " p-name))))
 
 (define (gi-add-method generic specializers procedure)
