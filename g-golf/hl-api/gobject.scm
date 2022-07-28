@@ -44,6 +44,7 @@
   #:use-module (g-golf gobject)
   #:use-module (g-golf gi)
   #:use-module (g-golf hl-api gtype)
+  #:use-module (g-golf hl-api iface)
 
   #:replace (connect)
 
