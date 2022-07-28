@@ -31,6 +31,7 @@
   #:use-module (system foreign)
   #:use-module (g-golf support enum)
   #:use-module (g-golf init)
+  #:use-module (g-golf gi version)
   #:use-module (g-golf gi utils)
   #:use-module (g-golf gi base-info)
   #:use-module (g-golf gi arg-info)
@@ -113,15 +114,31 @@
 (define (g-callable-info-may-return-null info)
   (gi->scm (g_callable_info_may_return_null info) 'boolean))
 
-(define (g-callable-info-create-closure info
-                                        ffi-cif
-                                        ffi-closure-callback
-                                        user-data)
-  (gi->scm (g_callable_info_create_closure info
-                                           ffi-cif
-                                           ffi-closure-callback
-                                           user-data)
-           'pointer))
+
+;;;
+;;; Up-on Condition Bindings
+;;;
+
+(define g-callable-info-create-closure
+  (if (gi-check-version 1 71 0)
+      (lambda (info ffi-cif ffi-closure-callback user-data)
+        (gi->scm (g_callable_info_create_closure info
+                                                 ffi-cif
+                                                 ffi-closure-callback
+                                                 user-data)
+                 'pointer))
+      #f))
+
+(define g_callable_info_create_closure
+  (if (gi-check-version 1 71 0)
+      (pointer->procedure '* ;; *ffi-closure
+                          (dynamic-func "g_callable_info_create_closure"
+				        %libgirepository)
+                          (list '*	;; *callback-info
+                                '*	;; *ffi-cif
+                                '*	;; *ffi-closure-callback
+                                '*))	;; user-data
+      #f))
 
 
 ;;;
@@ -169,12 +186,3 @@
                       (dynamic-func "g_callable_info_may_return_null"
 				    %libgirepository)
                       (list '*)))
-
-(define g_callable_info_create_closure
-  (pointer->procedure '*		;; *ffi-closure
-                      (dynamic-func "g_callable_info_create_closure"
-				    %libgirepository)
-                      (list '*		;; *callback-info
-                            '*		;; *ffi-cif
-                            '*		;; *ffi-closure-callback
-                            '*)))	;; user-data
