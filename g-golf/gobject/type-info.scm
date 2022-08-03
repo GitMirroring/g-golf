@@ -54,6 +54,7 @@
             g-type-class-ref
             g-type-class-peek
             g-type-class-unref
+            g-type-interface-peek
             g-type-query
             g-type-register-static-simple
             g-iface-info-struct-new
@@ -121,6 +122,10 @@
 
 (define (g-type-class-unref g-class)
   (g_type_class_unref g-class))
+
+(define (g-type-interface-peek g-class iface-type)
+  (gi->scm (g_type_interface_peek g-class iface-type)
+           'pointer))
 
 (define %g-type-query-struct
   (list unsigned-long	;; g-type
@@ -261,6 +266,13 @@
                       (dynamic-func "g_type_class_unref"
 				    %libgobject)
                       (list '*)))
+
+(define g_type_interface_peek
+  (pointer->procedure '*
+                      (dynamic-func "g_type_interface_peek"
+				    %libgobject)
+                      (list '*			;; g-class
+                            unsigned-long)))	;; iface-type
 
 (define g_type_query
   (pointer->procedure void

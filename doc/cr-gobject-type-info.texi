@@ -24,6 +24,7 @@ Type Information — The GLib Runtime type identification and management system
 @item @ref{g-type-class-ref}
 @item @ref{g-type-class-peek}
 @item @ref{g-type-class-unref}
+@item @ref{g-type-interface-peek}
 @item @ref{g-type-query}
 @item @ref{g-type-register-static-simple}
 @item @ref{g-type-add-interface-static}
@@ -167,6 +168,17 @@ Decrements the reference count for @var{g-class} (a pointer to a
 @code{GTypeClass} structure). Once the last reference count of a class
 has been released, it may be finalized by the type system. Attempting to
 further dereference a finalized class is invalid.
+@end deffn
+
+
+@anchor{g-type-interface-peek}
+@deffn Procedure g-type-interface-peek g-class iface-type
+
+Returns a pointer of @code{#f}.
+
+Obtains and returns the (a pointer to) @code{GTypeInterface} structure
+for @var{iface-type} if implemented by @var{g-class}, Otherwise. it
+returs @code{#f}.
 @end deffn
 
 
