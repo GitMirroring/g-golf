@@ -179,7 +179,8 @@
                                    (or instance-init-func %instance-init-func)
                                    (flags->integer type-flags flags))))
 
-(define %g-interface-info-struct
+(define %iface-info-struct
+  ;; https://docs.gtk.org/gobject/struct.InterfaceInfo.html
   (list '*		;; iface-init-func
         '*		;; iface-finalize-func
         '*))		;; iface-data
@@ -200,7 +201,7 @@
                                   (iface-init-func %iface-init-func)
                                   (iface-finalize-func %iface-finalize-func)
                                   (iface-data %null-pointer))
-  (make-c-struct %g-interface-info-struct
+  (make-c-struct %iface-info-struct
                  (list iface-init-func
                        iface-finalize-func
                        iface-data)))
