@@ -184,20 +184,21 @@
        (error "Not a GObject nor an Ginterface class:" class)))))
 
 (define (gobject-ginterface-direct-properties class)
-  (if (or (boolean? (!info class))
-          (!derived class))
-      '()
-      (receive (get-n-properties get-property)
-          (n-prop-prop-accessors class)
-        (let* ((info (!info class))
-               (n-prop (get-n-properties info)))
-          (let loop ((i 0)
-                     (result '()))
-            (if (= i n-prop)
-                (reverse! result)
-                (loop (+ i 1)
-                      (cons (get-property info i)
-                            result))))))))
+  (match (!info class)
+    ((or (? boolean?)
+         (? number?)) '())
+    ((? pointer?)
+     (receive (get-n-properties get-property)
+         (n-prop-prop-accessors class)
+       (let* ((info (!info class))
+              (n-prop (get-n-properties info)))
+         (let loop ((i 0)
+                    (result '()))
+           (if (= i n-prop)
+               (reverse! result)
+               (loop (+ i 1)
+                     (cons (get-property info i)
+                           result)))))))))
 
 (define-method (compute-slots (class <gobject-class>))
   (let* ((slots (next-method))
@@ -280,18 +281,9 @@
          g-type)))))
 
 (define (g-golf-type-add-interface g-type iface-class)
-  (let* ((iface-info-struct-name
-          (symbol-append (class-name->name (class-name iface-class))
-                         '-info-struct))
-         (iface-info-struct
-          (or (gi-iface-info-struct-cache-ref iface-info-struct-name)
-              (gi-iface-info-struct-cache-set! iface-info-struct-name
-                                                (g-iface-info-struct-new
-                                                 (gi-iface-init-func-closure
-                                                  (!info iface-class)))))))
-    (g-type-add-interface-static g-type
-                                 (!g-type iface-class)
-                                 iface-info-struct)))
+  (g-type-add-interface-static g-type
+                               (!g-type iface-class)
+                               (gi-iface-info-struct iface-class)))
 
 (define (g-inst-get-property inst g-name g-type)
   (let* ((g-value (g-value-init g-type))
