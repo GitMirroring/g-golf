@@ -197,22 +197,23 @@
                         (values))
                       (list '* '*)))
 
-(define* (g-iface-info-struct-new #:optional
+(define* (g-iface-info-struct-new #:key
                                   (iface-init-func %iface-init-func)
                                   (iface-finalize-func %iface-finalize-func)
-                                  (iface-data %null-pointer))
+                                  (iface-data #f))
   (make-c-struct %iface-info-struct
                  (list iface-init-func
                        iface-finalize-func
-                       iface-data)))
+                       (scm->gi iface-data 'pointer))))
 
 (define (g-type-add-interface-static g-type iface-type iface-info)
   (g_type_add_interface_static g-type
                                iface-type
                                (or iface-info
-                                   (g-iface-info-struct-new %iface-init-func
-                                                            %iface-finalize-func
-                                                            %null-pointer))))
+                                   (g-iface-info-struct-new
+                                    #:iface-init-func %iface-init-func
+                                    #:iface-finalize-func %iface-finalize-func
+                                    #:iface-data #f))))
 
 (define (g-type-fundamental g-type)
   (g_type_fundamental g-type))
