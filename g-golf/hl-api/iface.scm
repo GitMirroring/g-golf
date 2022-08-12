@@ -112,9 +112,9 @@
                             (() 'done)
                             ((vfunc . rest)
                              (match vfunc
-                               ((vfunc-closure . iface-struct-offset)
+                               ((vfunc-closure . iface-vtable-struct-offset)
                                 (bv-ptr-set! (gi-pointer-inc g-iface
-                                                             iface-struct-offset)
+                                                             iface-vtable-struct-offset)
                                              vfunc-closure)))
                              (loop rest))))
                         (values))
@@ -124,7 +124,7 @@
   (let ((%g-golf-vfunc-closure
          (@ (g-golf hl-api callback) g-golf-vfunc-closure)))
     (match vfunc-field-desc
-      ((name type-tag iface-struct-offset flags)
+      ((name type-tag iface-vtable-struct-offset flags)
        ;; not all, but most vfunc have a corresponding method. when this
        ;; procedure is called, they have been imported already. we retrieve it
        ;; and use the <function> instance (which has all the callable info we
@@ -148,8 +148,8 @@
            (dimfi 'vfunc-closure 'for: method-name)
            (dimfi "  " method)
            (dimfi "  " f-inst 'n-arg: (slot-ref f-inst 'n-arg))
-           (dimfi "  " 'closure: closure 'offset: iface-struct-offset))
-         (cons closure iface-struct-offset))))))
+           (dimfi "  " 'closure: closure 'offset: iface-vtable-struct-offset))
+         (cons closure iface-vtable-struct-offset))))))
 
 
 ;;;
