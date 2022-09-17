@@ -51,6 +51,7 @@
 	    g-name->class-name
             g-name->short-name
 	    #;gi-class-name->method-name
+            name->g-name
 
             class-name->name
             class-name->g-name
@@ -198,13 +199,12 @@
 ;;; Name Transformation
 ;;;
 
-;; Initially based on Guile-GNOME (gobject gw utils), from which we keep
-;; one algorithm - see caps-expand-token-2 - the original idea and
-;; procedures have been enhanced to allow special treatment of any token
-;; that compose the name to be transformed. A typical example of such a
-;; need is from the WebKit2 namespace, where the "WebKit' studly caps
-;; expand (token) procedure is expected to return "webkit", not
-;; "web-kit".
+;; Initially based on Guile-GNOME (gnome gobject utils), from which we keep
+;; one algorithm - see caps-expand-token-2 - the original idea and procedures
+;; have been enhanced to allow special treatment of any token that compose the
+;; name to be transformed. A typical example of such a need is from the
+;; WebKit2 namespace, where the "WebKit' studly caps expand (token) procedure
+;; is expected to return "webkit", not "web-kit".
 
 (define* (g-name->name g-name #:optional (as-string? #f))
   (let ((name (or (g-name-transform-exception? g-name)
@@ -245,6 +245,17 @@
     (string->symbol
      (string-append (substring class-string 1 (1- (string-length class-string)))
                     ":" (symbol->string name)))))
+
+(define* (name->g-name name #:optional (as-string? #f))
+  ;; We only change - to _, other characters are not valid in a g-name.
+  (let* ((str-name (or (and (string? name) name)
+                       (symbol->string name)))
+         (g-name (string-map (lambda (c)
+                               (if (char=? c #\-) #\_ c))
+                     str-name)))
+    (if as-string?
+        g-name
+        (string->symbol g-name))))
 
 #!
 

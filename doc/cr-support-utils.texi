@@ -18,6 +18,7 @@
 @item @ref{g-name->short-name}
 @item @ref{class-name->name}
 @item @ref{class-name->g-name}
+@item @ref{name->g-name}
 @item @ref{syntax-name->method-name}
 @item @ref{gi-type-tag->ffi}
 @item @ref{gi-type-tag->init-val}
@@ -178,6 +179,21 @@ Obtains and returns the StudlyCaps string reprentation for
 (class-name->g-name '<foo-bar>)
 @result{} "FooBar"
 @end lisp
+@end deffn
+
+
+@anchor{name->g-name}
+@deffn Procedure name->g-name name [as-string? #f]
+
+Return a symbol, or a string if @var{as-string} is #t.
+
+Unless @var{name} is a string, it first calls @code{(symbol->string
+name)}, then changes all occurrences of @code{-} (hyphen) to @code{_}
+(underscore) (other characters are not valid in a g-name).
+
+If the optional @var{as-string} argument is #t, it returns
+that string, otherwise, it calls and returns the result of
+@code{string->symbol}.
 @end deffn
 
 
