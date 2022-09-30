@@ -68,12 +68,13 @@
   (let ((iface-info-struct-name
          (symbol-append (class-name->name (class-name iface-class))
                         '-info-struct))
-        (iface-init-func-closure
+        #;(iface-init-func-closure
          (gi-iface-init-func-closure (slot-ref iface-class 'info))))
   (or (gi-iface-info-struct-cache-ref iface-info-struct-name)
       (gi-iface-info-struct-cache-set!
        iface-info-struct-name
-       (g-iface-info-struct-new #:iface-init-func iface-init-func-closure)))))
+       (g-iface-info-struct-new)
+       #;(g-iface-info-struct-new #:iface-init-func iface-init-func-closure)))))
 
 (define (gi-iface-init-func-closure info)
   (let* ((module (resolve-module '(g-golf hl-api gobject)))
