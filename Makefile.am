@@ -103,6 +103,7 @@ SOURCES = \
 	g-golf/hl-api/callable.scm		\
 	g-golf/hl-api/callback.scm		\
 	g-golf/hl-api/function.scm		\
+	g-golf/hl-api/vfunc.scm			\
 	g-golf/hl-api/object.scm		\
 	g-golf/hl-api/closure.scm		\
 	g-golf/hl-api/signal.scm		\
