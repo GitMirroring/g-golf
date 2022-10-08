@@ -69,13 +69,13 @@
 ;;;
 
 (define g_field_info_get_flags
-  (pointer->procedure int
+  (pointer->procedure unsigned-int
                       (dynamic-func "g_field_info_get_flags"
 				    %libgirepository)
                       (list '*)))
 
 (define g_field_info_get_offset
-  (pointer->procedure unsigned-int
+  (pointer->procedure int
                       (dynamic-func "g_field_info_get_offset"
 				    %libgirepository)
                       (list '*)))
