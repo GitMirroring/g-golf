@@ -96,7 +96,10 @@
 (define g-name-transform-exception-remove #f)
 (define g-name-transform-exception-reset #f)
 
-(let ((%g-name-transform-exception '(("GObject" . "gobject"))))
+(let ((%g-name-transform-exception
+       '(("GObject" . "gobject")
+         ("GIVFuncInfo" . "gi-vfunc-info")
+         ("GIVFuncInfoFlags" . "gi-vfunc-info-flags"))))
 
   (set! g-name-transform-exception
         (lambda ()
