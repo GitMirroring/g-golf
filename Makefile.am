@@ -72,8 +72,9 @@ SOURCES = \
 	g-golf/gi/common-types.scm		\
 	g-golf/gi/base-info.scm			\
 	g-golf/gi/callable-info.scm		\
-	g-golf/gi/signal-info.scm		\
 	g-golf/gi/function-info.scm		\
+	g-golf/gi/signal-info.scm		\
+	g-golf/gi/vfunc-info.scm		\
 	g-golf/gi/registered-type-info.scm	\
 	g-golf/gi/enum-info.scm			\
 	g-golf/gi/struct-info.scm		\
