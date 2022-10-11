@@ -87,13 +87,13 @@
                          (type-info (g-field-info-get-type field-info))
                          (type-tag (g-type-info-get-tag type-info))
                          (offset (g-field-info-get-offset field-info))
-                         (f-flags (g-field-info-get-flags field-info)))
+                         (flags (g-field-info-get-flags field-info)))
 		    (g-base-info-unref field-info)
                     (g-base-info-unref type-info)
 		    (struct-field-desc info
 				       n
 				       (+ i 1)
-				       (cons (list name type-tag offset f-flags)
+				       (cons (cons name (list type-tag offset flags))
                                              desc)))))))
     (struct-field-desc info
 		       (g-struct-info-get-n-fields info)
