@@ -62,6 +62,7 @@
           !g-type
           !g-name
           !g-class
+          !g-struct-fields
 
           !g-inst
           unref
@@ -81,7 +82,9 @@
   (namespace #:accessor !namespace #:init-value #f)
   (g-type #:accessor !g-type #:init-keyword #:g-type)
   (g-name #:accessor !g-name)
-  (g-class #:accessor !g-class))
+  (g-class #:accessor !g-class)
+  (g-struct-fields #:accessor !g-struct-fields
+                   #:init-keyword #:g-struct-fields #:init-value #f))
 
 (define-method (initialize (self <gtype-class>) initargs)
   (let ((info (or (get-keyword #:info initargs #f)
