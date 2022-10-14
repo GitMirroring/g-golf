@@ -319,9 +319,7 @@
             ((callback)
              (gi-argument-set! gi-argument 'v-pointer
                                (if value
-                                   (%g-golf-callback-closure (!name clb/arg)
-                                                             gi-type
-                                                             value)
+                                   (%g-golf-callback-closure gi-type value)
                                    (if (or may-be-null?
                                            (allow-none-exception? name))
                                        #f

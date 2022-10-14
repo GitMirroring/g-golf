@@ -79,7 +79,7 @@
           !ffi-cif		;; callback
 
           !callback		;; callback-closure
-          !function)
+          !procedure)
 
 
 ;;;
@@ -126,6 +126,11 @@
 ;;; Callback Closure
 ;;;
 
+;; To one <callback> instance may correspond more then one <callback-closure>
+;; (instance) incantation, each having its own procedure. For this reason, a
+;; <callback-closure> instance holds a pointer to the <callback> instance that
+;; it (possibly) shares with other instance(s).
+
 (define-class <callback-closure> ()
   (callback #:accessor !callback #:init-keyword #:callback)
-  (function #:accessor !function #:init-keyword #:function))
+  (procedure #:accessor !procedure #:init-keyword #:procedure))
