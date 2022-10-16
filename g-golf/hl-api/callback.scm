@@ -52,8 +52,8 @@
   #:export (gi-import-callback
 
             g-callable-info-make-closure
-            g-golf-callback-closure
             %g-golf-callback-closure-marshal
+            g-golf-callback-closure
 
             ;; <callback> inst cache
             gi-callback-inst-cache-ref
@@ -211,10 +211,11 @@
          (callback-closure (make <callback-closure>
                              #:callback callback
                              #:procedure proc)))
-    (g-callable-info-make-closure info
-                                  (!ffi-cif callback)
-                                  %g-golf-callback-closure-marshal
-                                  (scm->pointer callback-closure))))
+    (values (g-callable-info-make-closure info
+                                          (!ffi-cif callback)
+                                          %g-golf-callback-closure-marshal
+                                          (scm->pointer callback-closure))
+            callback-closure)))
 
 
 ;;;
