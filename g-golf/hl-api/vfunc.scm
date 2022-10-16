@@ -38,6 +38,7 @@
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api gobject)
   #:use-module (g-golf hl-api argument)
+  #:use-module (g-golf hl-api ccc)
   #:use-module (g-golf hl-api callable)
   #:use-module (g-golf hl-api callback)
   #:use-module (g-golf hl-api function)
@@ -53,19 +54,23 @@
             vfunc))
 
 
-(g-export !vf-class
-          !vf-name
-          !vf-info
-          !vf-long-name-prefix
-          !vf-long-name?)
+(g-export !specializer
+          !name
+          !g-name
+          !long-name-prefix
+          !gf-long-name?
+          !info
+          !callback)
 
 
 (define-class <vfunc> (<method>)
-  (vf-class #:accessor !vf-class)
-  (vf-name #:accessor !vf-name)
-  (vf-info #:accessor !vf-info)
-  (vf-long-name-prefix #:accessor !vf-long-name-prefix)
-  (vf-long-name? #:accessor !vf-long-name?))
+  (specializer #:accessor !specializer)
+  (name #:accessor !name)
+  (g-name #:accessor !g-name)
+  (long-name-prefix #:accessor !long-name-prefix)
+  (gf-long-name? #:accessor !gf-long-name?)
+  (info #:accessor !info)
+  (callback #:accessor !callback))
 
 (define-method (describe (self <vfunc>))
   (next-method)
@@ -77,69 +82,132 @@
 			(if (slot-bound? self name) 
 			    (format #f "~S" (slot-ref self name))
 			    "#<unbound>"))))
-	    (class-direct-slots (class-of self)))
+      (class-direct-slots (class-of self)))
   *unspecified*)
 
 (define-syntax define-vfunc
   (syntax-rules ()
-    ((_ (name . args) body ...)
-     (let ((vf-inst (vfunc args body ...)))
-       (receive (vf-class vf-name vf-info vf-long-name-prefix vf-long-name?)
-           (vfunc-checks 'name vf-inst)
-         (let ((vfunc-gf (gi-add-method-gf 'name)))
-           (add-method! vfunc-gf vf-inst)
-           (mslot-set! vf-inst
-                       'vf-class vf-class
-                       'vf-name vf-name
-                       'vf-info vf-info
-                       'vf-long-name-prefix vf-long-name-prefix
-                       'vf-long-name? vf-long-name?)))))))
+    ((_ (gf-name . args) body ...)
+     (let ((inst (vfunc args body ...)))
+       (receive (specializer g-name g-long-name-prefix gf-long-name? info)
+           (vfunc-checks 'gf-name inst)
+         (mslot-set! inst
+                     'specializer specializer
+                     'name (g-name->name g-name)
+                     'g-name (string->symbol g-name)
+                     'long-name-prefix (g-name->name g-long-name-prefix)
+                     'gf-long-name? gf-long-name?
+                     'info info)
+         (add-method! (gi-add-method-gf 'gf-name) inst)
+         (add-vfunc-closure inst))))))
+
+(define (add-vfunc-closure inst)
+  (receive (closure callback-closure)
+      (g-golf-vfunc-closure inst)
+    (let* ((g-class (vfunc-find-g-class inst))
+           (iface-type (!g-type (!specializer inst)))
+           (iface-struct (g-type-interface-peek g-class iface-type)))
+      (slot-set! inst
+                 'callback (!callback callback-closure))
+      (match (vfunc-struct-field inst)
+        ((type-tag offset flags)
+         (bv-ptr-set! (gi-pointer-inc iface-struct offset)
+                      closure))))))
+
+(define (vfunc-find-g-class inst)
+  ;; There can only be one GObject class - as GObject is a single inheritance
+  ;; oop system - in the list of the <vfunc> inst specializers. That's the one
+  ;; we need the g-class slot value of.
+  (!g-class (let loop ((specializers (slot-ref inst 'specializers)))
+              (match specializers
+                (()
+                 (scm-error 'impossible #f "No GObject specializer for: ~S"
+                            (list (!name inst)) #f))
+                ((specializer . rests)
+                 (or (and (gobject-class? specializer)
+                          specializer)
+                     (loop rests)))))))
+
+(define (vfunc-struct-field inst)
+  (assq-ref (!g-struct-fields (!specializer inst))
+            (!name inst)))
+
+(define (g-golf-vfunc-closure inst)
+  (let* ((name (symbol-append (!long-name-prefix inst)
+                              '-
+                              (!name inst)))
+         (info (!info inst))
+         (proc (slot-ref inst 'procedure))
+         (callback (gi-import-vfunc name info))
+         (callback-closure (make <callback-closure>
+                             #:callback callback
+                             #:procedure proc)))
+    (values (g-callable-info-make-closure info
+                                          (!ffi-cif callback)
+                                          %g-golf-callback-closure-marshal
+                                          (scm->pointer callback-closure))
+            callback-closure)))
+
+;; We need to cache Vfunc callbacks against their VFunc long name, which we
+;; could build using the info. However, as a VFunc is only imported 'on
+;; demand', when gi-import-vfunc is called the <vfunc> instance has already
+;; been made, and it has the long name we need to either cache-ref or
+;; cache-set!.
+
+(define (gi-import-vfunc name info)
+  (let ((namespace (g-base-info-get-namespace info)))
+    (when (%debug)
+      (dimfi 'import-vfunc namespace name))
+    (or (gi-callback-inst-cache-ref name)
+        (let ((callback (make <callback> #:info info)))
+          ;; Do not (g-base-info-)unref the callback info - it is
+          ;; required when invoked.
+          (gi-callback-inst-cache-set! name callback)
+          callback))))
 
 (define %mandatory-long-name-error-msg
   "More then one specializer defines a VFunc (method) for NAME: ~S. In these
 situations a VFunc (method) long name is mandatory and ~S is invalid.")
 
-(define (vfunc-checks name vf-inst)
-  (let ((str-name (symbol->string name)))
+(define (vfunc-checks gf-name inst)
+  (let ((str-name (symbol->string gf-name)))
     (case (string-suffix-length str-name "-vfunc")
       ((6)
        (let* ((name (string-drop-right str-name 6))
               (g-name (name->g-name name 'as-string))
-              (results (specializers-vfunc-lookup vf-inst g-name)))
+              (results (specializers-vfunc-lookup inst g-name)))
          (match results
            (()
             (scm-error 'wrong-type-arg #f "No such VFunc : ~S"
                        (list name) #f))
-           ;; Below, vf-name / vf-long-name-prefix are both a g-name that is,
-           ;; i.e. get_flags / gdk_paintable [as opposed to get-flags /
-           ;; gdk-paintable ...].
-           (((vf-class vf-name vf-info vf-long-name-prefix vf-long-name?))
-            (values vf-class
-                    (string->symbol vf-name)
-                    vf-info
-                    (string->symbol vf-long-name-prefix)
-                    vf-long-name?))
-           (((vf-class vf-name vf-info vf-long-name-prefix vf-long-name?) . rest)
+           (((specializer g-name g-long-name-prefix gf-long-name? info))
+            (values specializer
+                    g-name
+                    g-long-name-prefix
+                    gf-long-name?
+                    info))
+           (((specializer g-name g-long-name-prefix gf-long-name? info) . rest)
             ;; Then there is more then one specializer that defines a VFunc
-            ;; for NAME. In this case, we filter the results to keep, if any,
-            ;; the only one result that would have its vf-long-name?
-            ;; #t. Otherwise, it means that NAME is a VFunc short name, which
-            ;; in this situation is invalid, or NAME is an invalid long name
-            ;; (as a typo in the long name prefix) an exception is raised.
+            ;; for G-NAME. In this case, we filter the results to keep, if
+            ;; any, the only one result that would have its gf-long-name?
+            ;; #t. Otherwise, it means that GF-NAME is a VFunc short name,
+            ;; which in this situation is invalid, or GF-NAME is an invalid
+            ;; long name (as a typo in the long name prefix) an exception is
+            ;; raised.
             (let ((the-result (vfunc-checks-filter results)))
               (match the-result
                 (#f
                  (scm-error 'wrong-type-arg #f %mandatory-long-name-error-msg
-                            (list results vf-name) #f))
-                ((vf-class vf-name vf-info vf-long-name-prefix vf-long-name?)
-                 (values vf-class
-                         (string->symbol vf-name)
-                         vf-info
-                         (string->symbol vf-long-name-prefix)
-                         vf-long-name?))))))))
+                            (list results gf-name) #f))
+                ((specializer g-name g-long-name-prefix gf-long-name? info)
+                 (values specializer
+                         g-name
+                         g-long-name-prefix
+                         gf-long-name?
+                         info))))))))
       (else
        (scm-error 'wrong-type-arg #f "Invalid vfunc name: ~S"
-                  (list name) #f)))))
+                  (list gf-name) #f)))))
 
 (define (vfunc-checks-filter results)
   (let loop ((results results))
@@ -147,13 +215,13 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
       (() #f)
       ((result . rest)
        (match result
-         ((vf-class vf-name vf-info vf-long-name-prefix vf-long-name?)
-          (if vf-long-name?
+         ((specializer g-name g-long-name-prefix gf-long-name? info)
+          (if gf-long-name?
               result
               (loop rest))))))))
 
-(define (specializers-vfunc-lookup vf-inst g-name)
-  (let loop ((specializers (slot-ref vf-inst 'specializers))
+(define (specializers-vfunc-lookup inst g-name)
+  (let loop ((specializers (slot-ref inst 'specializers))
              (results '()))
     (match specializers
       (() results)
@@ -168,14 +236,14 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
     (match supers
       (() (reverse results))
       ((super . rest)
-       (let* ((vf-long-name-prefix
+       (let* ((g-long-name-prefix
                (name->g-name (g-name->name (!g-name super) 'as-string) 'as-string))
-              (vf-long-name?
-               (and (string-contains g-name vf-long-name-prefix) #t))
-              (vf-name (if vf-long-name?
-                           (string-drop g-name
-                                        (+ (string-length vf-long-name-prefix) 1))
-                           g-name))
+              (gf-long-name?
+               (and (string-contains g-name g-long-name-prefix) #t))
+              (g-name (if gf-long-name?
+                          (string-drop g-name
+                                       (+ (string-length g-long-name-prefix) 1))
+                          g-name))
               (g-vfunc-lookup (cond ((gobject-class? super)
                                      g-object-vfunc-lookup)
                                     ((ginterface-class? super)
@@ -183,14 +251,14 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
                                     (else
                                      #f))))
          (if g-vfunc-lookup
-             (let ((vf-info (g-vfunc-lookup super vf-name)))
-               (if vf-info
+             (let ((info (g-vfunc-lookup super g-name)))
+               (if info
                    (loop rest
                          (cons (list super
-                                     vf-name
-                                     vf-info
-                                     vf-long-name-prefix
-                                     vf-long-name?)
+                                     g-name
+                                     g-long-name-prefix
+                                     gf-long-name?
+                                     info)
                                results))
                    (loop rest results)))
              (loop rest results)))))))
