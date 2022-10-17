@@ -44,11 +44,13 @@ context.
 @table @code
 @item @ref{define-vfunc}
 @item @ref{vfunc}
-@item @ref{!vf-class}
-@item @ref{!vf-name}
-@item @ref{!vf-info}
-@item @ref{!vf-long-name-prefix}
-@item @ref{!vf-long-name?}
+@item @ref{!specializer}
+@item @ref{!name_______}
+@item @ref{!g-name_______}
+@item @ref{!long-name-prefix}
+@item @ref{!gf-long-name?}
+@item @ref{!info__}
+@item @ref{!callback}
 @end table
 @end indentedblock
 
@@ -157,20 +159,26 @@ Direct slots are:
 
 @indentedblock
 @table @code
-@item @emph{vf-class}
-#:accessor !vf-class
+@item @emph{specializer}
+#:accessor !specializer
 
-@item @emph{vf-name}
-#:accessor !vf-name
+@item @emph{name}
+#:accessor !name
 
-@item @emph{vf-info}
-#:accessor !vf-info
+@item @emph{g-name}
+#:accessor !g-name
 
-@item @emph{vf-long-name-preifx}
-#:accessor !vf-long-name-preofx
+@item @emph{long-name-preifx}
+#:accessor !long-name-preofx
 
-@item @emph{vf-long-name?}
-#:accessor !vf-long-name?
+@item @emph{gf-long-name?}
+#:accessor !gf-long-name?
+
+@item @emph{info}
+#:accessor !info
+
+@item @emph{callback}
+#:accessor !callback
 @end table
 @end indentedblock
 
@@ -253,16 +261,20 @@ The @var{parameter} and @var{body} parameters should be as for
 @end deffn
 
 
-@anchor{!vf-class}
-@anchor{!vf-name}
-@anchor{!vf-info}
-@anchor{!vf-long-name-prefix}
-@anchor{!vf-long-name?}
-@deffn Accessor !vf-class inst
-@deffnx Accessor !vf-name inst
-@deffnx Accessor !vf-info inst
-@deffnx Accessor !vf-long-name-prefix inst
-@deffnx Accessor !vf-long-name? inst
+@anchor{!specializer}
+@anchor{!name_______}
+@anchor{!g-name_______}
+@anchor{!long-name-prefix}
+@anchor{!gf-long-name?}
+@anchor{!info__}
+@anchor{!callback}
+@deffn Accessor !specializer inst
+@deffnx Accessor !name inst
+@deffnx Accessor !g-name inst
+@deffnx Accessor !long-name-prefix inst
+@deffnx Accessor !gf-long-name? inst
+@deffnx Accessor !info inst
+@deffnx Accessor !callback inst
 
 Returns the content of their respective slot for @var{inst} (a <vfunc>
 instance).
