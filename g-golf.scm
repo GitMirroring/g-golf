@@ -101,9 +101,6 @@
   #:use-module (g-golf gi type-info)
   #:use-module (g-golf gi gir-ffi)
   #:use-module (g-golf gdk events)
-  #:use-module (g-golf override override)
-  #:use-module (g-golf override gdk)
-  #:use-module (g-golf override gtk)
   #:use-module (g-golf hl-api n-decl)
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api iface)
@@ -121,6 +118,9 @@
   #:use-module (g-golf hl-api glib)
   #:use-module (g-golf hl-api import)
   #:use-module (g-golf hl-api utils)
+  #:use-module (g-golf override override)
+  #:use-module (g-golf override gdk)
+  #:use-module (g-golf override gtk)
 
   #:duplicates (merge-generics
 		replace
@@ -201,9 +201,6 @@
 			      (g-golf gi type-info)
                               (g-golf gi gir-ffi)
                               (g-golf gdk events)
-                              (g-golf override override)
-                              (g-golf override gdk)
-                              (g-golf override gtk)
                               (g-golf hl-api n-decl)
                               (g-golf hl-api gtype)
                               (g-golf hl-api iface)
@@ -220,7 +217,10 @@
                               (g-golf hl-api signal)
                               (g-golf hl-api glib)
                               (g-golf hl-api import)
-                              (g-golf hl-api utils)))
+                              (g-golf hl-api utils)
+                              (g-golf override override)
+                              (g-golf override gdk)
+                              (g-golf override gtk)))
 
 
 ;;;

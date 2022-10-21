@@ -90,10 +90,6 @@ SOURCES = \
 	g-golf/gi.scm				\
 	g-golf/gdk/events.scm			\
 	g-golf/gdk.scm				\
-	g-golf/override/override.scm		\
-	g-golf/override/gdk.scm			\
-	g-golf/override/gtk.scm			\
-	g-golf/override.scm			\
 	g-golf/hl-api/n-decl.scm		\
 	g-golf/hl-api/gtype.scm			\
 	g-golf/hl-api/iface.scm			\
@@ -112,6 +108,10 @@ SOURCES = \
 	g-golf/hl-api/import.scm		\
 	g-golf/hl-api/utils.scm			\
 	g-golf/hl-api.scm			\
+	g-golf/override/override.scm		\
+	g-golf/override/gdk.scm			\
+	g-golf/override/gtk.scm			\
+	g-golf/override.scm			\
 	g-golf.scm
 
 # NOCOMP_SOURCES= \
