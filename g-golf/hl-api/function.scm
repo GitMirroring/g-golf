@@ -63,8 +63,7 @@
           !i-func
           !o-func
           !o-spec-pos
-          !flags
-          !ffi-cif)
+          !flags)
 
 
 ;;;
@@ -230,10 +229,7 @@
   (i-func #:accessor !i-func #:init-value #f)
   (o-func #:accessor !o-func #:init-value #f)
   (o-spec-pos #:accessor !o-spec-pos #:init-value #f)
-  (flags #:accessor !flags #:init-keyword #:flags)
-  ;; when used as a vfunc instance, see (g-golf hl-api callback)
-  ;; g-golf-vfunc-closure.
-  (ffi-cif #:accessor !ffi-cif #:init-value #f))
+  (flags #:accessor !flags #:init-keyword #:flags))
 
 (define-method (initialize (self <function>) initargs)
   (let ((info (or (get-keyword #:info initargs #f)
