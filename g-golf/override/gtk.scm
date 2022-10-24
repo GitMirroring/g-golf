@@ -34,7 +34,8 @@
             gtk-tree-store-set-value-ov
             gtk-tree-model-get-value-ov
             gtk-text-buffer-insert-ov
-            gtk-tree-selection-get-selected-ov))
+            gtk-tree-selection-get-selected-ov
+            gtk-drop-target-set-gtypes-ov))
 
 
 (define (gtk-container-child-get-property-ov proc)
@@ -159,3 +160,14 @@
               (values model iter)
               (values model #f)))))
    '(0)))
+
+
+(define (gtk-drop-target-set-gtypes-ov proc)
+  (values
+   #f
+   `(lambda (target t-class)
+      (let* ((i-func ,proc)
+             (g-types (map !g-type t-class))
+             (n-type (length g-types)))
+        (i-func target g-types n-type)))
+   '(0 1)))
