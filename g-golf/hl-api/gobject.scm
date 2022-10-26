@@ -476,7 +476,7 @@
          (p-name (g-name->class-name p-g-name))
          (p-class-var (module-variable module p-name))
          (p-class (and p-class-var (module-ref module p-name))))
-    (when %debug
+    (when (%debug)
       (dimfi 'g-object-make-class)
       (dimfi "  " g-type g-name c-name 'p-name p-name))
     (if p-class
