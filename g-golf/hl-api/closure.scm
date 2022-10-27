@@ -220,7 +220,8 @@
                val
                (enum->symbol type val)))
           ((gobject-class? type)
-           (make type #:g-inst (gi->scm val 'pointer)))
+           (and (gi->scm val 'pointer)
+                (make type #:g-inst val)))
           (else
            val))))
 
@@ -384,13 +385,15 @@ stored in the g-value.
     #;(set! %g-value g-value)
     (g-closure-marshal-g-value-ref g-value param-arg param-vals param-args)))
 
-(define (g-closure-marshal-g-value-return-val g-value return-val)
+(define (g-closure-marshal-g-value-return-val g-value val)
   (case (g-value-type-tag g-value)
     ((object
       interface)
-     (!g-inst return-val))
+     (if val
+         (!g-inst val)
+         %null-pointer))
     (else
-     return-val)))
+     val)))
 
 (define %g-closure-marshal
   (procedure->pointer void
