@@ -295,11 +295,9 @@ stored in the g-value.
                (null-pointer? value))
            #f
            (or (g-inst-cache-ref value)
-               (let* ((module (resolve-module '(g-golf hl-api gobject)))
-                      (g-name (g-object-type-name value))
-                      (c-name (g-name->class-name g-name))
-                      (type (module-ref module c-name)))
-                 (make type #:g-inst value)))))
+               (receive (class name g-type)
+                   (g-object-find-class value)
+                 (make class #:g-inst value)))))
       ((pointer)
        (if param-arg
            (let ((type-tag (!type-tag param-arg))
