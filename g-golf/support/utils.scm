@@ -35,8 +35,11 @@
   #:use-module (system foreign)
   #:use-module (g-golf hl-api n-decl)
 
-  #:export (storage-get
-	    storage-set
+  #:export (%stow
+            stow-set!
+            stow-get
+            stow->alist
+
 	    displayln
 	    dimfi
 	    warning
@@ -61,20 +64,28 @@
             gi-type-tag->init-val))
 
 
-(define storage-get #f)
-(define storage-set #f)
+(define %stow #f)
+(define stow-get #f)
+(define stow-set! #f)
+(define stow->alist #f)
 
-(let ((storage (list)))
-  (set! storage-get
-	(lambda (key)
-	  (case key
-	    ((all) storage)
-	    (else
-	     (assq-ref storage key)))))
-  (set! storage-set
-	(lambda (key value)
-	  (set! storage
-		(assq-set! storage key value)))))
+(eval-when (expand load eval)
+  (let* ((stow-default-size 1013)
+         (stow (make-hash-table stow-default-size)))
+
+    (set! %stow stow)
+
+    (set! stow-set!
+	  (lambda (key value)
+            (hashq-set! stow key value)))
+
+    (set! stow-get
+	  (lambda (key)
+            (hashq-ref stow key)))
+
+    (set! stow->alist
+          (lambda ()
+            (hash-map->list cons stow)))))
 
 
 (define* (displayln msg #:optional (port #f))
