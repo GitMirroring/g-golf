@@ -290,6 +290,18 @@ stored in the g-value.
 (define (g-closure-marshal-g-value-ref g-value param-arg param-vals param-args)
   (let ((value (g-value-ref g-value)))
     (case (g-value-type-tag g-value)
+      ((boxed)
+       (let* ((g-name (g-value-type-name g-value))
+              (name (g-name->name g-name)))
+         (case name
+           ((g-value)
+            ;; the closure arg is a g-value - i.e. <gtk-drop-target>
+            ;; 'drop signal callback second arg - when that happens, we
+            ;; must retrieve the scheme value (for that g-value the
+            ;; signal callback 'machinery' is givig us).
+            (g-closure-marshal-g-value-ref value param-arg param-vals param-args))
+           (else
+            value))))
       ((object)
        (if (or (not value)
                (null-pointer? value))
