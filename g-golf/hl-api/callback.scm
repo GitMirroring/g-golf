@@ -56,6 +56,7 @@
             g-golf-callback-closure
 
             ;; <callback> inst cache
+            %gi-callback-inst-cache
             gi-callback-inst-cache-ref
             gi-callback-inst-cache-set!
             gi-callback-inst-cache-remove!
@@ -63,11 +64,12 @@
             gi-callback-inst-cache-show
 
             ;; callabck (user) closure cache
-            gi-callback-closure-cache-ref
-            gi-callback-closure-cache-set!
-            gi-callback-closure-cache-remove!
-            gi-callback-closure-cache-for-each
-            gi-callback-closure-cache-show))
+            #;%gi-callback-closure-cache
+            #;gi-callback-closure-cache-ref
+            #;gi-callback-closure-cache-set!
+            #;gi-callback-closure-cache-remove!
+            #;gi-callback-closure-cache-for-each
+            #;gi-callback-closure-cache-show))
 
 
 #;(g-export )
@@ -222,52 +224,52 @@
 ;;; The gi-callback-inst-cache
 ;;;
 
-(define %gi-callback-inst-cache-default-size 1013)
-
 (define %gi-callback-inst-cache #f)
 (define gi-callback-inst-cache-ref #f)
 (define gi-callback-inst-cache-set! #f)
 (define gi-callback-inst-cache-remove! #f)
 (define gi-callback-inst-cache-for-each #f)
+(define gi-callback-inst-cache-show #f)
 
-(let* ((gi-callback-size %gi-callback-inst-cache-default-size)
-       (gi-callback-inst-cache (make-hash-table
-                                %gi-callback-inst-cache-default-size))
-       (gi-callback-inst-mutex (make-mutex)))
 
-  (set! %gi-callback-inst-cache
-        (lambda () gi-callback-inst-cache))
+(eval-when (expand load eval)
+  (let* ((%gi-callback-inst-cache-default-size 1013)
+         (gi-callback-inst-cache
+          (make-hash-table %gi-callback-inst-cache-default-size))
+         (gi-callback-inst-mutex (make-mutex))
+         (%gi-callback-inst-cache-show-prelude
+                 "The <callback> inst cache entries are"))
 
-  (set! gi-callback-inst-cache-ref
-        (lambda (name)
-          (with-mutex gi-callback-inst-mutex
-            (hashq-ref gi-callback-inst-cache name))))
+    (set! %gi-callback-inst-cache
+          (lambda () gi-callback-inst-cache))
 
-  (set! gi-callback-inst-cache-set!
-        (lambda (name callback)
-          (with-mutex gi-callback-inst-mutex
-            (hashq-set! gi-callback-inst-cache name callback))))
+    (set! gi-callback-inst-cache-ref
+          (lambda (name)
+            (with-mutex gi-callback-inst-mutex
+              (hashq-ref gi-callback-inst-cache name))))
 
-  (set! gi-callback-inst-cache-remove!
-        (lambda (name)
-          (with-mutex gi-callback-inst-mutex
-            (hashq-remove! gi-callback-inst-cache name))))
+    (set! gi-callback-inst-cache-set!
+          (lambda (name callback)
+            (with-mutex gi-callback-inst-mutex
+              (hashq-set! gi-callback-inst-cache name callback))))
 
-  (set! gi-callback-inst-cache-for-each
-        (lambda (proc)
-          (with-mutex gi-callback-inst-mutex
-            (hash-for-each proc
-                           gi-callback-inst-cache)))))
+    (set! gi-callback-inst-cache-remove!
+          (lambda (name)
+            (with-mutex gi-callback-inst-mutex
+              (hashq-remove! gi-callback-inst-cache name))))
 
-(define %gi-callback-inst-cache-show-prelude
-  "The <callback> inst cache entries are")
+    (set! gi-callback-inst-cache-for-each
+          (lambda (proc)
+            (with-mutex gi-callback-inst-mutex
+              (hash-for-each proc
+                             gi-callback-inst-cache))))
 
-(define* (gi-callback-inst-cache-show #:optional
-                                      (port (current-output-port)))
-  (format port "~A~%"
-          %gi-callback-inst-cache-show-prelude)
-  (letrec ((show (lambda (key value)
-                   (format port "  ~S  -  ~S~%"
-                           key
-                           value))))
-    (gi-callback-inst-cache-for-each show)))
+    (set! gi-callback-inst-cache-show
+          (lambda* (#:optional (port (current-output-port)))
+            (format port "~A~%"
+                    %gi-callback-inst-cache-show-prelude)
+            (letrec ((show (lambda (key value)
+                             (format port "  ~S  -  ~S~%"
+                                     key
+                                     value))))
+              (gi-callback-inst-cache-for-each show))))))

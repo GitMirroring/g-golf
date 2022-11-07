@@ -48,6 +48,7 @@
             gi-iface-vfunc-closure
 
             ;; iface-init-func cache
+            %gi-iface-init-func-cache
             gi-iface-init-func-cache-ref
             gi-iface-init-func-cache-set!
             gi-iface-init-func-cache-remove!
@@ -55,6 +56,7 @@
             gi-iface-init-func-cache-show
 
             ;; iface-info-struct cache
+            %gi-iface-info-struct-cache
             gi-iface-info-struct-cache-ref
             gi-iface-info-struct-cache-set!
             gi-iface-info-struct-cache-remove!
@@ -164,11 +166,15 @@
 (define gi-iface-init-func-cache-set! #f)
 (define gi-iface-init-func-cache-remove! #f)
 (define gi-iface-init-func-cache-for-each #f)
+(define gi-iface-init-func-cache-show #f)
 
-(let* ((cache-size %gi-iface-init-func-cache-default-size)
-       (gi-iface-init-func-cache (make-hash-table
-                                %gi-iface-init-func-cache-default-size))
-       (gi-iface-init-func-mutex (make-mutex)))
+(eval-when (expand load eval)
+  (let* ((%gi-iface-init-func-cache-default-size 1013)
+         (gi-iface-init-func-cache (make-hash-table
+                                    %gi-iface-init-func-cache-default-size))
+         (gi-iface-init-func-mutex (make-mutex))
+         (%gi-iface-init-func-cache-show-prelude
+          "The iface-init-func cache entries are"))
 
   (set! %gi-iface-init-func-cache
         (lambda () gi-iface-init-func-cache))
@@ -192,27 +198,22 @@
         (lambda (proc)
           (with-mutex gi-iface-init-func-mutex
             (hash-for-each proc
-                           gi-iface-init-func-cache)))))
+                           gi-iface-init-func-cache))))
 
-(define %gi-iface-init-func-cache-show-prelude
-  "The iface-init-func cache entries are")
-
-(define* (gi-iface-init-func-cache-show #:optional
-                                        (port (current-output-port)))
-  (format port "~A~%"
-          %gi-iface-init-func-cache-show-prelude)
-  (letrec ((show (lambda (key value)
-                   (format port "  ~S  -  ~S~%"
-                           key
-                           value))))
-    (gi-iface-init-func-cache-for-each show)))
+  (set! gi-iface-init-func-cache-show
+        (lambda* (#:optional (port (current-output-port)))
+          (format port "~A~%"
+                  %gi-iface-init-func-cache-show-prelude)
+          (letrec ((show (lambda (key value)
+                           (format port "  ~S  -  ~S~%"
+                                   key
+                                   value))))
+            (gi-iface-init-func-cache-for-each show))))))
 
 
 ;;;
 ;;; The gi-iface-init-func-cache
 ;;;
-
-(define %gi-iface-info-struct-cache-default-size 1013)
 
 (define %gi-iface-info-struct-cache #f)
 (define gi-iface-info-struct-cache-ref #f)
@@ -220,44 +221,45 @@
 (define gi-iface-info-struct-cache-remove! #f)
 (define gi-iface-info-struct-cache-for-each #f)
 
-(let* ((cache-size %gi-iface-info-struct-cache-default-size)
-       (gi-iface-info-struct-cache (make-hash-table
-                                %gi-iface-info-struct-cache-default-size))
-       (gi-iface-info-struct-mutex (make-mutex)))
 
-  (set! %gi-iface-info-struct-cache
-        (lambda () gi-iface-info-struct-cache))
+(eval-when (expand load eval)
+  (let* ((%gi-iface-info-struct-cache-default-size 1013)
+         (gi-iface-info-struct-cache (make-hash-table
+                                      %gi-iface-info-struct-cache-default-size))
+         (gi-iface-info-struct-mutex (make-mutex))
+         (%gi-iface-info-struct-cache-show-prelude
+          "The iface-info-struct cache entries are"))
 
-  (set! gi-iface-info-struct-cache-ref
-        (lambda (name)
-          (with-mutex gi-iface-info-struct-mutex
-            (hashq-ref gi-iface-info-struct-cache name))))
+    (set! %gi-iface-info-struct-cache
+          (lambda () gi-iface-info-struct-cache))
 
-  (set! gi-iface-info-struct-cache-set!
-        (lambda (name callback)
-          (with-mutex gi-iface-info-struct-mutex
-            (hashq-set! gi-iface-info-struct-cache name callback))))
+    (set! gi-iface-info-struct-cache-ref
+          (lambda (name)
+            (with-mutex gi-iface-info-struct-mutex
+              (hashq-ref gi-iface-info-struct-cache name))))
 
-  (set! gi-iface-info-struct-cache-remove!
-        (lambda (name)
-          (with-mutex gi-iface-info-struct-mutex
-            (hashq-remove! gi-iface-info-struct-cache name))))
+    (set! gi-iface-info-struct-cache-set!
+          (lambda (name callback)
+            (with-mutex gi-iface-info-struct-mutex
+              (hashq-set! gi-iface-info-struct-cache name callback))))
 
-  (set! gi-iface-info-struct-cache-for-each
-        (lambda (proc)
-          (with-mutex gi-iface-info-struct-mutex
-            (hash-for-each proc
-                           gi-iface-info-struct-cache)))))
+    (set! gi-iface-info-struct-cache-remove!
+          (lambda (name)
+            (with-mutex gi-iface-info-struct-mutex
+              (hashq-remove! gi-iface-info-struct-cache name))))
 
-(define %gi-iface-info-struct-cache-show-prelude
-  "The iface-info-struct cache entries are")
+    (set! gi-iface-info-struct-cache-for-each
+          (lambda (proc)
+            (with-mutex gi-iface-info-struct-mutex
+              (hash-for-each proc
+                             gi-iface-info-struct-cache))))
 
-(define* (gi-iface-info-struct-cache-show #:optional
-                                        (port (current-output-port)))
-  (format port "~A~%"
-          %gi-iface-info-struct-cache-show-prelude)
-  (letrec ((show (lambda (key value)
-                   (format port "  ~S  -  ~S~%"
-                           key
-                           value))))
-    (gi-iface-info-struct-cache-for-each show)))
+    (set! gi-iface-info-struct-cache-show
+          (lambda* (#:optional (port (current-output-port)))
+            (format port "~A~%"
+                    %gi-iface-info-struct-cache-show-prelude)
+            (letrec ((show (lambda (key value)
+                             (format port "  ~S  -  ~S~%"
+                                     key
+                                     value))))
+              (gi-iface-info-struct-cache-for-each show))))))

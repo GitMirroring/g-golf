@@ -59,19 +59,35 @@
 ;;; The g-inst(ance) cache
 ;;;
 
-(define %g-inst-cache-default-size 1013)
 
-(define %g-inst-cache
-  (make-weak-value-hash-table %g-inst-cache-default-size))
+(define %g-inst-cache #f)
+(define g-inst-cache-ref #f)
+(define g-inst-cache-set! #f)
+(define g-inst-cache-show #f)
 
-(define (g-inst-cache-ref g-inst)
-  (hashq-ref %g-inst-cache
-             (pointer-address g-inst)))
+(eval-when (expand load eval)
+  (let* ((%g-inst-cache-default-size 1013))
 
-(define (g-inst-cache-set! g-inst inst)
-  (hashq-set! %g-inst-cache
-              (pointer-address g-inst)
-              inst))
+    (set! %g-inst-cache
+          (make-weak-value-hash-table %g-inst-cache-default-size))
+
+    (set! g-inst-cache-ref
+          (lambda (g-inst)
+            (hashq-ref %g-inst-cache
+                       (pointer-address g-inst))))
+
+    (set! g-inst-cache-set!
+          (lambda (g-inst inst)
+            (hashq-set! %g-inst-cache
+                        (pointer-address g-inst)
+                        inst)))
+
+    (set! g-inst-cache-show
+          (lambda ()
+            (hash-for-each (lambda (key value)
+                             (%dimfi key value))
+                           %g-inst-cache)))))
+
 
 #;(define (g-inst-cache-for-each proc)
   (hash-for-each proc
@@ -92,11 +108,6 @@
                  n-entry)
          (g-inst-cache-for-each show))))))
 
-(define (g-inst-cache-show)
-  (hash-for-each (lambda (key value)
-                   (%dimfi key value))
-                 %g-inst-cache))
-
 
 ;;;
 ;;; The g-boxed(instance) scheme allocated cache
@@ -105,24 +116,37 @@
 (define %dimfi
   (@ (g-golf support utils) dimfi))
 
-(define %g-boxed-sa-cache-default-size 1013)
+(define %g-boxed-sa-cache #f)
+(define g-boxed-sa-cache-ref #f)
+(define g-boxed-sa-cache-set! #f)
+(define g-boxed-sa-cache-remove! #f)
+(define g-boxed-sa-cache-show #f)
 
-(define %g-boxed-sa-cache
-  (make-weak-key-hash-table %g-boxed-sa-cache-default-size))
+(eval-when (expand load eval)
+  (let* ((%g-boxed-sa-cache-default-size 1013)
+         (g-boxed-sa-cache
+          (make-weak-value-hash-table %g-boxed-sa-cache-default-size)))
 
-(define (g-boxed-sa-cache-ref ptr)
-  (hashq-ref %g-boxed-sa-cache ptr))
+    (set! %g-boxed-sa-cache
+          (lambda () g-boxed-sa-cache))
 
-(define (g-boxed-sa-cache-set! ptr bv)
-  (hashq-set! %g-boxed-sa-cache ptr bv))
+    (set! g-boxed-sa-cache-ref
+          (lambda (ptr)
+            (hashq-ref g-boxed-sa-cache ptr)))
 
-(define (g-boxed-sa-cache-remove! ptr)
-  (hashq-remove! %g-boxed-sa-cache ptr))
+    (set! g-boxed-sa-cache-set!
+          (lambda (ptr bv)
+            (hashq-set! g-boxed-sa-cache ptr bv)))
 
-(define (g-boxed-sa-cache-show)
-  (hash-for-each (lambda (key value)
-                   (%dimfi key value))
-                 %g-boxed-sa-cache))
+    (set! g-boxed-sa-cache-remove!
+          (lambda (ptr)
+            (hashq-remove! g-boxed-sa-cache ptr)))
+
+    (set! g-boxed-sa-cache-show
+          (lambda ()
+            (hash-for-each (lambda (key value)
+                             (%dimfi key value))
+                           g-boxed-sa-cache)))))
 
 
 ;;;
@@ -163,28 +187,37 @@
 ;; ffi pointer, otherwise it would never become unreachable ... and
 ;; hence, we specifically use the pointer address as the key.
 
-(define %g-boxed-ga-cache-default-size 1013)
+(define %g-boxed-ga-cache #f)
+(define g-boxed-ga-cache-ref #f)
+(define g-boxed-ga-cache-set! #f)
+(define g-boxed-ga-cache-remove! #f)
+(define g-boxed-ga-cache-show #f)
 
-(define %g-boxed-ga-cache
-  (make-hash-table %g-boxed-ga-cache-default-size))
+(eval-when (expand load eval)
+  (let* ((%g-boxed-ga-cache-default-size 1013)
+         (g-boxed-ga-cache
+          (make-weak-value-hash-table %g-boxed-ga-cache-default-size)))
 
-(define (g-boxed-ga-cache-ref ptr)
-  (hashq-ref %g-boxed-ga-cache
-             (pointer-address ptr)))
+    (set! %g-boxed-ga-cache
+          (lambda () g-boxed-ga-cache))
 
-(define (g-boxed-ga-cache-set! ptr g-type)
-  (hashq-set! %g-boxed-ga-cache
-              (pointer-address ptr)
-              g-type))
+    (set! g-boxed-ga-cache-ref
+          (lambda (ptr)
+            (hashq-ref g-boxed-ga-cache ptr)))
 
-(define (g-boxed-ga-cache-remove! ptr)
-  (hashq-remove! %g-boxed-ga-cache
-                 (pointer-address ptr)))
+    (set! g-boxed-ga-cache-set!
+          (lambda (ptr bv)
+            (hashq-set! g-boxed-ga-cache ptr bv)))
 
-(define (g-boxed-ga-cache-show)
-  (hash-for-each (lambda (key value)
-                   (%dimfi key value))
-                 %g-boxed-ga-cache))
+    (set! g-boxed-ga-cache-remove!
+          (lambda (ptr)
+            (hashq-remove! g-boxed-ga-cache ptr)))
+
+    (set! g-boxed-ga-cache-show
+          (lambda ()
+            (hash-for-each (lambda (key value)
+                             (%dimfi key value))
+                           g-boxed-ga-cache)))))
 
 
 ;;;

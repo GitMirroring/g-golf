@@ -60,61 +60,77 @@
             gi-cache-find))
 
 
-(define %gi-cache
-  '())
+(define %gi-cache #f)
+(define gi-cache-ref #f)
+(define gi-cache-set! #f)
+(define gi-cache-remove! #f)
+(define gi-cache-show #f)
+(define gi-cache-find #f)
 
-(define (gi-cache-ref m-key s-key)
-  ;; m-key, s-key stand for main key, secondary key
-  (let ((subcache (assq-ref %gi-cache m-key)))
-    (and subcache
-         (assq-ref subcache s-key))))
 
-(define (gi-cache-set! m-key s-key val)
-  (let ((subcache (assq-ref %gi-cache m-key)))
+(eval-when (expand load eval)
+  (let ((gi-cache '()))
+
     (set! %gi-cache
-          (assq-set! %gi-cache m-key
-                     (assq-set! (or subcache '()) s-key
-                                val)))))
+          (lambda () gi-cache))
 
-(define (gi-cache-remove! m-key s-key)
-  ;; m-key, s-key stand for main key, secondary key
-  (let ((subcache (assq-ref %gi-cache m-key)))
-    (and subcache
-         (let ((m-entry (assq-remove! subcache s-key)))
-           (if (null? m-entry)
-               (set! %gi-cache
-                     (assq-remove! %gi-cache m-key))
-               (set! %gi-cache
-                     (assq-set! %gi-cache m-key m-entry)))))))
+    (set! gi-cache-ref
+          (lambda (m-key s-key)
+            ;; m-key, s-key stand for main key, secondary key
+            (let ((subcache (assq-ref gi-cache m-key)))
+              (and subcache
+                   (assq-ref subcache s-key)))))
 
-(define* (gi-cache-show #:optional (m-key #f))
-  (format #t "%gi-cache~%")
-  (if m-key
-      (begin
-        (format #t "  ~A~%" m-key)
-        (match (assq-ref %gi-cache m-key)
-          (#f
-           (format #t "    -- is empty --~%"))
-          (else
-           (for-each (lambda (s-entry)
-                       (match s-entry
-                         ((s-key . s-val)
-                          (format #t "    ~A~%      ~S~%" s-key s-val))))
-               (assq-ref %gi-cache m-key)))))
-      (for-each (lambda (m-entry)
-                  (match m-entry
-                    ((m-key . m-vals)
-                     (format #t "  ~A~%" m-key))))
-          %gi-cache))
-  (values))
+    (set! gi-cache-set!
+          (lambda (m-key s-key val)
+            (let ((subcache (assq-ref gi-cache m-key)))
+              (set! gi-cache
+                    (assq-set! gi-cache m-key
+                               (assq-set! (or subcache '()) s-key
+                                          val))))))
 
-(define (gi-cache-find m-key pred)
-  "Obtains the %gi-cache subcache for M-KEY, an (S-KEY . S-VAL) alist,
+    (set! gi-cache-remove!
+          (lambda (m-key s-key)
+            ;; m-key, s-key stand for main key, secondary key
+            (let ((subcache (assq-ref gi-cache m-key)))
+              (and subcache
+                   (let ((m-entry (assq-remove! subcache s-key)))
+                     (if (null? m-entry)
+                         (set! gi-cache
+                               (assq-remove! gi-cache m-key))
+                         (set! gi-cache
+                               (assq-set! gi-cache m-key m-entry))))))))
+
+    (set! gi-cache-show
+          (lambda* (#:optional (m-key #f))
+            (format #t "gi-cache~%")
+            (if m-key
+                (begin
+                  (format #t "  ~A~%" m-key)
+                  (match (assq-ref gi-cache m-key)
+                    (#f
+                     (format #t "    -- is empty --~%"))
+                    (else
+                     (for-each (lambda (s-entry)
+                                 (match s-entry
+                                   ((s-key . s-val)
+                                    (format #t "    ~A~%      ~S~%" s-key s-val))))
+                         (assq-ref gi-cache m-key)))))
+                (for-each (lambda (m-entry)
+                            (match m-entry
+                              ((m-key . m-vals)
+                               (format #t "  ~A~%" m-key))))
+                    gi-cache))
+            (values)))
+
+    (set! gi-cache-find
+          (lambda (m-key pred)
+            "Obtains the %gi-cache subcache for M-KEY, an (S-KEY . S-VAL) alist,
 and returns a list of the S-KEY for which (PRED S-VAL) was satisfied."
-  (filter-map
-      (lambda (s-entry)
-        (match s-entry
-          ((s-key . s-val)
-           (and (pred s-val)
-                s-key))))
-      (assq-ref %gi-cache m-key)))
+            (filter-map
+                (lambda (s-entry)
+                  (match s-entry
+                    ((s-key . s-val)
+                     (and (pred s-val)
+                          s-key))))
+                (assq-ref gi-cache m-key))))))

@@ -49,7 +49,6 @@
   
   #:export (<closure>
 
-            %gi-closure-cache-default-size
             %gi-closure-cache
             gi-closure-cache-ref
             gi-closure-cache-set!
@@ -442,56 +441,56 @@ stored in the g-value.
 ;;; The gi-closure-cache
 ;;;
 
-(define %gi-closure-cache-default-size 1013)
-
 (define %gi-closure-cache #f)
 (define gi-closure-cache-ref #f)
 (define gi-closure-cache-set! #f)
 (define gi-closure-cache-remove! #f)
 (define gi-closure-cache-for-each #f)
+(define gi-closure-cache-show #f)
 
-(let* ((gi-closure-size %gi-closure-cache-default-size)
-       (gi-closure-cache (make-hash-table
-                          %gi-closure-cache-default-size))
-       (gi-closure-mutex (make-mutex)))
 
-  (set! %gi-closure-cache
-        (lambda () gi-closure-cache))
+(eval-when (expand load eval)
+  (let* ((%gi-closure-cache-default-size 1013)
+         (gi-closure-cache (make-hash-table
+                            %gi-closure-cache-default-size))
+         (gi-closure-mutex (make-mutex))
+         ( %gi-closure-cache-show-prelude
+           "The g-closure function cache entries are"))
 
-  (set! gi-closure-cache-ref
-        (lambda (g-closure)
-          (with-mutex gi-closure-mutex
-            (hashq-ref gi-closure-cache
-                       (pointer-address g-closure)))))
+    (set! %gi-closure-cache
+          (lambda () gi-closure-cache))
 
-  (set! gi-closure-cache-set!
-        (lambda (g-closure function)
-          (with-mutex gi-closure-mutex
-            (hashq-set! gi-closure-cache
-                        (pointer-address g-closure)
-                        function))))
+    (set! gi-closure-cache-ref
+          (lambda (g-closure)
+            (with-mutex gi-closure-mutex
+              (hashq-ref gi-closure-cache
+                         (pointer-address g-closure)))))
 
-  (set! gi-closure-cache-remove!
-        (lambda (g-closure)
-          (with-mutex gi-closure-mutex
-            (hashq-remove! gi-closure-cache
-                           (pointer-address g-closure)))))
+    (set! gi-closure-cache-set!
+          (lambda (g-closure function)
+            (with-mutex gi-closure-mutex
+              (hashq-set! gi-closure-cache
+                          (pointer-address g-closure)
+                          function))))
 
-  (set! gi-closure-cache-for-each
-        (lambda (proc)
-          (with-mutex gi-closure-mutex
-            (hash-for-each proc
-                           gi-closure-cache)))))
+    (set! gi-closure-cache-remove!
+          (lambda (g-closure)
+            (with-mutex gi-closure-mutex
+              (hashq-remove! gi-closure-cache
+                             (pointer-address g-closure)))))
 
-(define %gi-closure-cache-show-prelude
-  "The g-closure function cache entries are")
+    (set! gi-closure-cache-for-each
+          (lambda (proc)
+            (with-mutex gi-closure-mutex
+              (hash-for-each proc
+                             gi-closure-cache))))
 
-(define* (gi-closure-cache-show #:optional
-                                        (port (current-output-port)))
-  (format port "~A~%"
-          %gi-closure-cache-show-prelude)
-  (letrec ((show (lambda (key value)
-                   (format port "  ~S  -  ~S~%"
-                           key
-                           value))))
-    (gi-closure-cache-for-each show)))
+    (set! gi-closure-cache-show
+          (lambda* (#:optional (port (current-output-port)))
+            (format port "~A~%"
+                    %gi-closure-cache-show-prelude)
+            (letrec ((show (lambda (key value)
+                             (format port "  ~S  -  ~S~%"
+                                     key
+                                     value))))
+              (gi-closure-cache-for-each show))))))

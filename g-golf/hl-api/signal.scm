@@ -60,10 +60,8 @@
   #:export (<signal>
 
             %gi-signal-cache
-
             gi-signal-cache-ref
             gi-signal-cache-set!
-
             gi-signal-cache-show
             gi-signal-cache-find))
 
@@ -187,38 +185,52 @@
 ;;; The gi-signal-cache
 ;;;
 
-(define %gi-signal-cache
-  '())
+(define %gi-signal-cache #f)
+(define gi-signal-cache-ref #f)
+(define gi-signal-cache-set! #f)
+(define gi-signal-cache-show #f)
+(define gi-signal-cache-find #f)
 
-(define (gi-signal-cache-ref m-key s-key)
-  ;; m-key, s-key stand for main and secondary keys
-  (let ((subcache (assq-ref %gi-signal-cache m-key)))
-    (and subcache
-         (assq-ref subcache s-key))))
 
-(define (gi-signal-cache-set! m-key s-key val)
-  (let ((subcache (assq-ref %gi-signal-cache m-key)))
+(eval-when (expand load eval)
+  (let ((gi-signal-cache '()))
+
     (set! %gi-signal-cache
-          (assq-set! %gi-signal-cache m-key
-                     (assq-set! (or subcache '()) s-key
-                                val)))))
+          (lambda () gi-signal-cache))
 
-(define* (gi-signal-cache-show #:optional (m-key #f))
-  (format #t "%gi-signal-cache~%")
-  (if m-key
-      (begin
-        (format #t "  ~A~%" m-key)
-        (for-each (lambda (s-entry)
-                    (match s-entry
-                      ((s-key . s-vals)
-                       (format #t "    ~A~%" s-key))))
-            (assq-ref %gi-signal-cache m-key)))
-      (for-each (lambda (m-entry)
-                  (match m-entry
-                    ((m-key . m-vals)
-                     (format #t "  ~A~%" m-key))))
-          %gi-signal-cache))
-  (values))
+    (set! gi-signal-cache-ref
+          (lambda (m-key s-key)
+            ;; m-key, s-key stand for main and secondary keys
+            (let ((subcache (assq-ref gi-signal-cache m-key)))
+              (and subcache
+                   (assq-ref subcache s-key)))))
 
-(define (gi-signal-cache-find name)
-  'wip)
+    (set! gi-signal-cache-set!
+          (lambda (m-key s-key val)
+            (let ((subcache (assq-ref gi-signal-cache m-key)))
+              (set! gi-signal-cache
+                    (assq-set! gi-signal-cache m-key
+                               (assq-set! (or subcache '()) s-key
+                                          val))))))
+
+    (set! gi-signal-cache-show
+          (lambda* (#:optional (m-key #f))
+            (format #t "%gi-signal-cache~%")
+            (if m-key
+                (begin
+                  (format #t "  ~A~%" m-key)
+                  (for-each (lambda (s-entry)
+                              (match s-entry
+                                ((s-key . s-vals)
+                                 (format #t "    ~A~%" s-key))))
+                      (assq-ref gi-signal-cache m-key)))
+                (for-each (lambda (m-entry)
+                            (match m-entry
+                              ((m-key . m-vals)
+                               (format #t "  ~A~%" m-key))))
+                    gi-signal-cache))
+            (values)))
+
+    (set! gi-signal-cache-find
+          (lambda (name)
+            'wip))))
