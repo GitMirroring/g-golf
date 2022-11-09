@@ -66,19 +66,21 @@
 (define g-inst-cache-show #f)
 
 (eval-when (expand load eval)
-  (let* ((%g-inst-cache-default-size 1013))
+  (let* ((%g-inst-cache-default-size 1013)
+         (g-inst-cache
+          (make-weak-value-hash-table %g-inst-cache-default-size)))
 
     (set! %g-inst-cache
-          (make-weak-value-hash-table %g-inst-cache-default-size))
+          (lambda () g-inst-cache))
 
     (set! g-inst-cache-ref
           (lambda (g-inst)
-            (hashq-ref %g-inst-cache
+            (hashq-ref g-inst-cache
                        (pointer-address g-inst))))
 
     (set! g-inst-cache-set!
           (lambda (g-inst inst)
-            (hashq-set! %g-inst-cache
+            (hashq-set! g-inst-cache
                         (pointer-address g-inst)
                         inst)))
 
@@ -86,7 +88,7 @@
           (lambda ()
             (hash-for-each (lambda (key value)
                              (%dimfi key value))
-                           %g-inst-cache)))))
+                           g-inst-cache)))))
 
 
 #;(define (g-inst-cache-for-each proc)
