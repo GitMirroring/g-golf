@@ -36,8 +36,9 @@
   #:use-module (g-golf hl-api n-decl)
 
   #:export (%stow
+            stow-ref
             stow-set!
-            stow-get
+            stow-remove!
             stow->alist
 
 	    displayln
@@ -65,8 +66,9 @@
 
 
 (define %stow #f)
-(define stow-get #f)
+(define stow-ref #f)
 (define stow-set! #f)
+(define stow-remove! #f)
 (define stow->alist #f)
 
 (eval-when (expand load eval)
@@ -75,13 +77,17 @@
 
     (set! %stow stow)
 
+    (set! stow-ref
+	  (lambda (key)
+            (hashq-ref stow key)))
+
     (set! stow-set!
 	  (lambda (key value)
             (hashq-set! stow key value)))
 
-    (set! stow-get
-	  (lambda (key)
-            (hashq-ref stow key)))
+    (set! stow-remove!
+          (lambda (key)
+            (hashq-remove! stow key)))
 
     (set! stow->alist
           (lambda ()
