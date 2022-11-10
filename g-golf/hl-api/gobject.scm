@@ -423,9 +423,11 @@
   #:metaclass <gobject-class>)
 
 (define (ginterface-class? class)
-  (and (memq <ginterface>
-             (class-precedence-list class))
-       #t))
+  (let ((cpl (class-precedence-list class)))
+    (and (not (memq <gobject> cpl))
+         (memq <ginterface> cpl)
+         #t)))
+
 
 ;;;
 ;;; Utils
