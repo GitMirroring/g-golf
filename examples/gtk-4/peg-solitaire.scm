@@ -15,7 +15,9 @@ exec guile -e main -s "$0" "$@"
   (g-irepository-require "Gtk" #:version "4.0")
   (for-each (lambda (name)
               (gi-import-by-name "Gdk" name))
-      '("Paintable"))
+      '("ContentProvider"
+        "Paintable"
+        "DragAction"))
 
   (for-each (lambda (name)
               (gi-import-by-name "Gtk" name))
@@ -25,12 +27,16 @@ exec guile -e main -s "$0" "$@"
         "CssProvider"
         "Grid"
         "Button"
-        "Image")))
+        "Image"
+        "DragSource"
+        "DropTarget"
+        "MediaStream"
+        "MediaFile")))
 
 
 (define-class <solitaire-peg> (<gobject> <gdk-paintable>)
-  (i #:accessor !i #:init-keyword #:i)
-  (j #:accessor !j #:init-keyword #:j))
+  (column #:accessor !column #:init-keyword #:column)
+  (row #:accessor !row #:init-keyword #:row))
 
 (define-vfunc (get-flags-vfunc (self <solitaire-peg>))
   '(size contents))
@@ -49,16 +55,215 @@ exec guile -e main -s "$0" "$@"
 
 (define-vfunc (snapshot-vfunc (self <solitaire-peg>) snapshot width height)
   (append-color snapshot
-                '(0.6 0.3 0.0 1.0)
+                ;; '(0.6 0.3 0.0 1.0)	;; gtk4-demo
+                ;; '(0.2 0.4 0.64 1.0)	;; tango-sky-blue
+                ;; '(0.46 0.31 0.48 1.0)	;; tango-plum
+                '(0.61 0.1 0.47 1.0)	;; vocaloid
                 (graphene-rect-init (graphene-rect-alloc)
                                     0 0
                                     ;; width height
                                     (get-intrinsic-width self)
                                     (get-intrinsic-height self))))
 
+
+;;;
+;;; Specilized methods
+;;;
+
+;; Till G-Golf implements a toggle reference mechanism, as pygobject,
+;; gjs ... users are responsible to keep a (strong) reference to the
+;; goops instances that would otherwise become unreachable and gc'ed.
+
+;; This example exactly needs that user precaution, for all
+;; <solitaire-peg> instances that are visible on the game board, which
+;; means all pegs that are the paintable object of a <gtk-image> and the
+;; peg that is being dragged when that applies.
+
+;; The reason for this necessary user precaution in this example, is
+;; because outside the scope of the s-exp where they are created (see
+;; create-board below), although each peg has been set as the paintable
+;; of a <gtk-image> instance, for the scheme gc engine, they become
+;; unreachable, and therefore gc'able.
+
+;; From an implementation point of view, we'll keep a (strong) reference
+;; to each of those pegs in the G-Golf stow. There is more then one way
+;; to do this, but as in this example, we know we need to add a (strong)
+;; reference when calling set-from-paintable, and remove it when calling
+;; clear, we subclass <gtk-image> and specialize those two methods. Note
+;; that we will still need to take care of the peg that is being dragged
+;; separately (see drag-begin manual stow-set! call).
+
+(define-class <peg-image> (<gtk-image>))
+
+(define-method (set-from-paintable (self <peg-image>)
+                                   (peg <solitaire-peg>))
+  (next-method)
+  (when peg ;; the paintable arg can be #f
+    (stow-set! (!g-inst peg) peg)))
+
+(define-method (clear (self <peg-image>))
+  (let ((peg (get-paintable self)))
+    (next-method)
+    (and peg
+         (stow-remove! (!g-inst peg)))))
+
+
+;;;
+;;; DND - Drag aNd Drop
+;;;
+
+;; The peg-solitaire.c example uses [g-object-]set-data and
+;; [g-object-]get-data to cache the peg that is being dragged, which is
+;; required, to be able to restore the game in its previous state,
+;; should a drag be ended prior reaching a valid drop target.
+
+;; We could also use the GObject [set|get]-data, but there is bug in the
+;; GI definition for g_object_get_data: its return-type tag is void,
+;; although it returns a gpointer. When the return-type of a function or
+;; a method is void, G-Golf does not even try to look at the callable
+;; gi-argument result - it finalizes the function or method execution by
+;; calling (values).
+
+;; Even if it did work though, GObject [set|get]-data are provided as a
+;; convinient data storage mini system for C programmers. We can cache
+;; our own things in pure scheme code of course - actually, in G-Golf,
+;; we stow, using the yet to be documented stow-set! KEY VALUE and
+;; stow-ref KEY - and that is what we are going to do.
+
+(define (drag-prepare source x y)
+  (let* ((image (get-widget source))
+         (peg (get-paintable image)))
+    (and peg
+         (let* ((g-type (!g-type <solitaire-peg>))
+                (g-value (g-value-init g-type)))
+           (g-value-set! g-value (!g-inst peg))
+           (gdk-content-provider-new-for-value g-value)))))
+
+(define (drag-begin source drag)
+  (let* ((image (get-widget source))
+         (peg (get-paintable image)))
+    (set-icon source peg -2 -2)
+    (stow-set! 'drag-begin peg)
+    (clear image)))
+
+(define (drag-end source drag delete-data)
+  ;; When delete-data is #t, the drag was successful and we should now
+  ;; delete the peg (from the peg's origin image), but we took care of
+  ;; that in the drag-begin callback already, so there's no need to do
+  ;; anything anymore.
+  (unless delete-data
+    (let ((image (get-widget source))
+          (peg (stow-ref 'drag-begin)))
+      (set-from-paintable image peg))))
+
+(define (drop-accept target drop)
+  (let* ((image (get-widget target))
+         (content-formats (get-formats drop))
+         (drop-peg?
+          (gdk-content-formats-contain-gtype content-formats
+                                             (!g-type <solitaire-peg>))))
+    (if (or (not drop-peg?) ;; it has to be a peg
+            (get-paintable image)) ;; target must not already have a peg
+        #f #t)))
+
+(define (drop-drop target peg x y)
+  (let* ((image (get-widget target))
+         (grid (get-parent image))
+         (peg-column (!column peg))
+         (peg-row (!row peg)))
+    (receive (image-column image-row width height)
+        (query-child grid image)
+      (if (not (or (and (= (abs (- image-column peg-column)) 2)
+                        (= image-row peg-row))
+                   (and (= (abs (- image-row peg-row)) 2)
+                        (= image-column peg-column))))
+          #f ;; not a valid jump
+          (let ((jumped (get-child-at grid
+                                      (/ (+ image-column peg-column) 2)
+                                      (/ (+ image-row peg-row) 2))))
+            (if (not (get-paintable jumped))
+                #f ;; jump over an empty image
+                (begin
+                  (clear jumped)
+                  (mslot-set! peg
+                              'column image-column
+                              'row image-row)
+                  (set-from-paintable image peg)
+                  (check-for-end grid)
+                  #t))))))) ;; valid jump
+
+(define (check-for-end grid)
+  (let ((n-peg 0)
+        (n-move 0))
+    (do ((i 0
+            (+ i 1)))
+        ((= i 7))
+      (do ((j 0
+              (+ j 1)))
+          ((or (= j 7)
+               (and (> n-peg 1) (> n-move 0))))
+        (let ((image (get-child-at grid i j)))
+          (when (and image
+                     (get-paintable image))
+            (set! n-peg (+ n-peg 1))
+            (set! n-move (count-moves grid i j))))))
+    (let ((image (get-child-at grid 3 3)))
+      (if (and (= n-peg 1)
+               (get-paintable image))
+          (celebrate #t)
+          (if (= n-move 0)
+              (celebrate #f))))))
+
+(define (count-moves grid i j)
+  (count identity
+         (map (lambda (item)
+                (apply check-move item))
+           `((,grid ,i ,j 1 0)
+             (,grid ,i ,j -1 0)
+             (,grid ,i ,j 0 1)
+             (,grid ,i ,j 0 -1)))))
+
+(define (check-move grid i j di dj)
+  ;; We have a peg at i j.
+  ;; Check if we can move the peg to i + 2*di, j + 2*dj
+  (let ((image (get-child-at grid (+ i di) (+ j dj))))
+    (if (or (not image)
+            (not (get-paintable image)))
+        #f
+        (let ((image (get-child-at grid (+ i (* di 2)) (+ j (* dj 2)))))
+          (if (or (not image)
+                  (get-paintable image))
+              #f
+              #t)))))
+
+(define (celebrate win?)
+  (let* ((sounds-dir "/usr/share/sounds/freedesktop/stereo/")
+         (sound (if win?
+                    (string-append sounds-dir "complete.oga")
+                    (string-append sounds-dir "dialog-error.oga")))
+         (g-file (g-file-new-for-path sound))
+         (stream (gtk-media-file-new-for-file g-file)))
+    (unref g-file)
+    (set-volume stream 1.0)
+    (play stream)
+
+    (connect stream
+             'notify::ended
+             (lambda (g-object property)
+               (unref g-object)))))
+
+
+;;;
+;;; The game board
+;;;
+
 (define %css-data
   ".solitaire-field {
-border: 1px solid lightgray;
+    border-radius: .3em;
+    border: 1px solid lightgray;
+    /* border: 3px solid #d4cbb6; texinfo code border */
+    /* border: 3px solid #495106; tango trash outline */
+    /* padding: 2px; */
 }")
 
 (define (create-board window)
@@ -85,13 +290,27 @@ border: 1px solid lightgray;
           ((= j 7))
         (unless (and (or (< i 2) (>= i 5))
                      (or (< j 2) (>= j 5)))
-          (let ((image (make <gtk-image> #:icon-size 'large)))
+          (let ((image (make <peg-image> #:icon-size 'large))
+                (source (make <gtk-drag-source> #:actions '(move)))
+                (target (gtk-drop-target-new (!g-type <solitaire-peg>) '(move))))
             (add-provider (get-style-context image) css-provider 800)
             (add-css-class image "solitaire-field")
             (unless (and (= i 3) (= j 3))
-              (let ((peg (make <solitaire-peg> #:i i #:j j)))
-                (set-from-paintable image peg)))
-            (attach grid image i j 1 1)))))))
+              (set-from-paintable image
+                                  (make <solitaire-peg> #:column j #:row i)))
+            (attach grid image j i 1 1)
+            (connect source 'prepare drag-prepare)
+            (connect source 'drag-begin drag-begin)
+            (connect source 'drag-end drag-end)
+            (add-controller image source)
+            (connect target 'accept drop-accept)
+            (connect target 'drop drop-drop)
+            (add-controller image target)))))
+    (unref css-provider)))
+
+(define (restart-game window)
+  (stow-reset!)
+  (create-board window))
 
 
 (define (activate app)
@@ -107,7 +326,7 @@ border: 1px solid lightgray;
     (connect restart
              'clicked
              (lambda (bt)
-               (dimfi 'restarting 'the 'game)))
+               (restart-game window)))
 
     (set-titlebar window header-bar)
     (pack-start header-bar restart)
@@ -121,12 +340,3 @@ border: 1px solid lightgray;
     (connect app 'activate activate)
     (let ((status (g-application-run app (length args) args)))
       (exit status))))
-
-
-#;(define (main args)
-  (parameterize ((%debug #t))
-    (let ((app (make <gtk-application>
-                 #:application-id "org.gtk.example")))
-      ;; (connect app 'activate activate)
-      (let ((status (g-application-run app (length args) args)))
-        (dimfi 'status status)))))
