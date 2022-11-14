@@ -4,6 +4,32 @@ exec guile -e main -s "$0" "$@"
 !#
 
 
+;;;;
+;;;; Copyright (C) 2022
+;;;; Free Software Foundation, Inc.
+
+;;;; This file is part of GNU G-Golf
+
+;;;; GNU G-Golf is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU Lesser General Public License as
+;;;; published by the Free Software Foundation; either version 3 of the
+;;;; License, or (at your option) any later version.
+
+;;;; GNU G-Golf is distributed in the hope that it will be useful, but
+;;;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with GNU G-Golf.  If not, see
+;;;; <https://www.gnu.org/licenses/lgpl.html>.
+;;;;
+
+;;; Commentary:
+
+;;; Code:
+
+
 (eval-when (expand load eval)
   (use-modules (oop goops))
 
@@ -197,7 +223,8 @@ exec guile -e main -s "$0" "$@"
         (n-move 0))
     (do ((i 0
             (+ i 1)))
-        ((= i 7))
+        ((or (= i 7)
+             (and (> n-peg 1) (> n-move 0))))
       (do ((j 0
               (+ j 1)))
           ((or (= j 7)
@@ -207,12 +234,11 @@ exec guile -e main -s "$0" "$@"
                      (get-paintable image))
             (set! n-peg (+ n-peg 1))
             (set! n-move (count-moves grid i j))))))
-    (let ((image (get-child-at grid 3 3)))
-      (if (and (= n-peg 1)
-               (get-paintable image))
-          (celebrate #t)
-          (if (= n-move 0)
-              (celebrate #f))))))
+    (if (and (= n-peg 1)
+             (get-paintable (get-child-at grid 3 3)))
+        (celebrate #t)
+        (if (= n-move 0)
+            (celebrate #f)))))
 
 (define (count-moves grid i j)
   (count identity
