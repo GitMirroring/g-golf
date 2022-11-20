@@ -482,16 +482,30 @@
       (dimfi 'g-object-make-class)
       (dimfi "  " g-type g-name c-name 'p-name p-name))
     (if p-class
-        (let ((public-i (module-public-interface module))
-              (c-inst (make-class `(,p-class)
-                                  '()
-                                  #:name c-name
-                                  #:g-type g-type)))
+        (let* ((public-i (module-public-interface module))
+               (ifaces (g-object-class-interfaces g-type))
+               (c-inst (make-class (cons p-class ifaces)
+                                   '()
+                                   #:name c-name
+                                   #:g-type g-type)))
           (module-define! module c-name c-inst)
           (module-add! public-i c-name
                        (module-variable module c-name))
           (values c-inst c-name g-type))
         (error "Undefined (parent) class: " p-name))))
+
+(define (g-object-class-interfaces g-type)
+  (let ((module (resolve-module '(g-golf hl-api gobject)))
+        (ifaces (g-type-interfaces g-type)))
+    (map (lambda (iface)
+           (let* ((g-name (g-type-name iface))
+                  (name (g-name->class-name g-name))
+                  (m-var (module-variable module name)))
+             (or (and m-var
+                      (variable-ref m-var))
+                 (scm-error 'unbound-variable #f "No such GInterface : ~S"
+                            (list name) #f))))
+      ifaces)))
 
 (define (gi-add-method generic specializers procedure)
   (for-each (lambda (xp-spec)
