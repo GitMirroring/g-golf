@@ -27,12 +27,14 @@
 
 
 (define-module (g-golf gobject type-info)
+  #:use-module (rnrs bytevectors)
   #:use-module (ice-9 match)
   #:use-module (oop goops)
   #:use-module (system foreign)
   #:use-module (rnrs arithmetic bitwise)
   #:use-module (g-golf init)
   #:use-module (g-golf support flags)
+  #:use-module (g-golf glib mem-alloc)
   #:use-module (g-golf gi cache-gi)
   #:use-module (g-golf gi utils)
   #:use-module (g-golf support enum)
@@ -55,6 +57,7 @@
             g-type-class-peek
             g-type-class-unref
             g-type-interface-peek
+            g-type-interfaces
             g-type-query
             g-type-register-static-simple
             g-iface-info-struct-new
@@ -126,6 +129,19 @@
 (define (g-type-interface-peek g-class iface-type)
   (gi->scm (g_type_interface_peek g-class iface-type)
            'pointer))
+
+(define (g-type-interfaces g-type)
+  (let* ((s-uint (sizeof unsigned-int))
+         (s-ulong (sizeof unsigned-long))
+         (n-iface-bv (make-bytevector s-uint 0))
+         (ifaces (g_type_interfaces g-type
+                                    (bytevector->pointer n-iface-bv)))
+         (n-iface (u32vector-ref n-iface-bv 0))
+         (results (u64vector->list
+                   (pointer->bytevector ifaces
+                                        (* n-iface s-ulong) 0))))
+    (g-free ifaces)
+    results))
 
 (define %g-type-query-struct
   (list unsigned-long	;; g-type
@@ -275,6 +291,13 @@
 				    %libgobject)
                       (list '*			;; g-class
                             unsigned-long)))	;; iface-type
+
+(define g_type_interfaces
+  (pointer->procedure '*
+                      (dynamic-func "g_type_interfaces"
+				    %libgobject)
+                      (list unsigned-long	;; g-type
+                            '*)))		;; n-iface (pointer to guint)
 
 (define g_type_query
   (pointer->procedure void

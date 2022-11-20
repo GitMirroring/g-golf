@@ -25,6 +25,7 @@ Type Information — The GLib Runtime type identification and management system
 @item @ref{g-type-class-peek}
 @item @ref{g-type-class-unref}
 @item @ref{g-type-interface-peek}
+@item @ref{g-type-interfaces}
 @item @ref{g-type-query}
 @item @ref{g-type-register-static-simple}
 @item @ref{g-type-add-interface-static}
@@ -179,6 +180,16 @@ Returns a pointer of @code{#f}.
 Obtains and returns the (a pointer to) @code{GTypeInterface} structure
 for @var{iface-type} if implemented by @var{g-class}, Otherwise. it
 returs @code{#f}.
+@end deffn
+
+
+@anchor{g-type-interfaces}
+@deffn Procedure g-type-interfaces g-type
+
+Returns a (possibily empty) list.
+
+Obtains and returns the (possibily empty) list of the interface IDs
+(g-type) that @var{g-type} conforms to.
 @end deffn
 
 
