@@ -125,13 +125,11 @@ exec guile -e main -s "$0" "$@"
                                    (peg <solitaire-peg>))
   (next-method)
   (when peg ;; the paintable arg can be #f
-    (stow-set! (!g-inst peg) peg)))
+    (stow-set! (!g-inst self) peg)))
 
 (define-method (clear (self <peg-image>))
-  (let ((peg (get-paintable self)))
-    (next-method)
-    (and peg
-         (stow-remove! (!g-inst peg)))))
+  (next-method)
+  (stow-remove! (!g-inst self)))
 
 
 ;;;
