@@ -176,39 +176,39 @@
          (%gi-iface-init-func-cache-show-prelude
           "The iface-init-func cache entries are"))
 
-  (set! %gi-iface-init-func-cache
-        (lambda () gi-iface-init-func-cache))
+    (set! %gi-iface-init-func-cache
+          (lambda () gi-iface-init-func-cache))
 
-  (set! gi-iface-init-func-cache-ref
-        (lambda (name)
-          (with-mutex gi-iface-init-func-mutex
-            (hashq-ref gi-iface-init-func-cache name))))
+    (set! gi-iface-init-func-cache-ref
+          (lambda (name)
+            (with-mutex gi-iface-init-func-mutex
+              (hashq-ref gi-iface-init-func-cache name))))
 
-  (set! gi-iface-init-func-cache-set!
-        (lambda (name callback)
-          (with-mutex gi-iface-init-func-mutex
-            (hashq-set! gi-iface-init-func-cache name callback))))
+    (set! gi-iface-init-func-cache-set!
+          (lambda (name callback)
+            (with-mutex gi-iface-init-func-mutex
+              (hashq-set! gi-iface-init-func-cache name callback))))
 
-  (set! gi-iface-init-func-cache-remove!
-        (lambda (name)
-          (with-mutex gi-iface-init-func-mutex
-            (hashq-remove! gi-iface-init-func-cache name))))
+    (set! gi-iface-init-func-cache-remove!
+          (lambda (name)
+            (with-mutex gi-iface-init-func-mutex
+              (hashq-remove! gi-iface-init-func-cache name))))
 
-  (set! gi-iface-init-func-cache-for-each
-        (lambda (proc)
-          (with-mutex gi-iface-init-func-mutex
-            (hash-for-each proc
-                           gi-iface-init-func-cache))))
+    (set! gi-iface-init-func-cache-for-each
+          (lambda (proc)
+            (with-mutex gi-iface-init-func-mutex
+              (hash-for-each proc
+                  gi-iface-init-func-cache))))
 
-  (set! gi-iface-init-func-cache-show
-        (lambda* (#:optional (port (current-output-port)))
-          (format port "~A~%"
-                  %gi-iface-init-func-cache-show-prelude)
-          (letrec ((show (lambda (key value)
-                           (format port "  ~S  -  ~S~%"
-                                   key
-                                   value))))
-            (gi-iface-init-func-cache-for-each show))))))
+    (set! gi-iface-init-func-cache-show
+          (lambda* (#:optional (port (current-output-port)))
+            (format port "~A~%"
+                    %gi-iface-init-func-cache-show-prelude)
+            (letrec ((show (lambda (key value)
+                             (format port "  ~S  -  ~S~%"
+                                     key
+                                     value))))
+              (gi-iface-init-func-cache-for-each show))))))
 
 
 ;;;
