@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2019 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2022 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -23,6 +23,8 @@ GObject — The base object type
 @item @ref{g-object-ref-sink}
 @item @ref{g-object-ref-count}
 @item @ref{g-object-is-floating}
+@item @ref{g-object-add-toggle-ref}
+@item @ref{g-object-remove-toggle-ref}
 @item @ref{g-object-type}
 @item @ref{g-object-type-name}
 @item @ref{g-object-get-property}
@@ -159,6 +161,46 @@ value for @var{object}.
 
 Returns @code{#t} if @var{object} has a floating reference, otherwise it
 returns @code{#f}.
+@end deffn
+
+
+@anchor{g-object-add-toggle-ref}
+@deffn Procedure g-object-add-toggle-ref object notify data
+
+Returns nothing.
+
+Increases the reference count of @var{object} by one and sets a
+callback, @var{notify}, to be called when all other references to
+@var{object} are dropped, or when this is already the last reference to
+@var{object} and another reference is established.
+
+Please refer to the GObject
+@uref{@value{UGOBJECT-Object-add-toggle-ref}, g_object_add_toggle_ref}
+documentation for a complete description.
+
+Multiple toggle references may be added to the same gobject, however if
+there are multiple toggle references to an object, none of them will
+ever be notified until all but one are removed.
+
+@var{object} is (a pointer to) a GObject, @var{notify} is a function to
+call when this reference is the last reference to the object, or is no
+longer the last reference, and @var{data} is (a pointer to) the data to
+pass to @var{notify}. The @var{data} argument can be @code{#f}.
+@end deffn
+
+
+@anchor{g-object-remove-toggle-ref}
+@deffn Procedure g-object-remove-toggle-ref object notify data
+
+Returns nothing.
+
+Removes a reference added with @ref{g-object-add-toggle-ref}. The
+reference count of @var{object} is decreased by one.
+
+@var{object} is (a pointer to) a GObject, @var{notify} is a function to
+call when this reference is the last reference to the object, or is no
+longer the last reference, and @var{data} is (a pointer to) the data to
+pass to @var{notify}. The @var{data} argument can be @code{#f}.
 @end deffn
 
 
