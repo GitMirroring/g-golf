@@ -89,7 +89,7 @@
 @set UGOBJECT-GParamSpec https://developer.gnome.org/gobject/stable/gobject-GParamSpec.html
 @set UGOBJECT-Closures https://developer.gnome.org/gobject/stable/gobject-Closures.html
 @set UGOBJECT-Signals https://developer.gnome.org/gobject/stable/gobject-Signals.html
-
+@set UGOBJECT-Object-add-toggle-ref https://docs.gtk.org/gobject/method.Object.add_toggle_ref.html
 
 @c
 @c Gtk-3.0, Gdk-3.0
