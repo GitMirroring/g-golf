@@ -93,46 +93,6 @@ exec guile -e main -s "$0" "$@"
 
 
 ;;;
-;;; Specilized methods
-;;;
-
-;; Till G-Golf implements a toggle reference mechanism, as pygobject,
-;; gjs ... users are responsible to keep a (strong) reference to the
-;; goops instances that would otherwise become unreachable and gc'ed.
-
-;; This example exactly needs that user precaution, for all
-;; <solitaire-peg> instances that are visible on the game board, which
-;; means all pegs that are the paintable object of a <gtk-image> and the
-;; peg that is being dragged when that applies.
-
-;; The reason for this necessary user precaution in this example, is
-;; because outside the scope of the s-exp where they are created (see
-;; create-board below), although each peg has been set as the paintable
-;; of a <gtk-image> instance, for the scheme gc engine, they become
-;; unreachable, and therefore gc'able.
-
-;; From an implementation point of view, we'll keep a (strong) reference
-;; to each of those pegs in the G-Golf stow. There is more then one way
-;; to do this, but as in this example, we know we need to add a (strong)
-;; reference when calling set-from-paintable, and remove it when calling
-;; clear, we subclass <gtk-image> and specialize those two methods. Note
-;; that we will still need to take care of the peg that is being dragged
-;; separately (see drag-begin manual stow-set! call).
-
-(define-class <peg-image> (<gtk-image>))
-
-(define-method (set-from-paintable (self <peg-image>)
-                                   (peg <solitaire-peg>))
-  (next-method)
-  (when peg ;; the paintable arg can be #f
-    (stow-set! (!g-inst self) peg)))
-
-(define-method (clear (self <peg-image>))
-  (next-method)
-  (stow-remove! (!g-inst self)))
-
-
-;;;
 ;;; DND - Drag aNd Drop
 ;;;
 
@@ -314,7 +274,7 @@ exec guile -e main -s "$0" "$@"
           ((= j 7))
         (unless (and (or (< i 2) (>= i 5))
                      (or (< j 2) (>= j 5)))
-          (let ((image (make <peg-image> #:icon-size 'large))
+          (let ((image (make <gtk-image> #:icon-size 'large))
                 (source (make <gtk-drag-source> #:actions '(move)))
                 (target (gtk-drop-target-new (!g-type <solitaire-peg>) '(move))))
             (add-provider (get-style-context image) css-provider 800)
