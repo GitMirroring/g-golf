@@ -36,6 +36,7 @@
             %g-inst-cache
             g-inst-cache-ref
             g-inst-cache-set!
+            g-inst-cache-remove!
             g-inst-cache-show
 
             ;; boxed sa - scheme allocated - cache
@@ -63,12 +64,14 @@
 (define %g-inst-cache #f)
 (define g-inst-cache-ref #f)
 (define g-inst-cache-set! #f)
+(define g-inst-cache-remove! #f)
 (define g-inst-cache-show #f)
 
 (eval-when (expand load eval)
   (let* ((%g-inst-cache-default-size 1013)
          (g-inst-cache
-          (make-weak-value-hash-table %g-inst-cache-default-size)))
+          #;(make-weak-value-hash-table %g-inst-cache-default-size)
+          (make-hash-table %g-inst-cache-default-size)))
 
     (set! %g-inst-cache
           (lambda () g-inst-cache))
@@ -83,6 +86,11 @@
             (hashq-set! g-inst-cache
                         (pointer-address g-inst)
                         inst)))
+
+    (set! g-inst-cache-remove!
+          (lambda (g-inst)
+            (hashq-remove! g-inst-cache
+                           (pointer-address g-inst))))
 
     (set! g-inst-cache-show
           (lambda ()
