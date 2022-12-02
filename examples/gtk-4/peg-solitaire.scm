@@ -274,7 +274,9 @@ exec guile -e main -s "$0" "$@"
           ((= j 7))
         (unless (and (or (< i 2) (>= i 5))
                      (or (< j 2) (>= j 5)))
-          (let ((image (make <gtk-image> #:icon-size 'large))
+          (let ((image (make <gtk-image>
+                         #:icon-size 'large
+                         #:overflow 'hidden))
                 (source (make <gtk-drag-source> #:actions '(move)))
                 (target (gtk-drop-target-new (!g-type <solitaire-peg>) '(move))))
             (add-provider (get-style-context image) css-provider 800)
