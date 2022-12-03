@@ -319,9 +319,7 @@
             ((callback)
              (gi-argument-set! gi-argument 'v-pointer
                                (if value
-                                   (%g-golf-callback-closure (!name clb/arg)
-                                                             gi-type
-                                                             value)
+                                   (%g-golf-callback-closure gi-type value)
                                    (if (or may-be-null?
                                            (allow-none-exception? name))
                                        #f
@@ -438,9 +436,11 @@
                                  'bv-cache s32
                                  'bv-cache-ptr s32-ptr))
                    (s32vector-set! s32 0 value)
-                   (gi-argument-set! gi-argument
-                                     (gi-type-tag->field forced-type)
-                                     s32-ptr)))
+                   (gi-argument-set! gi-argument 'v-pointer s32-ptr)))
+                ((void)
+                 ;; Till proved wrong, we'll consider those opaque
+                 ;; pointers.
+                 (gi-argument-set! gi-argument 'v-pointer value))
                 (else
                  (warning "Unimplemented (pointer to): " type-tag)))))
          (else
@@ -583,7 +583,7 @@
     (gi-argument->scm type-tag
                       type-desc
                       gi-argument
-                      callable		;; the type-desc instance 'owner'
+                      callable 		;; the type-desc instance 'owner'
                       #:args-out args-out)))
 
 (define* (gi-argument->scm type-tag type-desc gi-argument funarg
@@ -761,6 +761,10 @@
                        (gi->scm val 'boolean))
                       (else
                        val))))
+                 ((void)
+                  ;; Till proved wrong, we'll consider those opaque
+                  ;; pointers.
+                  foreign)
                  (else
                   (warning "Unimplemeted (pointer to) type-tag: " type-tag)
                   (gi->scm foreign 'pointer))))))

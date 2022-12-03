@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2021
+;;;; Copyright (C) 2021 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -38,7 +38,9 @@
 		warn
 		last)
 
-  #:export (g-boxed-free))
+  #:export (g-boxed-free
+
+            g-strv-get-type))
 
 
 ;;;
@@ -47,6 +49,9 @@
 
 (define (g-boxed-free g-type foreign)
   (g_boxed_free g-type foreign))
+
+(define (g-strv-get-type)
+  (g_strv_get_type))
 
 
 ;;;
@@ -59,3 +64,9 @@
 				    %libgobject)
                       (list unsigned-long	;; g-type
                             '*)))		;; g-pointer
+
+(define g_strv_get_type
+  (pointer->procedure unsigned-long
+                      (dynamic-func "g_strv_get_type"
+				    %libgobject)
+                      (list )))			;; void

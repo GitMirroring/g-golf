@@ -280,42 +280,48 @@
          (name (g-name->name g-name))
          (gi-boxed (gi-cache-ref 'boxed name))
          (value (g_value_get_boxed g-value)))
-    (if gi-boxed
-        (cond ((is-a? gi-boxed <gi-union>)
-               (if (eq? (!name gi-boxed) 'gdk-event)
-                   ;; This means that we are in gdk3/gtk3 environment, where
-                   ;; the <gdk-event> class and accessors are (must be)
-                   ;; defined dynamically - hence (gdk-event-class)
-                   (make (%gdk-event-class) #:event value)
-                   value))
-              ((or (!is-opaque? gi-boxed)
-                   (!is-semi-opaque? gi-boxed))
-               value)
-              (else
-               (parse-c-struct value
-                               (!scm-types gi-boxed))))
-        (case name
-          ((g-strv)
-           (gi-strings->scm value))
-          (else
-           (error "Unimplemented boxed type: " name))))))
+    (case name
+      ((g-value) value)
+      (else
+       (if gi-boxed
+           (cond ((is-a? gi-boxed <gi-union>)
+                  (if (eq? (!name gi-boxed) 'gdk-event)
+                      ;; This means that we are in gdk3/gtk3 environment, where
+                      ;; the <gdk-event> class and accessors are (must be)
+                      ;; defined dynamically - hence (gdk-event-class)
+                      (make (%gdk-event-class) #:event value)
+                      value))
+                 ((or (!is-opaque? gi-boxed)
+                      (!is-semi-opaque? gi-boxed))
+                  value)
+                 (else
+                  (parse-c-struct value
+                                  (!scm-types gi-boxed))))
+           (case name
+             ((g-strv)
+              (gi-strings->scm value))
+             (else
+              (error "Unimplemented boxed type: " name))))))))
 
 (define (g-value-set-boxed g-value boxed)
   (let* ((g-name (g-value-type-name g-value))
          (name (g-name->name g-name))
          (gi-boxed (gi-cache-ref 'boxed name))
-         (value (if gi-boxed
-                    (cond  ((!is-opaque? gi-boxed)
-                            %null-pointer)
-                           ((!is-semi-opaque? gi-boxed)
-                            boxed)
-                           (else
-                            (make-c-struct (!scm-types gi-boxed) boxed)))
-                    (case name
-                      ((g-strv)
-                       (scm->gi-strings boxed))
-                      (else
-                       (error "Unimplemented boxed type: " name))))))
+         (value (case name
+                  ((g-value) boxed)
+                  (else
+                   (if gi-boxed
+                       (cond  ((!is-opaque? gi-boxed)
+                               %null-pointer)
+                              ((!is-semi-opaque? gi-boxed)
+                               boxed)
+                              (else
+                               (make-c-struct (!scm-types gi-boxed) boxed)))
+                       (case name
+                         ((g-strv)
+                          (scm->gi-strings boxed))
+                         (else
+                          (error "Unimplemented boxed type: " name))))))))
     (g_value_set_boxed g-value value)))
 
 (define (g-value-get-pointer g-value)

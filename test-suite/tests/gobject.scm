@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2021
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -27,6 +27,7 @@
 
 
 (define-module (tests gobject)
+  #:use-module (ice-9 match)
   #:use-module (oop goops)
   #:use-module (unit-test)
   #:use-module (g-golf)
@@ -73,12 +74,35 @@
   (assert-false (g-type-from-name "GObject3")))
 
 (define-method (test-g-type-class-* (self <g-golf-test-gobject>))
-  (let* ((container (gi-import-by-name "Gtk" "Container" #:version "3.0"))
-         (g-type (!g-type container))
+  (let* ((g-type (!g-type <gobject>))
          (g-class (assert (g-type-class-ref g-type))))
     (assert (g-type-class-peek g-type))
     (assert (g-type-ensure g-type))
     (assert (g-type-class-unref g-class))))
+
+(define-method (test-g-type-query (self <g-golf-test-gobject>))
+  (let ((g-type (!g-type <gobject>)))
+    (assert (g-type-query g-type))))
+
+(define-method (test-g-type-register-static-simple (self <g-golf-test-gobject>))
+  (match (g-type-query (!g-type <gobject>))
+    ((g-type type-name class-size instance-size)
+     (assert (g-type-register-static-simple g-type
+                                            (class-name->g-name '<foo-bar>)
+                                            136
+                                            #f  ;; class-init-func
+                                            24
+                                            #f  ;; instance-init-func
+                                            '())))))
+
+(define-method (test-g-type-add-interface-static (self <g-golf-test-gobject>))
+  (gi-import-by-name "Gio" "File")
+  ;; we registered the FooBar type in the above test, but at compile time,
+  ;; <foo-bar> would not be defined, hence we (exceptionally) call
+  ;; g-type-from-name.
+  (assert (g-type-add-interface-static (g-type-from-name "FooBar")
+                                       (!g-type <g-file>)
+                                       #f)))
 
 
 ;;;
@@ -201,7 +225,7 @@
     (close port)))
 
 (define-method (test-g-value-boxed-g-strv (self <g-golf-test-gobject>))
-  (let* ((g-type (g-type-from-name "GStrv"))
+  (let* ((g-type (g-strv-get-type))
          (g-value (g-value-init g-type))
          (value '("one" "two" "three")))
     (assert (g-value-set! g-value '()))

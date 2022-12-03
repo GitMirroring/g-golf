@@ -170,6 +170,12 @@
                 (g-name->short-name "gtk_drag_begin"
                                     "GtkWidget")))
 
+(define-method (test-utils-2.1 (self <g-golf-test-support>))
+  (assert-equal (name->g-name 'get-flags) 'get_flags)
+  (assert-equal (name->g-name 'get-flags 'as-string) "get_flags")
+  (assert-equal (name->g-name "get-flags") 'get_flags)
+  (assert-equal (name->g-name "get-flags" 'as-string) "get_flags"))
+
 (define-method (test-utils-3 (self <g-golf-test-support>))
   (assert-equal 'begin_ (syntax-name->method-name 'begin))
   (assert (syntax-name-protect-prefix-set '_))

@@ -35,8 +35,13 @@
   #:use-module (system foreign)
   #:use-module (g-golf hl-api n-decl)
 
-  #:export (storage-get
-	    storage-set
+  #:export (%stow
+            stow-ref
+            stow-set!
+            stow-reset!
+            stow-remove!
+            stow->alist
+
 	    displayln
 	    dimfi
 	    warning
@@ -51,6 +56,9 @@
 	    g-name->class-name
             g-name->short-name
 	    #;gi-class-name->method-name
+            name->g-name
+
+            class-name->name
             class-name->g-name
             syntax-name->method-name
 
@@ -58,20 +66,41 @@
             gi-type-tag->init-val))
 
 
-(define storage-get #f)
-(define storage-set #f)
+(define %stow #f)
+(define stow-ref #f)
+(define stow-set! #f)
+(define stow-reset! #f)
+(define stow-remove! #f)
+(define stow->alist #f)
 
-(let ((storage (list)))
-  (set! storage-get
-	(lambda (key)
-	  (case key
-	    ((all) storage)
-	    (else
-	     (assq-ref storage key)))))
-  (set! storage-set
-	(lambda (key value)
-	  (set! storage
-		(assq-set! storage key value)))))
+
+(eval-when (expand load eval)
+  (let* ((stow-default-size 1013)
+         (stow (make-hash-table stow-default-size)))
+
+    (set! %stow stow)
+
+    (set! stow-ref
+	  (lambda (key)
+            (hashq-ref stow key)))
+
+    (set! stow-set!
+	  (lambda (key value)
+            (hashq-set! stow key value)))
+
+    (set! stow-reset!
+	  (lambda ()
+            (hash-for-each (lambda (key value)
+                             (hashq-remove! stow key))
+                stow)))
+
+    (set! stow-remove!
+          (lambda (key)
+            (hashq-remove! stow key)))
+
+    (set! stow->alist
+          (lambda ()
+            (hash-map->list cons stow)))))
 
 
 (define* (displayln msg #:optional (port #f))
@@ -196,13 +225,12 @@
 ;;; Name Transformation
 ;;;
 
-;; Initially based on Guile-GNOME (gobject gw utils), from which we keep
-;; one algorithm - see caps-expand-token-2 - the original idea and
-;; procedures have been enhanced to allow special treatment of any token
-;; that compose the name to be transformed. A typical example of such a
-;; need is from the WebKit2 namespace, where the "WebKit' studly caps
-;; expand (token) procedure is expected to return "webkit", not
-;; "web-kit".
+;; Initially based on Guile-GNOME (gnome gobject utils), from which we keep
+;; one algorithm - see caps-expand-token-2 - the original idea and procedures
+;; have been enhanced to allow special treatment of any token that compose the
+;; name to be transformed. A typical example of such a need is from the
+;; WebKit2 namespace, where the "WebKit' studly caps expand (token) procedure
+;; is expected to return "webkit", not "web-kit".
 
 (define* (g-name->name g-name #:optional (as-string? #f))
   (let ((name (or (g-name-transform-exception? g-name)
@@ -244,12 +272,28 @@
      (string-append (substring class-string 1 (1- (string-length class-string)))
                     ":" (symbol->string name)))))
 
+(define* (name->g-name name #:optional (as-string? #f))
+  ;; We only change - to _, other characters are not valid in a g-name.
+  (let* ((str-name (or (and (string? name) name)
+                       (symbol->string name)))
+         (g-name (string-map (lambda (c)
+                               (if (char=? c #\-) #\_ c))
+                     str-name)))
+    (if as-string?
+        g-name
+        (string->symbol g-name))))
+
 #!
 
 The class-name->g-name procedure is based on class-name->gtype-name, used by
 Guile-GNOME.
 
 !#
+
+(define (class-name->name class-name)
+  (let ((class-string (symbol->string class-name)))
+    (string->symbol
+     (substring class-string 1 (1- (string-length class-string))))))
 
 (define (class-name->g-name class-name)
   (let loop ((cn-chars (string->list (symbol->string class-name)))

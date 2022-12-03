@@ -54,6 +54,7 @@ g_golf_TEXINFOS = \
   ug-ggv.texi			\
   ug-ggv-cache.texi		\
   ug-ggv-customization.texi	\
+  ug-ggv-vfunc.texi		\
   cr.texi			\
   cr-overview.texi		\
   cr-ov-structure-and-naming-conventions.texi	\
@@ -83,8 +84,9 @@ g_golf_TEXINFOS = \
   cr-gi-common-types.texi	\
   cr-gi-base-info.texi		\
   cr-gi-callable-info.texi	\
-  cr-gi-signal-info.texi	\
   cr-gi-function-info.texi	\
+  cr-gi-signal-info.texi	\
+  cr-gi-vfunc-info.texi	\
   cr-gi-registered-type-info.texi	\
   cr-gi-enum-info.texi		\
   cr-gi-struct-info.texi	\

@@ -51,9 +51,12 @@
 
   #:export (gi-import-callback
 
+            g-callable-info-make-closure
+            %g-golf-callback-closure-marshal
             g-golf-callback-closure
 
             ;; <callback> inst cache
+            %gi-callback-inst-cache
             gi-callback-inst-cache-ref
             gi-callback-inst-cache-set!
             gi-callback-inst-cache-remove!
@@ -61,11 +64,12 @@
             gi-callback-inst-cache-show
 
             ;; callabck (user) closure cache
-            gi-callback-closure-cache-ref
-            gi-callback-closure-cache-set!
-            gi-callback-closure-cache-remove!
-            gi-callback-closure-cache-for-each
-            gi-callback-closure-cache-show))
+            #;%gi-callback-closure-cache
+            #;gi-callback-closure-cache-ref
+            #;gi-callback-closure-cache-set!
+            #;gi-callback-closure-cache-remove!
+            #;gi-callback-closure-cache-for-each
+            #;gi-callback-closure-cache-show))
 
 
 #;(g-export )
@@ -103,9 +107,9 @@
                                  #:g-name ,g-name
                                  #:name ,name)))))
     (mslot-set! self
-                'ffi-cif (make-ffi-cif self))))
+                'ffi-cif (callback-ffi-cif self))))
 
-(define (make-ffi-cif callback)
+(define (callback-ffi-cif callback)
   (let ((n-arg (!n-arg callback)))
     (case n-arg
       ((0) %null-pointer)
@@ -124,10 +128,15 @@
               (loop rest
                     (gi-pointer-inc w-ptr))))))))))
 
-(define (make-ffi-closure)
+(define (g-callable-info-make-closure info
+                                      ffi-cif
+                                      ffi-closure-callback
+                                      user-data)
   (if (gi-check-version 1 71 0)
-      g-callable-info-create-closure
-      g-callable-info-prepare-closure))
+      (g-callable-info-create-closure
+       info ffi-cif ffi-closure-callback user-data)
+      (g-callable-info-prepare-closure
+       info ffi-cif ffi-closure-callback user-data)))
 
 (define (g-golf-callback-closure-marshal ffi-cif
                                          return-value
@@ -139,44 +148,57 @@
           (@ (g-golf hl-api callable) scm->gi-argument))
          (callback-closure (pointer->scm user-data))
          (callback (!callback callback-closure))
-         (function (!function callback-closure))
+         (procedure (!procedure callback-closure))
          (return-type (!return-type callback))
-         (arguments (!arguments callback))
-         (n-arg (!n-arg callback))
          (gi-argument (!gi-arg-result callback)))
     (when (%debug)
       (dimfi 'g-golf-callback-closure-marshal)
       (dimfi "  " (!name callback)))
-    (let loop ((i 0)
+    (let loop ((arguments (!arguments callback))
                (ffi-arg ffi-args)
                (args '()))
-      (if (= i n-arg)
-          (let* ((args (reverse args))
-                 (r-val (apply function args)))
-            (when (%debug)
-              (dimfi "       arguments:" args)
-              (dimfi "    return-value:" r-val))
-            (%scm->gi-argument return-type
-                               (!type-desc callback)
-                               return-value
-                               r-val
-                               callback
-                               args
-                               #:may-be-null-acc !may-return-null?
-                               #:is-method? (!is-method? callback)
-                               #:forced-type return-type))
-          (let* ((argument (list-ref arguments i))
-                 (type-info (!type-info argument)))
-            (gi-type-info-extract-ffi-return-value type-info ffi-arg gi-argument)
-            (loop (+ i 1)
-                  (gi-pointer-inc ffi-arg)
-                  (cons (%gi-argument->scm (!type-tag argument)
-                                           (!type-desc argument)
-                                           gi-argument
-                                           argument
-                                           #:forced-type (!forced-type argument)
-                                           #:is-pointer? (!is-pointer? argument))
-                        args)))))))
+      (match arguments
+        (()
+         (let ((args (reverse args)))
+           (case return-type
+             ((void)
+              (when (%debug)
+                (dimfi "       arguments:" args)
+                (dimfi "    return-value: void"))
+              (apply procedure args))
+             (else
+              (let ((r-val (apply procedure args)))
+                (when (%debug)
+                  (dimfi "       arguments:" args)
+                  (dimfi "    return-value:" r-val))
+                (%scm->gi-argument return-type
+                                   (!type-desc callback)
+                                   return-value
+                                   r-val
+                                   callback
+                                   args
+                                   #:may-be-null-acc !may-return-null?
+                                   #:is-method? (!is-method? callback)
+                                   #:forced-type return-type))))))
+        ((argument . rests)
+         (let ((type-info (!type-info argument)))
+           (if type-info
+               (gi-type-info-extract-ffi-return-value type-info ffi-arg gi-argument)
+               ;; a 'manually built' instance argument, the first argument of
+               ;; a method.
+               (gi-type-tag-extract-ffi-return-value 'interface
+                                                     'object
+                                                     ffi-arg
+                                                     gi-argument))
+           (loop rests
+                 (gi-pointer-inc ffi-arg)
+                 (cons (%gi-argument->scm (!type-tag argument)
+                                          (!type-desc argument)
+                                          gi-argument
+                                          argument
+                                          #:forced-type (!forced-type argument)
+                                          #:is-pointer? (!is-pointer? argument))
+                       args))))))))
 
 (define %g-golf-callback-closure-marshal
   (procedure->pointer void
@@ -186,68 +208,68 @@
                             '*			;; ffi-args
                             '*)))		;; user-data
 
-(define (g-golf-callback-closure name info proc)
-  (let* ((%make-ffi-closure (make-ffi-closure))
-         (callback (gi-import-callback info))
+(define (g-golf-callback-closure info proc)
+  (let* ((callback (gi-import-callback info))
          (callback-closure (make <callback-closure>
                              #:callback callback
-                             #:function proc)))
-    (%make-ffi-closure info
-                       (!ffi-cif callback)
-                       %g-golf-callback-closure-marshal
-                       (scm->pointer callback-closure))))
+                             #:procedure proc)))
+    (values (g-callable-info-make-closure info
+                                          (!ffi-cif callback)
+                                          %g-golf-callback-closure-marshal
+                                          (scm->pointer callback-closure))
+            callback-closure)))
 
 
 ;;;
 ;;; The gi-callback-inst-cache
 ;;;
 
-(define %gi-callback-inst-cache-default-size 1013)
-
 (define %gi-callback-inst-cache #f)
 (define gi-callback-inst-cache-ref #f)
 (define gi-callback-inst-cache-set! #f)
 (define gi-callback-inst-cache-remove! #f)
 (define gi-callback-inst-cache-for-each #f)
+(define gi-callback-inst-cache-show #f)
 
-(let* ((gi-callback-size %gi-callback-inst-cache-default-size)
-       (gi-callback-inst-cache (make-hash-table
-                                %gi-callback-inst-cache-default-size))
-       (gi-callback-inst-mutex (make-mutex)))
 
-  (set! %gi-callback-inst-cache
-        (lambda () gi-callback-inst-cache))
+(eval-when (expand load eval)
+  (let* ((%gi-callback-inst-cache-default-size 1013)
+         (gi-callback-inst-cache
+          (make-hash-table %gi-callback-inst-cache-default-size))
+         (gi-callback-inst-mutex (make-mutex))
+         (%gi-callback-inst-cache-show-prelude
+                 "The <callback> inst cache entries are"))
 
-  (set! gi-callback-inst-cache-ref
-        (lambda (name)
-          (with-mutex gi-callback-inst-mutex
-            (hashq-ref gi-callback-inst-cache name))))
+    (set! %gi-callback-inst-cache
+          (lambda () gi-callback-inst-cache))
 
-  (set! gi-callback-inst-cache-set!
-        (lambda (name callback)
-          (with-mutex gi-callback-inst-mutex
-            (hashq-set! gi-callback-inst-cache name callback))))
+    (set! gi-callback-inst-cache-ref
+          (lambda (name)
+            (with-mutex gi-callback-inst-mutex
+              (hashq-ref gi-callback-inst-cache name))))
 
-  (set! gi-callback-inst-cache-remove!
-        (lambda (name)
-          (with-mutex gi-callback-inst-mutex
-            (hashq-remove! gi-callback-inst-cache name))))
+    (set! gi-callback-inst-cache-set!
+          (lambda (name callback)
+            (with-mutex gi-callback-inst-mutex
+              (hashq-set! gi-callback-inst-cache name callback))))
 
-  (set! gi-callback-inst-cache-for-each
-        (lambda (proc)
-          (with-mutex gi-callback-inst-mutex
-            (hash-for-each proc
-                           gi-callback-inst-cache)))))
+    (set! gi-callback-inst-cache-remove!
+          (lambda (name)
+            (with-mutex gi-callback-inst-mutex
+              (hashq-remove! gi-callback-inst-cache name))))
 
-(define %gi-callback-inst-cache-show-prelude
-  "The <callback> inst cache entries are")
+    (set! gi-callback-inst-cache-for-each
+          (lambda (proc)
+            (with-mutex gi-callback-inst-mutex
+              (hash-for-each proc
+                             gi-callback-inst-cache))))
 
-(define* (gi-callback-inst-cache-show #:optional
-                                      (port (current-output-port)))
-  (format port "~A~%"
-          %gi-callback-inst-cache-show-prelude)
-  (letrec ((show (lambda (key value)
-                   (format port "  ~S  -  ~S~%"
-                           key
-                           value))))
-    (gi-callback-inst-cache-for-each show)))
+    (set! gi-callback-inst-cache-show
+          (lambda* (#:optional (port (current-output-port)))
+            (format port "~A~%"
+                    %gi-callback-inst-cache-show-prelude)
+            (letrec ((show (lambda (key value)
+                             (format port "  ~S  -  ~S~%"
+                                     key
+                                     value))))
+              (gi-callback-inst-cache-for-each show))))))

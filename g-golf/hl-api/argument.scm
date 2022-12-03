@@ -91,7 +91,7 @@
 ;;;
 
 (define-class <argument> ()
-  (type-info #:accessor !type-info)
+  (type-info #:accessor !type-info #:init-value #f)
   (g-name #:accessor !g-name #:init-keyword #:g-name)
   (name #:accessor !name #:init-keyword #:name)
   (closure #:accessor !closure)

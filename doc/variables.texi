@@ -69,6 +69,8 @@
 @set UGLIB-GList https://developer.gnome.org/glib/stable/glib-Doubly-Linked-Lists.html
 @set UGLIB-GSList https://developer.gnome.org/glib/stable/glib-Singly-Linked-Lists.html
 
+@set UGOBJECT-Tutorial https://docs.gtk.org/gobject/tutorial.html
+
 @set UGOBJECT https://developer.gnome.org/gobject/stable/
 @set UGOBJECT-Introduction https://developer.gnome.org/gobject/stable/pr01.html
 @set UGOBJECT-Concepts https://docs.gtk.org/gobject/concepts.html
@@ -87,7 +89,7 @@
 @set UGOBJECT-GParamSpec https://developer.gnome.org/gobject/stable/gobject-GParamSpec.html
 @set UGOBJECT-Closures https://developer.gnome.org/gobject/stable/gobject-Closures.html
 @set UGOBJECT-Signals https://developer.gnome.org/gobject/stable/gobject-Signals.html
-
+@set UGOBJECT-Object-add-toggle-ref https://docs.gtk.org/gobject/method.Object.add_toggle_ref.html
 
 @c
 @c Gtk-3.0, Gdk-3.0

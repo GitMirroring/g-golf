@@ -4,15 +4,38 @@ exec guile -e main -s "$0" "$@"
 !#
 
 
-;;;
-;;; This example requires the following GNOME setting
-;;;
+;;;;
+;;;; Copyright (C) 2022
+;;;; Free Software Foundation, Inc.
+
+;;;; This file is part of GNU G-Golf
+
+;;;; GNU G-Golf is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU Lesser General Public License as
+;;;; published by the Free Software Foundation; either version 3 of the
+;;;; License, or (at your option) any later version.
+
+;;;; GNU G-Golf is distributed in the hope that it will be useful, but
+;;;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with GNU G-Golf.  If not, see
+;;;; <https://www.gnu.org/licenses/lgpl.html>.
+;;;;
+
+;;; Commentary:
+
+;; This example requires the following GNOME setting
 
 ;; 	Tweaks (gnome-tweaks) setting application,
 ;; 		-> General
 ;; 			Animations	ON
 ;; 			[ I had it ON, but it became OFF after some
 ;; 			[ updates, and I didn't think about that ...
+
+;;; Code:
 
 
 (eval-when (expand load eval)

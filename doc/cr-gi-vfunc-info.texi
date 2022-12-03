@@ -1,0 +1,123 @@
+@c -*-texinfo-*-
+
+@c This is part of the GNU G-Golf Reference Manual.
+@c Copyright (C) 2022 Free Software Foundation, Inc.
+@c See the file g-golf.texi for copying conditions.
+
+
+@defindex bi
+
+
+@node VFunc Info
+@subsection VFunc Info
+
+G-Golf VFunc Info low level API.@*
+GIVFuncInfo — Struct representing a virtual function
+
+
+@subheading Procedures
+
+@indentedblock
+@table @code
+@item @ref{g-vfunc-info-get-flags}
+@item @ref{g-vfunc-info-get-offset}
+@item @ref{g-vfunc-info-get-signal}
+@item @ref{g-vfunc-info-get-invoker}
+@end table
+@end indentedblock
+
+
+@subheading Types and Values
+
+@indentedblock
+@table @code
+@item @ref{%gi-vfunc-info-flags}
+@end table
+@end indentedblock
+
+
+@subheading Description
+
+@code{GIVFuncInfo} represents a virtual function.
+
+A virtual function is a callable object that belongs to either a
+@ref{Object Info} or a @ref{Interface Info}.
+
+
+@subheading Procedures
+
+Note: in this section, the @var{info} argument is [must be] a pointer to
+a @code{GIVFuncInfo}.
+
+
+@anchor{g-vfunc-info-get-flags}
+@deffn Procedure g-vfunc-info-get-flags info
+
+Returns a (possibly empty) list.
+
+Obtains and returns the flags for the virtual function @var{info}. See
+@ref{%gi-vfunc-info-flags} for the possible flag values.
+@end deffn
+
+
+@anchor{g-vfunc-info-get-offset}
+@deffn Procedure g-vfunc-info-get-offset info
+
+Returns an offset or @code{#f}.
+
+Obtains and returns the offset of the virtual function in the class
+struct. The value @code{#f} indicates that the offset is unknown.
+@end deffn
+
+
+@anchor{g-vfunc-info-get-signal}
+@deffn Procedure g-vfunc-info-get-signal info
+
+Returns a pointer or @code{#f}.
+
+Obtains and returns a signal (a pointer to a @ref{Signal Info}) for the
+virtual function if one is set. The signal comes from the object or
+interface to which this virtual function belongs.
+@end deffn
+
+
+@anchor{g-vfunc-info-get-invoker}
+@deffn Procedure g-vfunc-info-get-invoker info
+
+Returns a pointer or @code{#f}.
+
+If this virtual function has an associated invoker method, this
+procedure will return it (a pointer to a @ref{Function Info}). An
+invoker method is a C entry point.
+
+Not all virtuals will have invokers.
+
+The @code{GIFunctionInfo}, if one was returned, must be freed by calling
+@ref{g-base-info-unref}
+
+@end deffn
+
+
+@subheading Types and Values
+
+
+@anchor{%gi-vfunc-info-flags}
+@defivar <gi-flags> %gi-vfunc-info-flags
+
+An instance of @ref{<gi-flags>}, who's members are the scheme
+representation of the flags of a @code{GIVFuncInfo}:
+
+@indentedblock
+@emph{g-name}: GIVFuncInfoFlags  @*
+@emph{name}: gi-vfunc-info-flags @*
+@emph{enum-set}:
+@indentedblock
+@table @code
+@item must-chain-up
+@item must-override
+@item must-not-override
+@item throws
+@end table
+@end indentedblock
+@end indentedblock
+@end defivar

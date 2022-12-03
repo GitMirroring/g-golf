@@ -72,8 +72,9 @@ SOURCES = \
 	g-golf/gi/common-types.scm		\
 	g-golf/gi/base-info.scm			\
 	g-golf/gi/callable-info.scm		\
-	g-golf/gi/signal-info.scm		\
 	g-golf/gi/function-info.scm		\
+	g-golf/gi/signal-info.scm		\
+	g-golf/gi/vfunc-info.scm		\
 	g-golf/gi/registered-type-info.scm	\
 	g-golf/gi/enum-info.scm			\
 	g-golf/gi/struct-info.scm		\
@@ -89,12 +90,9 @@ SOURCES = \
 	g-golf/gi.scm				\
 	g-golf/gdk/events.scm			\
 	g-golf/gdk.scm				\
-	g-golf/override/override.scm		\
-	g-golf/override/gdk.scm			\
-	g-golf/override/gtk.scm			\
-	g-golf/override.scm			\
 	g-golf/hl-api/n-decl.scm		\
 	g-golf/hl-api/gtype.scm			\
+	g-golf/hl-api/iface.scm			\
 	g-golf/hl-api/gobject.scm		\
 	g-golf/hl-api/events.scm		\
 	g-golf/hl-api/argument.scm		\
@@ -102,6 +100,7 @@ SOURCES = \
 	g-golf/hl-api/callable.scm		\
 	g-golf/hl-api/callback.scm		\
 	g-golf/hl-api/function.scm		\
+	g-golf/hl-api/vfunc.scm			\
 	g-golf/hl-api/object.scm		\
 	g-golf/hl-api/closure.scm		\
 	g-golf/hl-api/signal.scm		\
@@ -109,6 +108,10 @@ SOURCES = \
 	g-golf/hl-api/import.scm		\
 	g-golf/hl-api/utils.scm			\
 	g-golf/hl-api.scm			\
+	g-golf/override/override.scm		\
+	g-golf/override/gdk.scm			\
+	g-golf/override/gtk.scm			\
+	g-golf/override.scm			\
 	g-golf.scm
 
 # NOCOMP_SOURCES= \

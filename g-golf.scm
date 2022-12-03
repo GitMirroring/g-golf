@@ -85,8 +85,9 @@
   #:use-module (g-golf gi common-types)
   #:use-module (g-golf gi base-info)
   #:use-module (g-golf gi callable-info)
-  #:use-module (g-golf gi signal-info)
   #:use-module (g-golf gi function-info)
+  #:use-module (g-golf gi signal-info)
+  #:use-module (g-golf gi vfunc-info)
   #:use-module (g-golf gi registered-type-info)
   #:use-module (g-golf gi enum-info)
   #:use-module (g-golf gi struct-info)
@@ -100,11 +101,9 @@
   #:use-module (g-golf gi type-info)
   #:use-module (g-golf gi gir-ffi)
   #:use-module (g-golf gdk events)
-  #:use-module (g-golf override override)
-  #:use-module (g-golf override gdk)
-  #:use-module (g-golf override gtk)
   #:use-module (g-golf hl-api n-decl)
   #:use-module (g-golf hl-api gtype)
+  #:use-module (g-golf hl-api iface)
   #:use-module (g-golf hl-api gobject)
   #:use-module (g-golf hl-api events)
   #:use-module (g-golf hl-api argument)
@@ -112,12 +111,16 @@
   #:use-module (g-golf hl-api callable)
   #:use-module (g-golf hl-api callback)
   #:use-module (g-golf hl-api function)
+  #:use-module (g-golf hl-api vfunc)
   #:use-module (g-golf hl-api object)
   #:use-module (g-golf hl-api closure)
   #:use-module (g-golf hl-api signal)
   #:use-module (g-golf hl-api glib)
   #:use-module (g-golf hl-api import)
   #:use-module (g-golf hl-api utils)
+  #:use-module (g-golf override override)
+  #:use-module (g-golf override gdk)
+  #:use-module (g-golf override gtk)
 
   #:duplicates (merge-generics
 		replace
@@ -182,8 +185,9 @@
                               (g-golf gi common-types)
   			      (g-golf gi base-info)
 			      (g-golf gi callable-info)
-                              (g-golf gi signal-info)
                               (g-golf gi function-info)
+                              (g-golf gi signal-info)
+                              (g-golf gi vfunc-info)
 			      (g-golf gi registered-type-info)
 			      (g-golf gi enum-info)
                               (g-golf gi struct-info)
@@ -197,11 +201,9 @@
 			      (g-golf gi type-info)
                               (g-golf gi gir-ffi)
                               (g-golf gdk events)
-                              (g-golf override override)
-                              (g-golf override gdk)
-                              (g-golf override gtk)
                               (g-golf hl-api n-decl)
                               (g-golf hl-api gtype)
+                              (g-golf hl-api iface)
                               (g-golf hl-api gobject)
                               (g-golf hl-api events)
                               (g-golf hl-api argument)
@@ -209,12 +211,16 @@
                               (g-golf hl-api callable)
                               (g-golf hl-api callback)
                               (g-golf hl-api function)
+                              (g-golf hl-api vfunc)
                               (g-golf hl-api object)
                               (g-golf hl-api closure)
                               (g-golf hl-api signal)
                               (g-golf hl-api glib)
                               (g-golf hl-api import)
-                              (g-golf hl-api utils)))
+                              (g-golf hl-api utils)
+                              (g-golf override override)
+                              (g-golf override gdk)
+                              (g-golf override gtk)))
 
 
 ;;;
@@ -238,19 +244,21 @@
   ;; "ParamSpec", it's ok to manually import it here anyway: (a) some
   ;; namespace define classes that inherit from it, like "Clutter"
   ;; "ParamSpecUnit" and (b) it is the returned type of some gtk class
-  ;; methods, like gtk-container-class-find-child-property. In all use
-  ;; cases - see (g-golf hl-api function) gi-argument->scm - G-Golf never
-  ;; creates <g-param> instances, and 'blindingly' receive and pass
-  ;; GParamSpec pointers from/to GObject (just like opaque
-  ;; structures). Note that the base info name is "ParamSpec" but the
-  ;; registered type name is "GParam", hence the class is imported as
-  ;; <g-param>.
+  ;; methods, like gtk-container-class-find-child-property.
+
+  ;; In all use cases - see (g-golf hl-api argument) gi-argument->scm - G-Golf
+  ;; never creates <g-param> instances, and 'blindingly' receive and pass
+  ;; GParamSpec pointers from/to GObject (just like opaque structures).
+
+  ;; Finally, note that the base info name is "ParamSpec" but the registered
+  ;; type name is "GParam", hence the class is imported as <g-param>.
 
   (gi-import-by-name "GObject" "ParamSpec"
                      #:with-methods? #f #:force? #t)
 
   (gi-import-by-name "GObject" "Binding" #:force? #t)
   (gi-import-by-name "GObject" "BindingFlags" #:force? #t)
+  (gi-import-by-name "GObject" "TypeFlags" #:force? #t)
 
   (let ((%gi-import-object-methods
          (@@ (g-golf hl-api object) gi-import-object-methods))

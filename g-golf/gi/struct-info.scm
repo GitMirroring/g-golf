@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2021
+;;;; Copyright (C) 2019 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -46,6 +46,7 @@
 		last)
 
   #:export (gi-struct-import
+            gi-struct-field-desc
             gi-struct-field-types
 
             g-struct-info-get-alignment
@@ -74,6 +75,30 @@
       #:is-gtype-struct? (g-struct-info-is-gtype-struct info)
       #:is-foreign? (g-struct-info-is-foreign info)
       #:field-types field-types)))
+
+(define (gi-struct-field-desc info)
+  (letrec ((struct-field-desc
+	    (lambda (info n i desc)
+	      (if (= i n)
+		  (reverse desc)
+		  (let* ((field-info (g-struct-info-get-field info i))
+                         (g-name (g-base-info-get-name field-info))
+                         (name (g-name->name g-name))
+                         (type-info (g-field-info-get-type field-info))
+                         (type-tag (g-type-info-get-tag type-info))
+                         (offset (g-field-info-get-offset field-info))
+                         (flags (g-field-info-get-flags field-info)))
+		    (g-base-info-unref field-info)
+                    (g-base-info-unref type-info)
+		    (struct-field-desc info
+				       n
+				       (+ i 1)
+				       (cons (cons name (list type-tag offset flags))
+                                             desc)))))))
+    (struct-field-desc info
+		       (g-struct-info-get-n-fields info)
+		       0
+		       '())))
 
 (define (gi-struct-field-types info)
   (letrec ((struct-field-types

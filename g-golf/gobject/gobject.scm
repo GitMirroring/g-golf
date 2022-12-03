@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2019
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -49,12 +49,14 @@
             g-object-ref
             g-object-unref
             g-object-ref-sink
-            g-object-ref-count
+            g-object-ref-count		;; from libg-golf
             g-object-is-floating
-            g-object-type
-            g-object-type-name
-            g-object-get-property
-            g-object-set-property))
+            g-object-add-toggle-ref
+            g-object-remove-toggle-ref
+            g-object-type		;; from libg-golf
+            g-object-type-name		;; from libg-golf
+            g-object-get-property	;; from libg-golf
+            g-object-set-property))	;; from libg-golf
 
 
 ;;;
@@ -87,6 +89,16 @@
 
 (define (g-object-is-floating object)
   (gi->scm (g_object_is_floating object) 'boolean))
+
+(define (g-object-add-toggle-ref object notify data)
+  (g_object_add_toggle_ref object
+                           notify
+                           (scm->gi data 'pointer)))
+
+(define (g-object-remove-toggle-ref object notify data)
+  (g_object_remove_toggle_ref object
+                              notify
+                              (scm->gi data 'pointer)))
 
 ;; from libg-golf
 (define (g-object-type object)
@@ -155,6 +167,22 @@
                       (dynamic-func "g_object_is_floating"
 				    %libgobject)
                       (list '*)))
+
+(define g_object_add_toggle_ref
+  (pointer->procedure void
+                      (dynamic-func "g_object_add_toggle_ref"
+				    %libgobject)
+                      (list '*		;; *object
+                            '*		;; notify
+                            '*)))	;; *data
+
+(define g_object_remove_toggle_ref
+  (pointer->procedure void
+                      (dynamic-func "g_object_remove_toggle_ref"
+				    %libgobject)
+                      (list '*		;; *object
+                            '*		;; notify
+                            '*)))	;; *data
 
 (define g_object_get_property
   (pointer->procedure void

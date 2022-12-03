@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2019 Free Software Foundation, Inc.
+@c Copyright (C) 2019 - 2022 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -19,6 +19,7 @@ GIStructInfo — Structs representing a C structure.
 @indentedblock
 @table @code
 @item @ref{gi-struct-import}
+@item @ref{gi-struct-field-desc}
 @item @ref{gi-struct-field-types}
 @item @ref{g-struct-info-get-alignment}
 @item @ref{g-struct-info-get-size}
@@ -71,6 +72,16 @@ Returns a @code{<gi-struct>} instance.
 Obtains the list of (field) types the C struct GI definition pointed by
 @var{info} contains, then makes and returns a @code{<gi-struct>}
 instance.
+@end deffn
+
+
+@anchor{gi-struct-field-desc}
+@deffn Procedure gi-struct-field-desc info
+
+Returns a list.
+
+Obtains and returns the list of (field) descriptions for @var{info}. A
+field description is a list: @code{(name type-tag offset flags)}.
 @end deffn
 
 

@@ -123,11 +123,15 @@
             (c-name (g-name->class-name g-name)))
        (if (module-bound? module c-name)
            (module-ref module c-name)
-           (let ((public-i (module-public-interface module))
-                 (c-inst (make-class supers
-                                     '()
-                                     #:name c-name
-                                     #:info info)))
+           (let* ((public-i (module-public-interface module))
+                  (class-struct (g-object-info-get-class-struct info))
+                  (g-struct-fields (and class-struct
+                                        (gi-struct-field-desc class-struct)))
+                  (c-inst (make-class supers
+                                      '()
+                                      #:name c-name
+                                      #:info info
+                                      #:g-struct-fields g-struct-fields)))
              (module-define! module c-name c-inst)
              (module-add! public-i c-name
                           (module-variable module c-name))
@@ -215,11 +219,6 @@
 
 !#
 
-
-;;;
-;;; Interfaces
-;;;
-
 (define* (gi-import-object-interfaces info
                                       #:key (with-methods? #t) (force? #f))
   (let loop ((n-iface (g-object-info-get-n-interfaces info))
@@ -233,6 +232,11 @@
                                          #:with-methods? with-methods?
                                          #:force? force?)
                     results)))))
+
+
+;;;
+;;; Interfaces
+;;;
 
 (define* (gi-import-interface info #:key (with-methods? #t) (force? #f))
   (let* ((namespace (g-base-info-get-namespace info))
@@ -249,17 +253,20 @@
            (c-name (g-name->class-name g-name)))
       (if (module-bound? module c-name)
           (module-ref module c-name)
-          (let ((public-i (module-public-interface module))
-                (c-inst (make-class `(,<ginterface>)
+          (let* ((public-i (module-public-interface module))
+                 (iface-struct (g-interface-info-get-iface-struct info))
+                 (g-struct-fields (and iface-struct
+                                       (gi-struct-field-desc iface-struct)))
+                 (c-inst (make-class `(,<ginterface>)
                                      '()
                                      #:name c-name
-                                     #:info info)))
+                                     #:info info
+                                     #:g-struct-fields g-struct-fields)))
              (module-define! module c-name c-inst)
              (module-add! public-i c-name
                           (module-variable module c-name))
              (when with-methods?
-               (gi-import-interface-methods info #:force? force?)
-               #;(gi-import-interface-class-methods info #:force? force?))
+               (gi-import-interface-methods info #:force? force?))
              ;; We do not import signals, they are imported on
              ;; demand. Visit (g-golf hl-api signal) signal-connect and
              ;; the %gi-signal-cache related code to see how this is

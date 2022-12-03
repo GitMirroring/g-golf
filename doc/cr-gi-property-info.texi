@@ -76,7 +76,7 @@ Obtain the ownership transfer for this property. See
 
 
 @anchor{g-property-info-get-type}
-@deffn Procedure g-property-infoxs-get-type info
+@deffn Procedure g-property-info-get-type info
 
 Returns a pointer to a @code{GITypeInfo}.
 

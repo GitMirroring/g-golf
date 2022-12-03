@@ -44,6 +44,7 @@
   #:use-module (g-golf gobject)
   #:use-module (g-golf gi)
   #:use-module (g-golf hl-api gtype)
+  #:use-module (g-golf hl-api iface)
 
   #:replace (connect)
 
@@ -56,7 +57,9 @@
   #:export (<gobject>
             gobject-class?
             <ginterface>
+            ginterface-class?
 
+            g-object-find-class-by-g-type
             g-object-find-class
             g-object-make-class
             gi-add-method
@@ -181,20 +184,21 @@
        (error "Not a GObject nor an Ginterface class:" class)))))
 
 (define (gobject-ginterface-direct-properties class)
-  (if (or (boolean? (!info class))
-          (!derived class))
-      '()
-      (receive (get-n-properties get-property)
-          (n-prop-prop-accessors class)
-        (let* ((info (!info class))
-               (n-prop (get-n-properties info)))
-          (let loop ((i 0)
-                     (result '()))
-            (if (= i n-prop)
-                (reverse! result)
-                (loop (+ i 1)
-                      (cons (get-property info i)
-                            result))))))))
+  (match (!info class)
+    ((or (? boolean?)
+         (? number?)) '())
+    ((? pointer?)
+     (receive (get-n-properties get-property)
+         (n-prop-prop-accessors class)
+       (let* ((info (!info class))
+              (n-prop (get-n-properties info)))
+         (let loop ((i 0)
+                    (result '()))
+           (if (= i n-prop)
+               (reverse! result)
+               (loop (+ i 1)
+                     (cons (get-property info i)
+                           result)))))))))
 
 (define-method (compute-slots (class <gobject-class>))
   (let* ((slots (next-method))
@@ -242,19 +246,44 @@
      (next-method))))
 
 (define-method (initialize (class <gobject-class>) initargs)
-  (let ((info (get-keyword #:info initargs #f)))
+  (let ((info (get-keyword #:info initargs #f))
+        (g-type (get-keyword #:g-type initargs #f)))
     (next-method
      class
-     (if info
-         (cons* #:info info initargs)
-         (cons* #:derived #t
-                #:info (!info (find gobject-class?
-                                    (apply append
-                                           (map class-precedence-list
-                                             (get-keyword #:dsupers initargs '())))))
-                initargs))))
-  #;(install-properties!)
-  #;(install-signals! class))
+     (cond (info initargs)
+           (g-type (cons* #:info g-type initargs))
+           (else
+            (cons* #:derived #t
+                   #:info (g-golf-type-register class initargs)
+                   initargs))))))
+
+(define (g-golf-type-register class initargs)
+  (let* ((name (get-keyword #:name initargs #f))
+         (g-name (class-name->g-name name))
+         (dsupers (get-keyword #:dsupers initargs '()))
+         (p-type (!g-type (find gobject-class?
+                                (apply append
+                                       (map class-precedence-list dsupers))))))
+    (match (g-type-query p-type)
+      ((p-type p-name class-size instance-size)
+       (let ((g-type (g-type-register-static-simple p-type
+                                                    g-name
+                                                    class-size
+                                                    #f ;; class-init-func
+                                                    instance-size
+                                                    #f ;; instance-init-func
+                                                    '())))
+         (for-each (lambda (iface-class)
+                     (g-golf-type-add-interface g-type iface-class))
+             (filter-map (lambda (class)
+                           (and (ginterface-class? class) class))
+                 dsupers))
+         g-type)))))
+
+(define (g-golf-type-add-interface g-type iface-class)
+  (g-type-add-interface-static g-type
+                               (!g-type iface-class)
+                               (gi-iface-info-struct iface-class)))
 
 (define (g-inst-get-property inst g-name g-type)
   (let* ((g-value (g-value-init g-type))
@@ -393,6 +422,12 @@
   #:info #t
   #:metaclass <gobject-class>)
 
+(define (ginterface-class? class)
+  (let ((cpl (class-precedence-list class)))
+    (and (not (memq <gobject> cpl))
+         (memq <ginterface> cpl)
+         #t)))
+
 
 ;;;
 ;;; Utils
@@ -414,35 +449,63 @@
 ;; (b) a subsequent call to webkit-web-view-get-tls-info could very well
 ;; return another certificate subclass type.
 
-(define (g-object-find-class foreign)
-  (let* ((module (resolve-module '(g-golf hl-api gobject)))
-         (g-type (g-object-type foreign))
-         (g-name (g-object-type-name foreign))
-         (name (g-name->class-name g-name))
-         (class-var (module-variable module name))
-         (class (and class-var (module-ref module name))))
-    (if class
-        (values class name g-type)
-        (values (g-object-make-class g-type g-name name module)
-                name
-                g-type))))
+;; Another example of a runtime class is the GdkWaylandClipboard, which
+;; subclass GdkClipboard.
 
-(define (g-object-make-class g-type g-name c-name module)
-  (let* ((parent (g-type-parent g-type))
-         (g-p-name (g-type-name parent))
-         (p-name (g-name->class-name g-p-name))
+(define (g-object-find-class-by-g-type g-type)
+  (let loop ((classes (class-subclasses <gobject>)))
+    (match classes
+      (() #f)
+      ((head . tail)
+       (if (= (!g-type head) g-type)
+           head
+           (loop tail))))))
+
+(define (g-object-find-class foreign)
+  (let* ((g-type (g-object-type foreign))
+         (class (g-object-find-class-by-g-type g-type)))
+    (if class
+        (values class (class-name class) g-type)
+        (g-object-make-class foreign g-type))))
+
+(define* (g-object-make-class foreign #:optional g-type)
+  (let* ((module (resolve-module '(g-golf hl-api gobject)))
+         (g-type (or g-type (g-object-type foreign)))
+         (g-name (g-object-type-name foreign))
+         (c-name (g-name->class-name g-name))
+         (parent (g-type-parent g-type))
+         (p-g-name (g-type-name parent))
+         (p-name (g-name->class-name p-g-name))
          (p-class-var (module-variable module p-name))
          (p-class (and p-class-var (module-ref module p-name))))
+    (when (%debug)
+      (dimfi 'g-object-make-class)
+      (dimfi "  " g-type g-name c-name 'p-name p-name))
     (if p-class
-        (let ((public-i (module-public-interface module))
-              (c-inst (make-class `(,p-class)
-                                  '()
-                                  #:name c-name)))
+        (let* ((public-i (module-public-interface module))
+               (ifaces (g-object-class-interfaces g-type))
+               (c-inst (make-class (cons p-class ifaces)
+                                   '()
+                                   #:name c-name
+                                   #:g-type g-type)))
           (module-define! module c-name c-inst)
           (module-add! public-i c-name
                        (module-variable module c-name))
-          c-inst)
+          (values c-inst c-name g-type))
         (error "Undefined (parent) class: " p-name))))
+
+(define (g-object-class-interfaces g-type)
+  (let ((module (resolve-module '(g-golf hl-api gobject)))
+        (ifaces (g-type-interfaces g-type)))
+    (map (lambda (iface)
+           (let* ((g-name (g-type-name iface))
+                  (name (g-name->class-name g-name))
+                  (m-var (module-variable module name)))
+             (or (and m-var
+                      (variable-ref m-var))
+                 (scm-error 'unbound-variable #f "No such GInterface : ~S"
+                            (list name) #f))))
+      ifaces)))
 
 (define (gi-add-method generic specializers procedure)
   (for-each (lambda (xp-spec)

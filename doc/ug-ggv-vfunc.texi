@@ -1,0 +1,282 @@
+@c -*-texinfo-*-
+@c This is part of the GNU G-Golf Reference Manual.
+@c Copyright (C) 2022 Free Software Foundation, Inc.
+@c See the file g-golf.texi for copying conditions.
+
+
+@node VFunc Alley
+@subsection VFunc Alley
+
+VFunc Alley - VFunc G-Golf support.
+
+@sp 1
+@center @sup{_} @sc{Special Notes} @sup{_}
+
+For completion, this section exposes the definition of the @ref{<vfunc>}
+class and @ref{vfunc} syntax, involved in the G-Golf integration of the
+(GLib Object System) VFunc. From a (strict) user point of view however,
+these are actually G-Golf internals and, unless you are interested of
+course, might be ignored.
+
+In the GObject documentation, the terminology (mostly) used is
+@code{virtual public|private method} or simply @code{virtual
+method}. In the @abbr{GI, GObject Introspection} documentation however,
+the structure representing a virtual method is named a
+@code{GIVFuncInfo} and the description says it represents a virtual
+function. The GI core functionality also uses the @code{vfunc} or
+@code{vfunc-info} prefix, infix or postfix terms, depending on the
+context.
+
+
+@sp 1
+@subheading Class
+
+@indentedblock
+@table @code
+@item @ref{<vfunc>}
+@end table
+@end indentedblock
+
+
+@subheading Syntaxes and Accessors
+
+@indentedblock
+@table @code
+@item @ref{define-vfunc}
+@item @ref{vfunc}
+@item @ref{!specializer}
+@item @ref{!name_______}
+@item @ref{!g-name_______}
+@item @ref{!long-name-prefix}
+@item @ref{!gf-long-name?}
+@item @ref{!info__}
+@item @ref{!callback}
+@end table
+@end indentedblock
+
+
+@subheading Description
+
+Welcome to the VFunc G-Golf Alley.
+
+Let's first recap :-) GObject (the GLib Object System) offers different
+ways to define object and interface methods and extend them, well
+introduced and described in the @uref{@value{UGOBJECT-Tutorial}, GObject
+Tutorial}:
+
+@itemize @bullet
+@item
+non-virtual public methods
+
+@item
+virtual public methods
+
+@item
+virtual private methods
+
+@item
+non-virtual private methods
+@end itemize
+
+Of those four, virtual public methods and virtual private
+methods maybe overridden, through the use of a mechanism that involves
+the creation of a C closure and the setting of its pointer in the
+corresponding GObject or Interface class struct.
+
+In G-Golf, this is implemented by the @ref{define-vfunc} syntax, which
+must be used to define a VFunc (virtual method). From a user
+perspective, define-vfunc is very much like define-method (@xref{Methods
+and Generic Functions,,, guile, The GNU Guile Reference Manual}).
+
+Here is an example, which defines a GObject subclass that inherits the
+GdkPaintable interface, then overrides the get_flags VFunc, one of its
+numerous virtual methods:
+
+@lisp
+(define-class <solitaire-peg> (<gobject> <gdk-paintable>)
+  (i #:accessor !i #:init-keyword #:i)
+  (j #:accessor !j #:init-keyword #:j))
+
+(define-vfunc (get-flags-vfunc (self <solitaire-peg>))
+  '(size contents))
+@end lisp
+
+The only difference, from a user point of view and as you can see in the
+exmple above, is that define-vfunc imposes one (or two, depending on the
+context) additional constraint(s) to the VFunc name, fully described in
+the @ref{define-vfunc} definition.
+
+
+@c @noindent
+@c @code{define-vfunc}:
+
+@c @itemize @bullet
+@c @item
+@c extracts formals and specializing classes from the @var{parameter}s,
+@c defaulting the class for unspecialized parameters to @code{<top>}
+@c @c @*@*
+
+@c @item
+@c creates a closure using the formals and the @var{body} forms
+@c @c @*@*
+
+@c @item
+@c calls @code{make} with metaclass @code{<vfunc>} and the specializers
+@c and closure using the @code{#:specializers} and @code{#:procedure}
+@c keywords.
+@c @end itemize
+
+
+@subheading Class
+
+@anchor{<vfunc>}
+@deftp Class <vfunc>
+
+The base class of all virtual method.
+
+It is an instance of @code{<class>}.
+
+Superclasses are:
+
+@indentedblock
+@table @code
+@item <method>
+@end table
+@end indentedblock
+
+Class Precedence List:
+
+@indentedblock
+@table @code
+@item <vfunc>
+@item <method>
+@item <object>
+@item <top>
+@end table
+@end indentedblock
+
+Direct slots are:
+
+@indentedblock
+@table @code
+@item @emph{specializer}
+#:accessor !specializer
+
+@item @emph{name}
+#:accessor !name
+
+@item @emph{g-name}
+#:accessor !g-name
+
+@item @emph{long-name-preifx}
+#:accessor !long-name-preofx
+
+@item @emph{gf-long-name?}
+#:accessor !gf-long-name?
+
+@item @emph{info}
+#:accessor !info
+
+@item @emph{callback}
+#:accessor !callback
+@end table
+@end indentedblock
+
+All direct slots are initialized automatically and immutable (to be
+precise, they are not meant to be mutated, see @ref{GOOPS Notes and
+Conventions}, 'Slots are not Immutable').
+@end deftp
+
+
+@subheading Syntaxes and Accessors
+
+
+@anchor{define-vfunc}
+@deffn Syntax define-vfunc (generic parameter @dots{}) body @dots{}
+
+Defines a vfunc (a specialized method) for the generic function
+@var{generic} with parameters @var{parameter}s and body @var{body}
+@enddots{}.
+
+@var{generic} is a generic function, and the following constraints apply
+to the generic function name:
+
+@itemize @bullet
+@item the @var{generic} function name is valid if it is the scheme
+representation of a VFunc (name) that exists for at least one of the
+instance specializer superclasses, followed by the @code{-vfunc}
+postfix@footnote{This is because most of the cases, in the upstream lib,
+the VFunc is a virtual public method, that is, both a method and a VFunc
+exist that use the same name. When that happens, the upstream lib method
+normally has the same arity and definition (spec), and it 'just' calls
+the VFunc - however, it is (unfortunately) not guaranteed to always be
+the case, hence all GI lang bindings impose a specific VFunc naming
+convention. Pygobject for example imposes to use a @code{do-} prefix. In
+G-Golf, we opted for a @code{-vfunc} postfix.}.  @*@*
+
+@item if more then one instance specializer superclasses has a VFunc
+name, then the scheme name must be a so-called long name@footnote{It
+must be prefixed using the scheme representation name of the GObject or
+Interface that owns the Vfunc, followed by @code{-} (hyphen),
+i.e. gdk-paintable-get-flags-vfunc is the valid define-vfunc long name
+for the get_flags virtual method of the GdkPaintable interface.},
+followed by the @code{-vfunc} postfix@footnote{Otherwise, it would be
+impossible to deternine which iface or gobject class struct the *-vfunc
+user code is meant to override. Consider (define-class <foo> (<gobject>
+<bar> <baz>)), with both <bar> and <baz> defining a get_flags VFunc: in
+this context (define-vfunc (get-flags-vfunc (self <foo>))...) is an
+invalid definition, as it is not possible for G-Golf to deternine if it
+is the <bar> or the <baz> iface class struct VFunc that must be
+overridden. In such cases, the user must pass a method long name,
+i.e. (define-vfunc (bar-get-flags-vfunc (self <foo>)) ...)  or
+(define-vfunc (baz-get-flags-vfunc (self <foo>)) ...).}.
+@end itemize
+
+If @var{generic} is a variable which is not yet bound to a generic
+function object, the expansion of @code{define-vfunc} will include a
+call to @code{define-generic}.
+
+Each @var{parameter} must be either a symbol or a two-element list
+@code{(@var{symbol} @var{class})}.  The symbols refer to variables in
+the body forms that will be bound to the parameters supplied by the
+caller when calling this method.  The @var{class}es, if present, specify
+the possible combinations of parameters to which this method can be
+applied.
+
+@var{body} @dots{} are the bodies of the vfunc definition.
+
+
+@end deffn
+
+
+@anchor{vfunc}
+@deffn Syntax vfunc (parameter @dots{}) body @dots{}
+
+Makes a vfunc (a specialized method) whose specializers are defined by
+the classes in @var{parameter}s and whose procedure definition is
+constructed from the @var{parameter} symbols and @var{body} forms.
+
+The @var{parameter} and @var{body} parameters should be as for
+@ref{define-vfunc}.
+@end deffn
+
+
+@anchor{!specializer}
+@anchor{!name_______}
+@anchor{!g-name_______}
+@anchor{!long-name-prefix}
+@anchor{!gf-long-name?}
+@anchor{!info__}
+@anchor{!callback}
+@deffn Accessor !specializer inst
+@deffnx Accessor !name inst
+@deffnx Accessor !g-name inst
+@deffnx Accessor !long-name-prefix inst
+@deffnx Accessor !gf-long-name? inst
+@deffnx Accessor !info inst
+@deffnx Accessor !callback inst
+
+Returns the content of their respective slot for @var{inst} (a <vfunc>
+instance).
+
+@end deffn

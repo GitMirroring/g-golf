@@ -62,10 +62,11 @@
           !g-type
           !g-name
           !g-class
+          !g-struct-fields
 
           !g-inst
           unref
-          g-inst-cache-remove!)
+          #;g-inst-cache-remove!)
 
 
 ;;;
@@ -75,30 +76,42 @@
 ;; The metaclass of all GType classes.
 
 (define-class <gtype-class> (<class>)
-  (info #:accessor !info
-        #:init-keyword #:info)
+  (info #:accessor !info #:init-keyword #:info)
   (derived #:accessor !derived
            #:init-keyword #:derived #:init-value #f)
-  (namespace #:accessor !namespace)
-  (g-type #:accessor !g-type)
+  (namespace #:accessor !namespace #:init-value #f)
+  (g-type #:accessor !g-type #:init-keyword #:g-type)
   (g-name #:accessor !g-name)
-  (g-class #:accessor !g-class))
+  (g-class #:accessor !g-class)
+  (g-struct-fields #:accessor !g-struct-fields
+                   #:init-keyword #:g-struct-fields #:init-value #f))
 
 (define-method (initialize (self <gtype-class>) initargs)
   (let ((info (or (get-keyword #:info initargs #f)
                   (error "Missing #:info initarg: " initargs))))
     (next-method)
-    (unless (boolean? info) ;; it is #t for gtype instances
-      (let* ((namespace (g-base-info-get-namespace info))
-             (g-type (g-registered-type-info-get-g-type info))
-             (g-f-type (g-type-fundamental g-type))
-             (g-name (g-registered-type-info-get-type-name info))
-             (g-class (g-type-class info #:g-type g-type)))
-        (mslot-set! self
-                    'namespace namespace
-                    'g-type g-type
-                    'g-name g-name
-                    'g-class g-class)))))
+    (match info
+      (#t 'done)		;; it is #t for gtype instances
+      ((? pointer?)		;; a GI class definition
+       (let* ((namespace (g-base-info-get-namespace info))
+              (g-type (g-registered-type-info-get-g-type info))
+              (g-f-type (g-type-fundamental g-type))
+              (g-name (g-registered-type-info-get-type-name info))
+              (g-class (g-type-class info #:g-type g-type)))
+         (mslot-set! self
+                     'namespace namespace
+                     'g-type g-type
+                     'g-name g-name
+                     'g-class g-class)))
+      ((? number?)		;; either a runtime or a derived class
+       (let* ((g-type info)
+              (g-name (g-type-name g-type))
+              (g-class (g-type-class #f #:g-type g-type)))
+         (mslot-set! self
+                     'info #f
+                     'g-type g-type
+                     'g-name g-name
+                     'g-class g-class))))))
 
 (define* (g-type-class info #:key (g-type #f))
   (let* ((g-type (or g-type
@@ -120,7 +133,12 @@
   #:info #t
   #:metaclass <gtype-class>)
 
-(define-method (make (class <gtype-class>) . initargs)
+;; Implementing a toggle ref mechanism in g-golf, this version of the
+;; specialized make method has a branch that should normally never ever
+;; be 'reached' again - keeping the code to compare, I'll drop it when
+;; everything is under control using the toggle ref mechanism.
+
+#;(define-method (make (class <gtype-class>) . initargs)
   ;; If #:g-inst is passed, we first check if the g-inst is cached, in
   ;; which case we just the goops instance associated with it, unless we
   ;; detect that the cache holds an entry that is no longer valid, as
@@ -143,6 +161,30 @@
                 (g-inst-cache-remove! g-inst)
                 (next-method))))
         (next-method))))
+
+(define-method (make (class <gtype-class>) . initargs)
+  ;; If #:g-inst is passed, we first check if the g-inst is cached, in
+  ;; which case we just the goops instance associated with it.
+  (let* ((g-inst (get-keyword #:g-inst initargs #f))
+         (inst (and g-inst
+                    (g-inst-cache-ref g-inst))))
+    (if inst
+        (let* ((its-class (class-of inst))
+               (derived? (!derived its-class)))
+          (if (or derived?
+                  (eq? its-class class))
+              inst
+              ;; Should not be possible anymore, as g-golf is now using
+              ;; the toggle ref mechanism.
+              (scm-error 'impossible #f "Invalid g-inst-cache entry detected: ~S"
+                         (list inst) #f)))
+        (next-method))))
+
+#!
+
+;; Implementing a toggle ref mechanism in g-golf, the g-inst-cache
+;; becomes a normal hash-table and we do not need a g-inst-guard
+;; anymore. Keeping the code (as an example).
 
 (define-syntax make-g-inst-guard
   (syntax-rules ()
@@ -184,6 +226,47 @@
              (g-object-ref-sink g-inst))))
         (set! (!g-inst self) g-inst)
         (g-inst-guard g-inst self)))))
+
+!#
+
+;; Monitoring 'things - just keeping the code
+#;(dimfi (if (gi->scm is-last-ref 'boolean)
+           'last-ref
+           'not-the-last-ref)
+        (g-inst-cache-ref object)
+        (g-object-ref-count object))
+
+(define (g-toggle-notify data object is-last-ref)
+  (when (gi->scm is-last-ref 'boolean)
+    (g-object-remove-toggle-ref object %g-toggle-notify #f)
+    (g-inst-cache-remove! object)))
+
+(define %g-toggle-notify
+  (procedure->pointer void
+                      g-toggle-notify
+                      (list '*		;; data
+                            '*		;; *object
+                            int)))	;; is-last-ref
+
+(define-method (initialize (self <gtype-instance>) initargs)
+  (let* ((class (class-of self))
+         (g-type (!g-type class))
+         (g-type-name (g-type->symbol (g-type-fundamental g-type))))
+    (receive (split-kw split-rest)
+        (split-keyword-args (map slot-definition-init-keyword
+                              (class-g-property-slots class))
+                            initargs)
+      (let* ((g-inst? (get-keyword #:g-inst initargs #f))
+             (g-inst (or g-inst?
+                        (g-inst-construct self split-kw))))
+        (next-method self split-rest)
+        (case g-type-name
+          ((object) ;; [not when interface]
+           (when (g-object-is-floating g-inst)
+             (g-object-ref-sink g-inst))
+           (g-object-add-toggle-ref g-inst %g-toggle-notify #f)))
+        (set! (!g-inst self) g-inst)
+        (g-inst-cache-set! g-inst self)))))
 
 (define %g_value_init
   (@@ (g-golf gobject generic-values) g_value_init))
@@ -259,18 +342,22 @@
                      results)))))))
 
 (define-method (unref (self <gtype-instance>))
-  (let* ((g-inst (!g-inst self))
-         (prev-ref-count (g-object-ref-count g-inst)))
-    (g-object-unref g-inst)
-    (when (= prev-ref-count 1)
-      (g-inst-cache-remove! self)
-      (set! (!g-inst self) #f))
-    (values)))
+  ;; Users should normally never call this method, and never call
+  ;; g-object-unref directly either - it merely exists for debugging
+  ;; and/or monitoring purposes.
+  (g-object-unref (!g-inst self)))
 
 
 ;;;
 ;;; Instance cache methods 'completion'
 ;;;
+
+#!
+
+;; We don't need those anymore, as g-golf now implements a toggle
+;; reference mechanism, nor users nor g-golf (outside the toggle
+;; reference mechanism) should never ever have to call any of the g-inst
+;; cache procedures.
 
 (define-method (g-inst-cache-remove! (self <foreign>))
   (hashq-remove! %g-inst-cache
@@ -281,3 +368,5 @@
   (hashq-remove! %g-inst-cache
                  (pointer-address (or g-inst
                                       (!g-inst self)))))
+
+!#
