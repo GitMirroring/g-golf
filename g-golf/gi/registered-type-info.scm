@@ -84,7 +84,7 @@
                       (list '*)))
 
 (define g_registered_type_info_get_g_type
-  (pointer->procedure int64
+  (pointer->procedure unsigned-long
                       (dynamic-func "g_registered_type_info_get_g_type"
 				    %libgirepository)
                       (list '*)))
