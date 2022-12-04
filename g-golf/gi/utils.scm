@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2021
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -251,16 +251,16 @@
   (if (or (not pointer)
           (null-pointer? pointer))
       '()
-      (letrec* ((u64-size (sizeof unsigned-long))
+      (letrec* ((s-ulong (sizeof unsigned-long))
                 (gi-gtypes->scm-1
                  (lambda (pointer result)
                    (receive (d-pointer)
                        (dereference-pointer pointer)
                      (if (null-pointer? d-pointer)
                          (reverse! result)
-                         (let ((u64 (pointer->bytevector pointer u64-size)))
-                           (gi-gtypes->scm-1 (gi-pointer-inc pointer u64-size)
-                                             (cons (u64vector-ref u64 0)
+                         (let ((ulong (pointer->bytevector pointer s-ulong)))
+                           (gi-gtypes->scm-1 (gi-pointer-inc pointer s-ulong)
+                                             (cons (ulongvector-ref ulong 0)
                                                    result))))))))
         (gi-gtypes->scm-1 pointer '()))))
 
@@ -269,15 +269,15 @@
           (null-pointer? pointer)
           (= n-gtype 0))
       '()
-      (let ((u64 (pointer->bytevector pointer
-                                      (* n-gtype
-                                         (sizeof unsigned-long)))))
+      (let ((ulong (pointer->bytevector pointer
+                                        (* n-gtype
+                                           (sizeof unsigned-long)))))
         (let loop ((i 0)
                    (results '()))
           (if (= i n-gtype)
               (reverse! results)
               (loop (+ i 1)
-                    (cons (u64vector-ref u64 i)
+                    (cons (ulongvector-ref ulong i)
                           results)))))))
 
 
@@ -417,17 +417,17 @@
   (if (null? lst)
       %null-pointer
       (let* ((n-gtype (or n-gtype (length lst)))
-             (u64 (make-u64vector n-gtype 0)))
+             (ulong (make-ulongvector n-gtype 0)))
         (let loop ((lst lst)
                    (i 0))
           (match lst
             (()
-             (bytevector->pointer u64))
+             (bytevector->pointer ulong))
             ((g-type . rest)
-             (u64vector-set! u64 i
-                             (if (symbol? g-type)
-                                 (symbol->g-type g-type)
-                                 g-type))
+             (ulongvector-set! ulong i
+                               (if (symbol? g-type)
+                                   (symbol->g-type g-type)
+                                   g-type))
              (loop rest
                    (+ i 1))))))))
 
@@ -435,16 +435,16 @@
   (if (null? lst)
       %null-pointer
       (let* ((n-gtype (length lst))
-             (u64 (make-u64vector (+ n-gtype 1) 0)))
+             (ulong (make-ulongvector (+ n-gtype 1) 0)))
         (let loop ((lst lst)
                    (i 0))
           (match lst
             (()
-             (bytevector->pointer u64))
+             (bytevector->pointer ulong))
             ((g-type . rest)
-             (u64vector-set! u64 i
-                             (if (symbol? g-type)
-                                 (symbol->g-type g-type)
-                                 g-type))
+             (ulongvector-set! ulong i
+                               (if (symbol? g-type)
+                                   (symbol->g-type g-type)
+                                   g-type))
              (loop rest
                    (+ i 1))))))))

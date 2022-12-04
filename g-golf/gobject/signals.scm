@@ -35,6 +35,7 @@
   #:use-module (g-golf support utils)
   #:use-module (g-golf support enum)
   #:use-module (g-golf support flags)
+  #:use-module (g-golf support bytevector)
   #:use-module (g-golf glib mem-alloc)
   #:use-module (g-golf glib quarks)
   #:use-module (g-golf gobject type-info)
@@ -158,7 +159,7 @@
   (if (= n-param 0)
       '()
       (map g-type->symbol
-        (u64vector->list
+        (ulongvector->list
          (pointer->bytevector param-types
                               (* n-param
                                  (sizeof unsigned-long)))))))

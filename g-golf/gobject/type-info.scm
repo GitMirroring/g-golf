@@ -34,6 +34,7 @@
   #:use-module (rnrs arithmetic bitwise)
   #:use-module (g-golf init)
   #:use-module (g-golf support flags)
+  #:use-module (g-golf support bytevector)
   #:use-module (g-golf glib mem-alloc)
   #:use-module (g-golf gi cache-gi)
   #:use-module (g-golf gi utils)
@@ -137,9 +138,9 @@
          (ifaces (g_type_interfaces g-type
                                     (bytevector->pointer n-iface-bv)))
          (n-iface (u32vector-ref n-iface-bv 0))
-         (results (u64vector->list
+         (results (ulongvector->list
                    (pointer->bytevector ifaces
-                                        (* n-iface s-ulong) 0))))
+                                        (* n-iface s-ulong)))))
     (g-free ifaces)
     results))
 

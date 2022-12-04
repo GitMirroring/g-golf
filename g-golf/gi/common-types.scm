@@ -36,6 +36,7 @@
   #:use-module (g-golf init)
   #:use-module (g-golf support enum)
   #:use-module (g-golf support union)
+  #:use-module (g-golf support bytevector)
   #:use-module (g-golf gi utils)
 
   #:duplicates (merge-generics
@@ -232,8 +233,8 @@ add as a comment)."
       int32) s32vector-ref)
     ((uint32) u32vector-ref)
     ((int64) s64vector-ref)
-    ((uint64
-      gtype) u64vector-ref)
+    ((uint64) u64vector-ref)
+    ((gtype) ulongvector-ref)
     ((float) f32vector-ref)
     ((double) f64vector-ref)
     (else
