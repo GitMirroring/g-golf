@@ -503,8 +503,11 @@
                   (m-var (module-variable module name)))
              (or (and m-var
                       (variable-ref m-var))
-                 (scm-error 'unbound-variable #f "No such GInterface : ~S"
-                            (list name) #f))))
+                 (scm-error 'unbound-variable #f
+                            "Runtime class ~A - No such GInterface : ~S"
+                            (list (g-name->class-name
+                                   (g-type-name g-type))
+                                  name) #f))))
       ifaces)))
 
 (define (gi-add-method generic specializers procedure)
