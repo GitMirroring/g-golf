@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2020
+;;;; Copyright (C) 2020 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -37,15 +37,23 @@
 		warn
 		last))
 
+(eval-when (expand load eval)
+  (use-modules (oop goops))
 
-(for-each (lambda (item)
-            (gi-import-by-name "Gtk" item #:version "3.0"))
-    '("HPaned"
-      "VPaned"
-      "TreeView"
-      "ListStore"
-      "TextBuffer"
-      "init"))
+  (default-duplicate-binding-handler
+    '(merge-generics replace warn-override-core warn last))
+
+  (use-modules (g-golf))
+
+  (g-irepository-require "Gtk" #:version "3.0")
+  (for-each (lambda (item)
+              (gi-import-by-name "Gtk" item))
+      '("HPaned"
+        "VPaned"
+        "TreeView"
+        "ListStore"
+        "TextBuffer"
+        "init")))
 
 (gtk-init 0 '())
 
