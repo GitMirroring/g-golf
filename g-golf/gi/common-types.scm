@@ -197,7 +197,10 @@ add as a comment)."
     ((uint64) 'v-uint64)
     ((float) 'v-float)
     ((double) 'v-double)
-    ((gtype) 'v-ulong)
+    ((gtype) (case (sizeof size_t)
+               ((4) 'v-uint32)
+               ((8) 'v-uint64)
+               (else (error "what machine is this?"))))
     ((short) 'v-short)		;; <- from CL implementtion
     ((ushort) 'v-ushort)
     ((int) 'v-int)
@@ -234,7 +237,7 @@ add as a comment)."
     ((uint32) u32vector-ref)
     ((int64) s64vector-ref)
     ((uint64) u64vector-ref)
-    ((gtype) ulongvector-ref)
+    ((gtype) gtypevector-ref)
     ((float) f32vector-ref)
     ((double) f64vector-ref)
     (else

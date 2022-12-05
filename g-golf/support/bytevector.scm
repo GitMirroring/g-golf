@@ -34,6 +34,12 @@
   #:export (bv-ptr-ref
             bv-ptr-set!
 
+            make-gtypevector
+            gtypevector-ref
+            gtypevector-set!
+            gtypevector->list
+            list->gtypevector
+
             make-ulongvector
             ulongvector-ref
             ulongvector-set!
@@ -64,14 +70,62 @@
 
 
 ;;;
-;;; GType support on 32bits machines
+;;; Support for GLib and C types that varies in length
+;;; depending on the platform
 ;;;
 
-;; GType is an unsigned-long, the size of which is 64bits on 64bits
-;; machines and 32bits on 32bits machines - Till this code, G-Golf was
-;; not doing the right thing though, arbitrarily using u64vector-*
-;; accessors, let's fix this - Thanks to clh3 on #guile, who reported
-;; this problem.
+;;;
+;;; GType
+;;;
+
+(define make-gtypevector
+  (case (sizeof size_t)
+    ((8) (lambda (n . value)
+           (match value
+             (() (make-u64vector n))
+             ((val) (make-u64vector n val)))))
+    ((4) (lambda (n . value)
+           (match value
+             (() (make-u32vector n))
+             ((val) (make-u32vector n val)))))
+    (else (error "what machine is this?"))))
+
+(define gtypevector-ref
+  (case (sizeof size_t)
+    ((8) (lambda (bv offset)
+           (u64vector-ref bv offset)))
+    ((4) (lambda (bv offset)
+           (u32vector-ref bv offset)))
+    (else (error "what machine is this?"))))
+
+(define gtypevector-set!
+  (case (sizeof size_t)
+    ((8) (lambda (bv offset value)
+           (u64vector-set! bv offset value)))
+    ((4) (lambda (bv offset value)
+           (u32vector-set! bv offset value)))
+    (else (error "what machine is this?"))))
+
+(define gtypevector->list
+  (case (sizeof size_t)
+    ((8) (lambda (bv)
+           (u64vector->list bv)))
+    ((4) (lambda (bv)
+           (u32vector->list bv)))
+    (else (error "what machine is this?"))))
+
+(define list->gtypevector
+  (case (sizeof size_t)
+    ((8) (lambda (lst)
+           (list->u64vector lst)))
+    ((4) (lambda (lst)
+           (list->u32vector lst)))
+    (else (error "what machine is this?"))))
+
+
+;;;
+;;; unsigned-long
+;;;
 
 (define make-ulongvector
   (case (sizeof unsigned-long)

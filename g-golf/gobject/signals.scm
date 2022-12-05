@@ -159,10 +159,9 @@
   (if (= n-param 0)
       '()
       (map g-type->symbol
-        (ulongvector->list
+        (gtypevector->list
          (pointer->bytevector param-types
-                              (* n-param
-                                 (sizeof unsigned-long)))))))
+                              (* n-param (sizeof size_t)))))))
 
 
 ;;;
