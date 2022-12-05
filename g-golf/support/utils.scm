@@ -470,7 +470,7 @@ renamer must be defined: " snp-prefix snp-postfix snp-renamer)))))
       float
       double)
      (eval type-tag (current-module)))
-    ((gtype) unsigned-long)
+    ((gtype) size_t)
     ((utf8
       filename
       array

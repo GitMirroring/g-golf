@@ -145,7 +145,7 @@
     results))
 
 (define %g-type-query-struct
-  (list unsigned-long	;; g-type
+  (list size_t		;; g-type
         '*		;; type-name
         unsigned-int	;; class-size
         unsigned-int))	;; instance-size
@@ -247,38 +247,38 @@
   (pointer->procedure '*
                       (dynamic-func "g_type_name"
 				    %libgobject)
-                      (list unsigned-long)))
+                      (list size_t)))
 
 (define g_type_from_name
-  (pointer->procedure unsigned-long
+  (pointer->procedure size_t
                       (dynamic-func "g_type_from_name"
 				    %libgobject)
                       (list '*)))
 
 (define g_type_parent
-  (pointer->procedure unsigned-long
+  (pointer->procedure size_t
                       (dynamic-func "g_type_parent"
 				    %libgobject)
-                      (list unsigned-long)))
+                      (list size_t)))
 
 (define g_type_is_a
   (pointer->procedure int
                       (dynamic-func "g_type_is_a"
 				    %libgobject)
-                      (list unsigned-long
-                            unsigned-long)))
+                      (list size_t
+                            size_t)))
 
 (define g_type_class_ref
   (pointer->procedure '*
                       (dynamic-func "g_type_class_ref"
 				    %libgobject)
-                      (list unsigned-long)))
+                      (list size_t)))
 
 (define g_type_class_peek
   (pointer->procedure '*
                       (dynamic-func "g_type_class_peek"
 				    %libgobject)
-                      (list unsigned-long)))
+                      (list size_t)))
 
 (define g_type_class_unref
   (pointer->procedure void
@@ -291,27 +291,27 @@
                       (dynamic-func "g_type_interface_peek"
 				    %libgobject)
                       (list '*			;; g-class
-                            unsigned-long)))	;; iface-type
+                            size_t)))		;; iface-type
 
 (define g_type_interfaces
   (pointer->procedure '*
                       (dynamic-func "g_type_interfaces"
 				    %libgobject)
-                      (list unsigned-long	;; g-type
+                      (list size_t		;; g-type
                             '*)))		;; n-iface (pointer to guint)
 
 (define g_type_query
   (pointer->procedure void
                       (dynamic-func "g_type_query"
 				    %libgobject)
-                      (list unsigned-long
+                      (list size_t
                             '*)))
 
 (define g_type_register_static_simple
-  (pointer->procedure unsigned-long
+  (pointer->procedure size_t
                       (dynamic-func "g_type_register_static_simple"
 				    %libgobject)
-                      (list unsigned-long	;; parent-type
+                      (list size_t		;; parent-type
                             '*			;; type-name
                             unsigned-int	;; class-size
                             '*			;; class-init (func)
@@ -323,21 +323,21 @@
   (pointer->procedure void
                       (dynamic-func "g_type_add_interface_static"
 				    %libgobject)
-                      (list unsigned-long	;; g-type
-                            unsigned-long	;; iface-type
+                      (list size_t		;; g-type
+                            size_t		;; iface-type
                             '*)))		;; iface-info
 
 (define g_type_fundamental
   (pointer->procedure size_t
                       (dynamic-func "g_type_fundamental"
 				    %libgobject)
-                      (list unsigned-long)))
+                      (list size_t)))
 
 (define g_type_ensure
   (pointer->procedure void
                       (dynamic-func "g_type_ensure"
 				    %libgobject)
-                      (list unsigned-long)))
+                      (list size_t)))
 
 
 ;;;

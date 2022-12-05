@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016, 2021
+;;;; Copyright (C) 2016, 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -84,7 +84,7 @@
                       (list '*)))
 
 (define g_registered_type_info_get_g_type
-  (pointer->procedure unsigned-long
+  (pointer->procedure size_t
                       (dynamic-func "g_registered_type_info_get_g_type"
 				    %libgirepository)
                       (list '*)))

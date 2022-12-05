@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016, 2020
+;;;; Copyright (C) 2016, 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -217,7 +217,8 @@
   (pointer->procedure '*
                       (dynamic-func "g_irepository_find_by_gtype"
 				    %libgirepository)
-                      (list '* unsigned-long)))
+                      (list '*
+                            size_t)))
 
 (define g_irepository_find_by_name
   (pointer->procedure '*
