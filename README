@@ -71,6 +71,10 @@ in G-Golf:
     (show window)))
 #+END_SRC
 
+G-Golf comes with some examples, listed on the [[https://www.gnu.org/software/g-golf/learn.html][learn page]] of the G-Golf
+web site. Each example comes with a screenshot and has a link that
+points to its source code, in the G-Golf sources [[http://git.savannah.gnu.org/cgit/g-golf.git][repository]].
+
 ** Latest News
 
 December 2022

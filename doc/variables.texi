@@ -18,6 +18,7 @@
 @set USCHEME http://schemers.org
 
 @set UG-GOLF http://www.gnu.org/software/g-golf/
+@set UG-GOLF-learn https://www.gnu.org/software/g-golf/learn.html
 @set UG-GOLF-RELEASES http://ftp.gnu.org/gnu/g-golf/
 @set UG-GOLF-LATEST http://ftp.gnu.org/gnu/g-golf/g-golf-@value{VERSION}.tar.gz
 @set UG-GOLF-SAVANNAH https://savannah.gnu.org/projects/g-golf

@@ -33,11 +33,10 @@ G-Golf is a Guile@footnote{GNU @uref{@value{UGUILE}, Guile}@*an
 interpreter and compiler for the @uref{@value{USCHEME}, Scheme}
 programming language.} Object Library for @uref{@value{UGNOME}, GNOME}.
 
-G-Golf is tool to develop fast and feature-rich graphical applications,
-with a recognizable look and feel.
-
-Here is an overview of the @uref{@value{UGNOME-Libraries}, GNOME
-platform libraries}, accessible using G-Golf.
+G-Golf is a tool to develop fast and feature-rich graphical
+applications, with a clean and recognizable look and feel. Here is an
+overview of the @uref{@value{UGNOME-Libraries}, GNOME platform
+libraries}, accessible using G-Golf.
 
 G-Golf uses @uref{@value{UGLIB}, Glib}, @uref{@value{UGOBJECT}, GObject}
 and @uref{@value{UGI-OVERVIEW}, GObject Introspection}.  As it imports a
@@ -48,8 +47,8 @@ classes.  GObject methods are defined and added to their corresponding
 generic function. Simple functions are defined as scheme procedures.
 
 Here is an example, an excerpt taken from the peg-solitaire game, that
-shows the implementation of GtkApplication activate signal callback
-in G-Golf:
+shows the implementation, for the peg-solitaire game, of the
+GtkApplication activate signal callback in G-Golf:
 
 @lisp
 (define (activate app)
@@ -72,6 +71,11 @@ in G-Golf:
     (create-board window)
     (show window)))
 @end lisp
+
+G-Golf comes with some examples, listed on the
+@uref{@value{UG-GOLF-learn}, learn page} of the G-Golf web site. Each
+example comes with a screenshot and has a link that points to its source
+code, in the G-Golf sources @uref{@value{UG-GOLF-GIT}, repository}.
 
 @subheading Savannah
 
