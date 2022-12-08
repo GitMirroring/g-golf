@@ -4,7 +4,7 @@
 
 #+BEGIN_COMMENT
 
-Copyright (C) 2016 - 2018, 2021
+Copyright (C) 2016 - 2022
 Free Software Foundation, Inc.
 
 This document is part of GNU G-Golf.
@@ -26,14 +26,24 @@ warranty.
 
 * Latest News
 
-** March 2021
+** December 2022
 
-[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.1.0 is released.
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-a.1 is released.
+
+This is the first release of the upcoming 0.8.0 release, now available
+for testing.
+
+#+BEGIN_COMMENT
+This is the first release of G-Golf.
 
 Here is a summary of the changes since version 0.0.0. See GNU G-Golf
 [[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete description:
-
+#+END_COMMENT
 
 * Older News
 
+#+BEGIN_COMMENT
+This is the first release of G-Golf.
+
 For older News, see [[http://www.gnu.org/software/g-golf/news.html][here]]
+#+END_COMMENT

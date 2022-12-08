@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2021 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2022 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -33,25 +33,45 @@ G-Golf is a Guile@footnote{GNU @uref{@value{UGUILE}, Guile}@*an
 interpreter and compiler for the @uref{@value{USCHEME}, Scheme}
 programming language.} Object Library for @uref{@value{UGNOME}, GNOME}.
 
-G-Golf low level API comprises a binding to - (most of) the
-@uref{@value{UGI}, GObject Introspection} and (some of) the
-@uref{@value{UGOBJECT}, GObject} and @uref{@value{UGLIB}, Glib}
-libraries, as well as additional (G-Golf) utilities - used to import
-GObject libraries and build their corresponding G-Golf high level API.
+G-Golf is tool to develop fast and feature-rich graphical applications,
+with a recognizable look and feel.
 
-@indentedblock
-@strong{Note:} to be precise, G-Golf imports (and depends on the
-exitence of) a @uref{@value{UGI-OVERVIEW}, Typelib} - a binary,
-readonly, memory-mappable database containing reflective information
-about a GObject library.
-@end indentedblock
+Here is an overview of the @uref{@value{UGNOME-Libraries}, GNOME
+platform libraries}, accessible using G-Golf.
 
-G-Golf high level API makes (imported) GObject classes and methods
-available using GOOPS, the Guile Object Oriented System (@pxref{GOOPS,,,
-guile, The GNU Guile Reference Manual}).
+G-Golf uses @uref{@value{UGLIB}, Glib}, @uref{@value{UGOBJECT}, GObject}
+and @uref{@value{UGI-OVERVIEW}, GObject Introspection}.  As it imports a
+@uref{@value{UGI-OVERVIEW}, Typelib} (a GObject introspectable library),
+G-Golf defines GObject classes as GOOPS@footnote{The Guile Object
+Oriented System, @xref{GOOPS,,, guile, The GNU Guile Reference Manual}}
+classes.  GObject methods are defined and added to their corresponding
+generic function. Simple functions are defined as scheme procedures.
 
-G-Golf is a tool to develop modern graphical applications.
+Here is an example, an excerpt taken from the peg-solitaire game, that
+shows the implementation of GtkApplication activate signal callback
+in G-Golf:
 
+@lisp
+(define (activate app)
+  (let ((window (make <gtk-application-window>
+                  #:title "Peg Solitaire"
+                  #:default-width 420
+                  #:default-height 420
+                  #:application app))
+        (header-bar (make <gtk-header-bar>))
+        (restart (make <gtk-button>
+                   #:icon-name "view-refresh-symbolic")))
+
+    (connect restart
+             'clicked
+             (lambda (bt)
+               (restart-game window)))
+
+    (set-titlebar window header-bar)
+    (pack-start header-bar restart)
+    (create-board window)
+    (show window)))
+@end lisp
 
 @subheading Savannah
 
@@ -86,7 +106,7 @@ Automake >= 1.14
 Makeinfo >= 6.6
 
 @item
-@uref{@value{UGUILE}, Guile} >= 2.0.14  [allows 2.2 3.0]
+@uref{@value{UGUILE}, Guile} >= 2.0.14  [allows 2.2 3.0 (>= 3.0.7)]
 
 @item
 @uref{@value{UGUILE-LIB}, Guile-Lib} >= 0.2.5

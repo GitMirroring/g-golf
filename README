@@ -4,7 +4,7 @@
 
 #+BEGIN_COMMENT
 
-Copyright (C) 2016 - 2021
+Copyright (C) 2016 - 2022
 Free Software Foundation, Inc.
 
 This document is part of GNU G-Golf.
@@ -27,24 +27,55 @@ warranty.
 * GNU G-Golf
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]]
-Gnome: ([[http://www.gnu.org/software/guile][Guile]] Object Library for).
+GNOME: ([[http://www.gnu.org/software/guile][Guile]] Object Library for).
 
 ** Description
 
-G-Golf is a Guile Object Library for Gnome.
+G-Golf is a Guile Object Library for [[https://www.gnome.org/][GNOME]].
 
-G-Golf is a library, composed of a direct binding to [[https://developer.gnome.org/gi/][GObject
-Introspection]] plus a higher functionality layer, which, importing Gnome
-libraries, makes GOBject classes and methods [[http://www.gnu.org/software/guile/manual/html_node/GOOPS.html#GOOPS][GOOPS]] citizen.
+G-Golf is tool to develop fast and feature-rich graphical applications,
+with a recognizable look and feel.
 
-G-Golf is a tool to develop modern graphical applications in Guile
-Scheme.
+Here is an overview of the [[https://developer.gnome.org/documentation/introduction/overview/libraries.html][GNOME platform libraries]], accessible using
+G-Golf.
+
+G-Golf uses [[https://docs.gtk.org/glib/index.html][GLib]], [[https://docs.gtk.org/gobject/index.html][GObject]] and [[https://gi.readthedocs.io/en/latest/][GObject Introspection]]. As it imports a
+[[https://gi.readthedocs.io/en/latest/][Typelib]] (a GObject introspectable library), G-Golf defines GObject
+classes as Guile Object Oriented System ([[https://www.gnu.org/software/guile/manual/html_node/GOOPS.html#GOOPS][GOOPS]]) classes. GObject methods
+are defined and added to their corresponding generic function. Simple
+functions are defined as scheme procedures.
+
+Here is an example, an excerpt taken from the peg-solitaire game, that
+shows the implementation of GtkApplication activate signal callback
+in G-Golf:
+
+#+BEGIN_SRC scheme
+(define (activate app)
+  (let ((window (make <gtk-application-window>
+                  #:title "Peg Solitaire"
+                  #:default-width 420
+                  #:default-height 420
+                  #:application app))
+        (header-bar (make <gtk-header-bar>))
+        (restart (make <gtk-button>
+                   #:icon-name "view-refresh-symbolic")))
+
+    (connect restart
+             'clicked
+             (lambda (bt)
+               (restart-game window)))
+
+    (set-titlebar window header-bar)
+    (pack-start header-bar restart)
+    (create-board window)
+    (show window)))
+#+END_SRC
 
 ** Latest News
 
-XXX 2018
+December 2022
 
-GNU G-Golf version 0.1.0 is released.
+GNU G-Golf version 0.8.0-a.1 is released.
 
 Visit the NEWS file or see the [[http://git.savannah.gnu.org/cgit/g-golf.git/tree/NEWS][News]] page for the list of visible changes
 since the last release, as well as older news.
