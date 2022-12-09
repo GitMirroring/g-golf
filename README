@@ -34,10 +34,8 @@ GNOME: ([[http://www.gnu.org/software/guile][Guile]] Object Library for).
 G-Golf is a Guile Object Library for [[https://www.gnome.org/][GNOME]].
 
 G-Golf is tool to develop fast and feature-rich graphical applications,
-with a recognizable look and feel.
-
-Here is an overview of the [[https://developer.gnome.org/documentation/introduction/overview/libraries.html][GNOME platform libraries]], accessible using
-G-Golf.
+with a recognizable look and feel. Here is an overview of the [[https://developer.gnome.org/documentation/introduction/overview/libraries.html][GNOME
+platform libraries]], accessible using G-Golf.
 
 G-Golf uses [[https://docs.gtk.org/glib/index.html][GLib]], [[https://docs.gtk.org/gobject/index.html][GObject]] and [[https://gi.readthedocs.io/en/latest/][GObject Introspection]]. As it imports a
 [[https://gi.readthedocs.io/en/latest/][Typelib]] (a GObject introspectable library), G-Golf defines GObject
@@ -46,8 +44,8 @@ are defined and added to their corresponding generic function. Simple
 functions are defined as scheme procedures.
 
 Here is an example, an excerpt taken from the peg-solitaire game, that
-shows the implementation of GtkApplication activate signal callback
-in G-Golf:
+shows the implementation, for the peg-solitaire game, of the
+GtkApplication activate signal callback in G-Golf:
 
 #+BEGIN_SRC scheme
 (define (activate app)
