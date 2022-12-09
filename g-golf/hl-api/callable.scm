@@ -726,8 +726,8 @@
                          gi-arg-val)))
        (gi->scm foreign 'string)))
     ((gtype)
-     (let ((val (gi-argument-ref gi-argument 'v-ulong)))
-       (g-type->symbol val)))
+     (gi-argument-ref gi-argument
+                      (gi-type-tag->field 'gtype)))
     ((void)
      (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
             (foreign (if is-pointer?

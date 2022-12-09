@@ -62,6 +62,7 @@
             g-object-find-class-by-g-type
             g-object-find-class
             g-object-make-class
+            g-interface-make-class
             gi-add-method
             gi-add-method-gf))
 
@@ -503,9 +504,23 @@
                   (m-var (module-variable module name)))
              (or (and m-var
                       (variable-ref m-var))
-                 (scm-error 'unbound-variable #f "No such GInterface : ~S"
-                            (list name) #f))))
+                 (g-interface-make-class g-type))))
       ifaces)))
+
+(define (g-interface-make-class g-type)
+  (let* ((module (resolve-module '(g-golf hl-api gobject)))
+         (public-i (module-public-interface module))
+         (g-name (or (g-type-name g-type)	 ;; we use 0 as a g-type
+                     "AGInterfaceRuntimeClass")) ;; to test/debug
+         (c-name (g-name->class-name g-name))
+         (c-inst (make-class `(,<ginterface>)
+                             '()
+                             #:name c-name
+                             #:g-type g-type)))
+    (module-define! module c-name c-inst)
+    (module-add! public-i c-name
+                 (module-variable module c-name))
+    c-inst))
 
 (define (gi-add-method generic specializers procedure)
   (for-each (lambda (xp-spec)

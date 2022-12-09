@@ -100,7 +100,7 @@
              (g-value-set-value
               ,(@@ (g-golf hl-api gobject) %g-inst-set-property-value))
              (g-type (gtk-tree-model-get-column-type store column))
-             (g-value (g-value-init (symbol->g-type g-type))))
+             (g-value (g-value-init g-type)))
         (g-value-set! g-value
                       (g-value-set-value g-type value))
         (i-func store iter column g-value)
@@ -116,7 +116,7 @@
              (g-value-set-value
               ,(@@ (g-golf hl-api gobject) %g-inst-set-property-value))
              (g-type (gtk-tree-model-get-column-type store column))
-             (g-value (g-value-init (symbol->g-type g-type))))
+             (g-value (g-value-init g-type)))
         (g-value-set! g-value
                       (g-value-set-value g-type value))
         (i-func store iter column g-value)

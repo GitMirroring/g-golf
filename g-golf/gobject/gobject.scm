@@ -133,13 +133,14 @@
   (pointer->procedure '*
                       (dynamic-func "g_object_new"
 				    %libgobject)
-                      (list unsigned-long '*)))
+                      (list size_t	;; g-type
+                            '*)))	;; properties...
 
 (define g_object_new_with_properties
   (pointer->procedure '*
                       (dynamic-func "g_object_new_with_properties"
 				    %libgobject)
-                      (list unsigned-long	;; the g-type
+                      (list size_t		;; g-type
                             unsigned-int	;; n-properties
                             '*			;; *names[]
                             '*)))		;; values[]

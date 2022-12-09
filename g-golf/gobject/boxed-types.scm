@@ -62,11 +62,11 @@
   (pointer->procedure void
                       (dynamic-func "g_boxed_free"
 				    %libgobject)
-                      (list unsigned-long	;; g-type
+                      (list size_t		;; g-type
                             '*)))		;; g-pointer
 
 (define g_strv_get_type
-  (pointer->procedure unsigned-long
+  (pointer->procedure size_t
                       (dynamic-func "g_strv_get_type"
 				    %libgobject)
                       (list )))			;; void

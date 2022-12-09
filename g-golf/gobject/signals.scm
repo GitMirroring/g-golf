@@ -35,6 +35,7 @@
   #:use-module (g-golf support utils)
   #:use-module (g-golf support enum)
   #:use-module (g-golf support flags)
+  #:use-module (g-golf support bytevector)
   #:use-module (g-golf glib mem-alloc)
   #:use-module (g-golf glib quarks)
   #:use-module (g-golf gobject type-info)
@@ -63,9 +64,9 @@
 (define %g-signal-query-struct
   (list unsigned-int	;; id
         '*		;; name
-        unsigned-long	;; g-type
+        size_t		;; g-type
         unsigned-int	;; flags
-        unsigned-long	;; return-type
+        size_t		;; return-type
         unsigned-int	;; n-param
         '*))		;; param-types
 
@@ -158,10 +159,9 @@
   (if (= n-param 0)
       '()
       (map g-type->symbol
-        (u64vector->list
+        (gtypevector->list
          (pointer->bytevector param-types
-                              (* n-param
-                                 (sizeof unsigned-long)))))))
+                              (* n-param (sizeof size_t)))))))
 
 
 ;;;
@@ -175,19 +175,19 @@
                       (list unsigned-int	;; id
                             '*)))		;; query
 
-(define g_signal_list_ids
-  (pointer->procedure '*
-                      (dynamic-func "g_signal_list_ids"
-				    %libgobject)
-                      (list unsigned-long	;; g-type
-                            '*)))		;; n-id (pointer to guint)
-
 (define g_signal_lookup
   (pointer->procedure unsigned-int
                       (dynamic-func "g_signal_lookup"
 				    %libgobject)
                       (list '*			;; name
-                            unsigned-long)))	;; g-type
+                            size_t)))		;; g-type
+
+(define g_signal_list_ids
+  (pointer->procedure '*
+                      (dynamic-func "g_signal_list_ids"
+				    %libgobject)
+                      (list size_t		;; g-type
+                            '*)))		;; n-id (pointer to guint)
 
 (define g_signal_connect_closure_by_id
   (pointer->procedure unsigned-long
@@ -204,7 +204,7 @@
                       (dynamic-func "g_signal_parse_name"
 				    %libgobject)
                       (list '*			;; detailed signal
-                            unsigned-long	;; g-type
+                            size_t		;; g-type
                             '*			;; signal id
                             '*			;; detail (g-quark)
                             int)))		;; force detail quark (boolean)

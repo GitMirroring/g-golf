@@ -119,7 +119,7 @@
                       (list)))
 
 (define g_object_type
-  (pointer->procedure unsigned-long
+  (pointer->procedure size_t
                       (dynamic-func "g_object_type"
                                     %libg-golf)
                       (list '*)))

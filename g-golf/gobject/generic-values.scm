@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2020
+;;;; Copyright (C) 2016 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -53,7 +53,7 @@
 ;;;
 
 (define %g-value-struct
-  (list unsigned-long double double))
+  (list size_t double double))
 
 ;; from libg-golf
 (define (g-value-size)
@@ -85,7 +85,7 @@
                       (dynamic-func "g_value_init"
 				    %libgobject)
                       (list '*
-                            unsigned-long)))
+                            size_t)))
 
 (define g_value_unset
   (pointer->procedure void
