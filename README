@@ -37,6 +37,12 @@ G-Golf is tool to develop fast and feature-rich graphical applications,
 with a recognizable look and feel. Here is an overview of the [[https://developer.gnome.org/documentation/introduction/overview/libraries.html][GNOME
 platform libraries]], accessible using G-Golf.
 
+In particular, [[https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/][libadwaita]] provides a number of widgets that change their
+layout based on the available space. This can be used to make
+applications adapt their UI between desktop and mobile devices. The
+[[https://wiki.gnome.org/Apps/Web][GNOME Web]] (best known through its code name, Epiphany, is a good example
+of such an adaptive UI.
+
 G-Golf uses [[https://docs.gtk.org/glib/index.html][GLib]], [[https://docs.gtk.org/gobject/index.html][GObject]] and [[https://gi.readthedocs.io/en/latest/][GObject Introspection]]. As it imports a
 [[https://gi.readthedocs.io/en/latest/][Typelib]] (a GObject introspectable library), G-Golf defines GObject
 classes as Guile Object Oriented System ([[https://www.gnu.org/software/guile/manual/html_node/GOOPS.html#GOOPS][GOOPS]]) classes. GObject methods

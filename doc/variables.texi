@@ -65,6 +65,9 @@
 
 @set UGNOME-Libraries https://developer.gnome.org/documentation/introduction/overview/libraries.html
 
+@set ULIBADWAITA https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/
+@set UGNOME-Web https://wiki.gnome.org/Apps/Web
+
 @set UGLIB https://developer.gnome.org/glib/stable/
 @set UGLIB-Mem-Alloc https://developer.gnome.org/glib/stable/glib-Memory-Allocation.html
 @set UGLIB-Main-Event-Loop https://developer.gnome.org/glib/stable/glib-The-Main-Event-Loop.html
