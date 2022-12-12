@@ -26,12 +26,12 @@ warranty.
 
 * GNU G-Golf
 
-[[http://www.gnu.org/software/g-golf][GNU G-Golf]]
-GNOME: ([[http://www.gnu.org/software/guile][Guile]] Object Library for).
+[[http://www.gnu.org/software/g-golf][G-Golf]]
+GNOME: (Guile Object Library for).
 
 ** Description
 
-G-Golf is a Guile Object Library for [[https://www.gnome.org/][GNOME]].
+[[http://www.gnu.org/software/g-golf][G-Golf]] is a [[https://www.gnu.org/software/guile/][Guile]] Object Library for [[https://www.gnome.org/][GNOME]].
 
 G-Golf is tool to develop fast and feature-rich graphical applications,
 with a recognizable look and feel. Here is an overview of the [[https://developer.gnome.org/documentation/introduction/overview/libraries.html][GNOME

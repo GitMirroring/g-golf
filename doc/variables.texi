@@ -95,6 +95,12 @@
 @set UGOBJECT-Object-add-toggle-ref https://docs.gtk.org/gobject/method.Object.add_toggle_ref.html
 
 @c
+@c Clutter-1.0
+@c
+@set UCLUTTER http://blogs.gnome.org/clutter/
+
+
+@c
 @c Gtk-3.0, Gdk-3.0
 @c
 @set UGTK3 https://developer.gnome.org/gtk3/stable
@@ -162,6 +168,7 @@
 @c GNU
 @c
 
+@set UGNU-Project http://www.gnu.org/
 @set UGNU-PHILOSOPHY https://gnu.org/philosophy/free-sw.html
 @set UGNU-EVALUATION https://www.gnu.org/help/evaluation.html
 @set UGNU-HELP https://www.gnu.org/help/help.html

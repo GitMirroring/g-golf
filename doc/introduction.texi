@@ -23,7 +23,7 @@
 @node About G-Golf
 @section About G-Golf
 
-GNU G-Golf @*
+G-Golf @*
 GNOME: (Guile Object Library for).
 
 
@@ -86,7 +86,7 @@ Savannah}.
 @node Obtaining and installing G-Golf
 @section Obtaining and installing G-Golf
 
-GNU G-Golf can be obtained from the following archive site
+G-Golf can be obtained from the following archive site
 @uref{@value{UG-GOLF-RELEASES}}.  The file will be named
 g-golf-version.tar.gz. The current version is @value{VERSION}, so the
 file you should grab is:
@@ -96,7 +96,7 @@ file you should grab is:
 
 @subheading Dependencies
 
-GNU G-Golf needs the following software to run:
+G-Golf needs the following software to run:
 
 @itemize @bullet
 
@@ -110,7 +110,9 @@ Automake >= 1.14
 Makeinfo >= 6.6
 
 @item
-@uref{@value{UGUILE}, Guile} >= 2.0.14  [allows 2.2 3.0 (>= 3.0.7)]
+@uref{@value{UGUILE}, Guile} >= 2.0.14
+
+[allows 2.2 and 3.0 (>= 3.0.7)]
 
 @item
 @uref{@value{UGUILE-LIB}, Guile-Lib} >= 0.2.5
@@ -123,6 +125,19 @@ Makeinfo >= 6.6
 
 @item 
 @uref{@value{UGI}, GObject-Introspection-1.0} >= 1.48.0
+
+@end itemize
+
+G-Golf currently needs the following additional software to run its
+test-suite:
+
+@itemize @bullet
+
+@item
+@uref{@value{UCLUTTER}, Clutter-1.0} >= 1.24.0
+
+@item
+@uref{@value{UGTK3}, Gtk-3.0} >= 3.10.0
 
 @end itemize
 
