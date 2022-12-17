@@ -191,7 +191,7 @@
 ;; guardian returns a pointer, as part of an after-gc-hook procedure, a
 ;; weak hash table would already have cleared the entry, and unlike for
 ;; the other caches, we need to retreive the g-type of the (opaque)
-;; boxedtype pointer.
+;; boxed type pointer.
 
 ;; a consequence of the above, is that we can't hold a reference to the
 ;; ffi pointer, otherwise it would never become unreachable ... and
@@ -227,7 +227,7 @@
           (lambda ()
             (hash-for-each (lambda (key value)
                              (%dimfi key value))
-                           g-boxed-ga-cache)))))
+                g-boxed-ga-cache)))))
 
 
 ;;;
