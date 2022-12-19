@@ -637,11 +637,11 @@
                             (g-boxed-sa-guard bv-ptr bv)
                             bv-ptr)
                           ;; when bv is #f, it (indirectly) means that
-                          ;; memory was allocated by the caller.
+                          ;; memory is allocated by the callee
                           (if (null-pointer? foreign)
                               #f
                               (begin
-                                (g-boxed-ga-guard foreign g-type)
+                                #;(g-boxed-ga-guard foreign g-type)
                                 foreign))))
                     (parse-c-struct foreign (!scm-types gi-type)))))))
           ((union)

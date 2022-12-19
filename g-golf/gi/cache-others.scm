@@ -187,16 +187,6 @@
 ;;; The g-boxed(instance) gobject allocated cache
 ;;;
 
-;; in this case, we need to use a normal hash table, because when a
-;; guardian returns a pointer, as part of an after-gc-hook procedure, a
-;; weak hash table would already have cleared the entry, and unlike for
-;; the other caches, we need to retreive the g-type of the (opaque)
-;; boxed type pointer.
-
-;; a consequence of the above, is that we can't hold a reference to the
-;; ffi pointer, otherwise it would never become unreachable ... and
-;; hence, we specifically use the pointer address as the key.
-
 (define %g-boxed-ga-cache #f)
 (define g-boxed-ga-cache-ref #f)
 (define g-boxed-ga-cache-set! #f)
@@ -206,7 +196,7 @@
 (eval-when (expand load eval)
   (let* ((%g-boxed-ga-cache-default-size 1013)
          (g-boxed-ga-cache
-          (make-weak-value-hash-table %g-boxed-ga-cache-default-size)))
+          (make-weak-key-hash-table %g-boxed-ga-cache-default-size)))
 
     (set! %g-boxed-ga-cache
           (lambda () g-boxed-ga-cache))
@@ -216,8 +206,8 @@
             (hashq-ref g-boxed-ga-cache ptr)))
 
     (set! g-boxed-ga-cache-set!
-          (lambda (ptr bv)
-            (hashq-set! g-boxed-ga-cache ptr bv)))
+          (lambda (ptr g-type)
+            (hashq-set! g-boxed-ga-cache ptr g-type)))
 
     (set! g-boxed-ga-cache-remove!
           (lambda (ptr)
@@ -234,6 +224,15 @@
 ;;; g-boxed-ga-guard
 ;;;
 
+;; The idea was to automatically call g-boxed-free, but 'as is', it
+;; can't work, as the mem is gobject allocated, (1) the guardian would
+;; never trigger and (2), even if it did, by the type the after-gc-hook
+;; is reached, the hash table entry has been cleared, hence we'd have
+;; lost the access to the boxed g-type, which is required to call
+;; g-boxed-free - (g-boxed-free g-type ptr).
+
+;; With this said, I'll keep the code for another possible affectation.
+
 (define-syntax make-g-boxed-ga-guard
   (syntax-rules ()
     ((make-g-boxed-ga-guard)
@@ -245,10 +244,7 @@
                       (let ((ptr (guardian)))
                         (when ptr
                           #;(%dimfi "  cleaning" ptr)
-                          (let ((g-type (g-boxed-ga-cache-ref ptr)))
-                            (g-boxed-ga-cache-remove! ptr)
-                            (g-boxed-free g-type ptr)
-                            (loop)))))))
+                          (loop))))))
        (lambda (ptr g-type)
          (g-boxed-ga-cache-set! ptr g-type)
          (guardian ptr)
