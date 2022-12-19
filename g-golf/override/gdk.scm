@@ -61,6 +61,11 @@
              (g-value (g-value-init g-type))
              (dum (i-func content-provider g-value))
              (value (g-value-get-value g-value)))
+        (g-boxed-free (g-param-spec-type
+                       (g-object-class-find-property
+                        (!g-class (class-of content-provider))
+                        "formats"))
+                      content-formats)
         (g-value-unset g-value)
         value))
    '(0)))
