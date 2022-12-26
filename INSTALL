@@ -33,7 +33,7 @@ GNU G-Golf needs the following software to run:
 	[[http://www.nongnu.org/guile-lib/][Guile-Lib]]			>= 0.2.5
 	Glib-2.0			>= 2.48.0
 	Gobject-2.0			>= 2.48.0
-	GObject-Introspection-1.0	>= 1.48.0
+	GObject-Introspection-1.0	>= 1.72.0
 
 ** Install from the tarball
 

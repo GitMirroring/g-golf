@@ -131,7 +131,7 @@ Makeinfo >= 6.6
 @uref{@value{UGOBJECT}, Gobject-2.0} >= 2.48.0
 
 @item 
-@uref{@value{UGI}, GObject-Introspection-1.0} >= 1.48.0
+@uref{@value{UGI}, GObject-Introspection-1.0} >= 1.72.0
 
 @end itemize
 
