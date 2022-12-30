@@ -74,7 +74,8 @@
       #:size (g-struct-info-get-size info)
       #:is-gtype-struct? (g-struct-info-is-gtype-struct info)
       #:is-foreign? (g-struct-info-is-foreign info)
-      #:field-types field-types)))
+      #:field-types field-types
+      #:field-desc (gi-struct-field-desc info))))
 
 (define (gi-struct-field-desc info)
   (letrec ((struct-field-desc

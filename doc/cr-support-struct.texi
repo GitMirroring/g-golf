@@ -20,10 +20,11 @@ types.
 @end indentedblock
 
 
-@subheading Procedures and Accessors
+@subheading Procedures, Accessors and Methods
 
 @indentedblock
 @table @code
+@item @ref{!g-type____}
 @item @ref{!g-name_}
 @item @ref{!name____}
 @item @ref{!alignment}
@@ -31,10 +32,12 @@ types.
 @item @ref{!is-gtype-struct?}
 @item @ref{!is-foreign?}
 @item @ref{!field-types}
+@item @ref{!field-desc}
 @item @ref{!scm-types}
 @item @ref{!init-vals}
 @item @ref{!is-opaque?}
 @item @ref{!is-semi-opaque?}
+@item @ref{field-offset}
 @end table
 @end indentedblock
 
@@ -50,50 +53,45 @@ types.
 @anchor{<gi-struct>}
 @deftp Class <gi-struct>
 
-The @code{<gi-struct>} class is a subclass of @code{<struct>}.  Its
-@code{class-direct-slots} are:
+@code{<gi-struct>} is a class. It's an instance of @code{<class>}.
+
+Superclasses are:
 
 @indentedblock
 @table @code
-@item @emph{g-name}
-#:accessor !g-name @*
-#:init-keyword #:g-name
-
-@item @emph{name}
-#:accessor !name
-
-@item @emph{alignment}
-#:accessor !alignment @*
-#:init-keyword #:alignment
-
-@item @emph{size}
-#:accessor !size @*
-#:init-keyword #:size
-
-@item @emph{is-gtype-struct?}
-#:accessor !is-gtype-struct? @*
-#:init-keyword #:is-gtype-struct?
-
-@item @emph{field-types}
-#:accessor !field-types @*
-#:init-keyword #:field-types
-
-@item @emph{scm-types}
-#:accessor !scm-types
-
-@item @emph{init-vals}
-#:accessor !init-vals
-
-@item @emph{is-opaque?}
-#:accessor !is-opaque?
-
-@item @emph{is-semi-opaque}
-#:accessor !is-semi-opaque?
+@item <object>
 @end table
 @end indentedblock
 
-The @code{name} and @code{scm-types} slots are automatically
-initialized.
+Class Precedence List is:
+
+@indentedblock
+@table @code
+@item <g-struct>
+@item <object>
+@item <top>
+@end table
+@end indentedblock
+
+Directs slots are:
+
+@indentedblock
+@table @code
+@item g-type
+@item g-name
+@item name
+@item alignment
+@item size
+@item is-gtype-struct?
+@item is-foreign?
+@item field-types
+@item field-desc
+@item scm-types
+@item init-vals
+@item is-opaque?
+@item is-semi-opaque?
+@end table
+@end indentedblock
 
 Instances of the @code{<gi-struct>} are immutable (to be precise, there
 are not meant to be mutated, see @ref{GOOPS Notes and Conventions},
@@ -103,6 +101,7 @@ are not meant to be mutated, see @ref{GOOPS Notes and Conventions},
 
 @subheading Procedures and Accessors
 
+@anchor{!g-type____}
 @anchor{!g-name_}
 @anchor{!name____}
 @anchor{!alignment}
@@ -110,14 +109,17 @@ are not meant to be mutated, see @ref{GOOPS Notes and Conventions},
 @anchor{!is-gtype-struct?}
 @anchor{!is-foreign?}
 @anchor{!field-types}
+@anchor{!field-desc}
 @anchor{!scm-types}
 @anchor{!init-vals}
-@deffn Accessor !g-name (inst <gi-struct>)
+@deffn Accessor !g-type (inst <gi-struct>)
+@deffnx Accessor !g-name (inst <gi-struct>)
 @deffnx Accessor !name (inst <gi-struct>)
 @deffnx Accessor !alignment (inst <gi-struct>)
 @deffnx Accessor !size (inst <gi-struct>)
 @deffnx Accessor !is-gtype-struct? (inst <gi-struct>)
 @deffnx Accessor !field-types (inst <gi-struct>)
+@deffnx Accessor !field-desc (inst <gi-struct>)
 @deffnx Accessor !scm-types (inst <gi-struct>)
 @deffnx Accessor !init-vals (inst <gi-struct>)
 
@@ -148,9 +150,21 @@ Returns @code{#t} if @var{inst} is @samp{semi-opaque}, otherwise,
 it returns @code{#f}.
 
 A <gi-struct> instance is said to be @samp{semi-opaque} when one of its
-field types is @code{void}.
+field types is @code{void}, @code{interface} or if the total size of the
+@code{scm-types} differs from the @var{inst} size slot vlue.
 
 @samp{Semi-opaque} boxed types should never be @samp{decoded}, nor
 @samp{encoded}. Instead, procedures, accessors and methods should
 @samp{blindingly} receive, pass and/or return their pointer(s).
+@end deffn
+
+
+@anchor{field-offset}
+@deffn Method field-offset (inst <gi-struct>) field-name
+
+Returns an integer.
+
+Obtain and returns the @var{field-name} offset for @var{inst}, It is an
+error to call this method if there is no such @var{field-name} defined
+for @var{inst}.
 @end deffn
