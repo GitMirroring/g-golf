@@ -1,0 +1,57 @@
+@c -*-texinfo-*-
+@c This is part of the GNU G-Golf Reference Manual.
+@c Copyright (C) 2022 Free Software Foundation, Inc.
+@c See the file g-golf.texi for copying conditions.
+
+
+@node Utils Arcade
+@subsection Utils Arcade
+
+Utils Arcade. G-Golf utilities.
+
+
+@subheading Syntax
+
+@indentedblock
+@table @code
+@item @ref{make-opaque-c-struct}
+@end table
+@end indentedblock
+
+
+@subheading Description
+
+Welcome to the G-Golf Utils Arcade.
+
+
+@subheading Syntax
+
+@anchor{make-opaque-c-struct}
+@deffn Syntax make-opaque-c-struct name . fields
+
+Returns a (or more) pointer(s).
+
+This syntax takes the @var{name} of an opaque C struct@footnote{More
+specifically, an unquoted scheme representation name of an opaque
+GObject Introspectable C struct.} and returns a pointer to a newly -
+scheme allocated, zero initialized - memory block.
+
+When @var{fields} is not null?, it returns additional value(s), one for
+each specified field name, a pointer to the field in the C struct.
+
+Here is an example, an excerpt form the peg-solitaire.scm example,
+distributed with G-Golf. The example shows how to obtain a pointer to
+newly allocated block for a @code{GskRoundedRect}, as well as a pointer
+to its @code{bounds} field:
+
+@example
+(receive (outline outline:bounds)
+    (make-opaque-c-struct gsk-rounded-rect bounds)
+  ...
+  (push-rounded-clip snapshot outline)
+  (append-color snapshot
+                '(0.61 0.1 0.47 1.0)
+                 outline:bounds)
+  ...)
+@end example  
+@end deffn
