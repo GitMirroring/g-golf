@@ -81,7 +81,7 @@ exec guile -e main -s "$0" "$@"
 
 (define-vfunc (snapshot-vfunc (self <solitaire-peg>) snapshot width height)
   (receive (outline outline:bounds)
-      (make-opaque-c-struct gsk-rounded-rect bounds)
+      (allocate-c-struct gsk-rounded-rect bounds)
     (gsk-rounded-rect-init-from-rect outline
                                      (graphene-rect-init (graphene-rect-alloc)
                                                          0 0

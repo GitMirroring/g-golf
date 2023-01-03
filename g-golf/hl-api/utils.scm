@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2020 - 2021
+;;;; Copyright (C) 2020 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -45,7 +45,7 @@
 
   #:export (gi-find-by-property-name
             scm->g-type
-            make-opaque-c-struct))
+            allocate-c-struct))
 
 
 #;(g-export )
@@ -91,7 +91,7 @@
           (else
            (error "Unimplemented scm->g-type for " value)))))
 
-(define-macro (make-opaque-c-struct name . fields)
+(define-macro (allocate-c-struct name . fields)
   `(let* ((gi-struct (gi-cache-ref 'boxed ',name))
           (ocs-bv (make-bytevector (!size gi-struct)))
           (ocs-bv-ptr (bytevector->pointer ocs-bv)))
