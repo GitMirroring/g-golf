@@ -104,29 +104,35 @@
 (define (add-vfunc-closure inst)
   (receive (closure callback-closure)
       (g-golf-vfunc-closure inst)
-    (let* ((g-class (vfunc-find-g-class inst))
-           (iface-type (!g-type (!specializer inst)))
-           (iface-struct (g-type-interface-peek g-class iface-type)))
+    (let* ((vfunc-g-object-class-specializer
+            (find-vfunc-g-object-class-specializer inst))
+           (specializer (!specializer inst))
+           (iface/class-struct (if (ginterface-class? specializer)
+                                   (g-type-interface-peek
+                                    (!g-class vfunc-g-object-class-specializer)
+                                    (!g-type specializer))
+                                   (g-type-class-peek
+                                    (!g-type vfunc-g-object-class-specializer)))))
       (slot-set! inst
                  'callback (!callback callback-closure))
       (match (vfunc-struct-field inst)
         ((type-tag offset flags)
-         (bv-ptr-set! (gi-pointer-inc iface-struct offset)
+         (bv-ptr-set! (gi-pointer-inc iface/class-struct offset)
                       closure))))))
 
-(define (vfunc-find-g-class inst)
-  ;; There can only be one GObject class - as GObject is a single inheritance
-  ;; oop system - in the list of the <vfunc> inst specializers. That's the one
-  ;; we need the g-class slot value of.
-  (!g-class (let loop ((specializers (slot-ref inst 'specializers)))
-              (match specializers
-                (()
-                 (scm-error 'impossible #f "No GObject specializer for: ~S"
-                            (list (!name inst)) #f))
-                ((specializer . rests)
-                 (or (and (gobject-class? specializer)
-                          specializer)
-                     (loop rests)))))))
+(define (find-vfunc-g-object-class-specializer inst)
+  ;; There can only be one GObject class - as GObject is a single
+  ;; inheritance oop system - in the list of the <vfunc> inst
+  ;; specializers.
+  (let loop ((specializers (slot-ref inst 'specializers)))
+    (match specializers
+      (()
+       (scm-error 'impossible #f "No GObject specializer for: ~S"
+                  (list (!name inst)) #f))
+      ((specializer . rests)
+       (or (and (gobject-class? specializer)
+                specializer)
+           (loop rests))))))
 
 (define (vfunc-struct-field inst)
   (assq-ref (!g-struct-fields (!specializer inst))
