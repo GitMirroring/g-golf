@@ -26,6 +26,7 @@ godir=@SITECCACHEDIR@
 
 
 GOBJECTS = $(SOURCES:%.scm=%.go)
+.NOTPARALLEL: $(GOBJETS)
 
 nobase_mod_DATA = $(SOURCES) $(NOCOMP_SOURCES)
 nobase_go_DATA = $(GOBJECTS)
