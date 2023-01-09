@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2018 - 2022
+;;;; Copyright (C) 2018 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -54,7 +54,8 @@
 		warn
 		last)
 
-  #:export (<gobject>
+  #:export (<gobject-class>
+            <gobject>
             gobject-class?
             <ginterface>
             ginterface-class?
