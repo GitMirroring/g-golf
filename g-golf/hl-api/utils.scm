@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2020 - 2021
+;;;; Copyright (C) 2020 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -28,7 +28,7 @@
 
 (define-module (g-golf hl-api utils)
   #:use-module (ice-9 match)
-  #:use-module (srfi srfi-1)
+  #:use-module ((srfi srfi-1) #:select (member))
   #:use-module (oop goops)
   #:use-module (g-golf support)
   #:use-module (g-golf gi)
@@ -44,8 +44,8 @@
 		last)
 
   #:export (gi-find-by-property-name
-
-            scm->g-type))
+            scm->g-type
+            allocate-c-struct))
 
 
 #;(g-export )
@@ -90,3 +90,13 @@
            (!g-type v-class))
           (else
            (error "Unimplemented scm->g-type for " value)))))
+
+(define-macro (allocate-c-struct name . fields)
+  `(let* ((gi-struct (gi-cache-ref 'boxed ',name))
+          (ocs-bv (make-bytevector (!size gi-struct)))
+          (ocs-bv-ptr (bytevector->pointer ocs-bv)))
+     (values ocs-bv-ptr
+             ,@(map (lambda (field)
+                      `(gi-pointer-inc ocs-bv-ptr
+                                       (field-offset gi-struct ',field)))
+                 fields))))

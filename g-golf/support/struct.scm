@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2020
+;;;; Copyright (C) 2019 - 2022
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -27,6 +27,9 @@
 
 
 (define-module (g-golf support struct)
+  #:use-module (ice-9 match)
+  #:use-module (system foreign)
+  #:use-module (srfi srfi-1)
   #:use-module (oop goops)
   #:use-module (g-golf support goops)
   #:use-module (g-golf support g-export)
@@ -50,10 +53,13 @@
           !is-gtype-struct?
           !is-foreign?
           !field-types
+          !field-desc
           !scm-types
           !init-vals
           !is-opaque?
-          !is-semi-opaque?)
+          !is-semi-opaque?
+
+          field-offset)
 
 
 (define-class <gi-struct> ()
@@ -73,6 +79,8 @@
                #:init-keyword #:is-foreign?)
   (field-types #:accessor !field-types
                #:init-keyword #:field-types)
+  (field-desc #:accessor !field-desc
+               #:init-keyword #:field-desc)
   (scm-types #:accessor !scm-types)
   (init-vals #:accessor !init-vals)
   (is-opaque? #:accessor !is-opaque?)
@@ -87,8 +95,24 @@
                      'g-name g-name
                      'name (g-name->name g-name)))
     (and field-types
-         (mslot-set! self
-                     'scm-types (map gi-type-tag->ffi field-types)
-                     'init-vals (map gi-type-tag->init-val field-types)
-                     'is-opaque? (null? (!field-types self))
-                     'is-semi-opaque? (if (memq 'void field-types) #t #f)))))
+         (let ((scm-types (map gi-type-tag->ffi field-types))
+               (opaque? (null? field-types)))
+           (mslot-set! self
+                       'scm-types scm-types
+                       'init-vals (map gi-type-tag->init-val field-types)
+                       'is-opaque? opaque?
+                       'is-semi-opaque? (if (or opaque?
+                                                (memq 'void field-types)
+                                                (memq 'interface field-types)
+                                                (not (= (!size self)
+                                                        (reduce + 0 (map sizeof scm-types)))))
+                                            #t
+                                            #f))))))
+
+(define-method (field-offset (self <gi-struct>) field-name)
+  (match (assq-ref (!field-desc self) field-name)
+    (#f
+     (scm-error 'invalid-field-name #f "No such field : ~A"
+                (list field-name) #f))
+    ((type-tag offset flags)
+     offset)))

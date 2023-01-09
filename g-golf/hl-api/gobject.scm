@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2018 - 2022
+;;;; Copyright (C) 2018 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -54,7 +54,8 @@
 		warn
 		last)
 
-  #:export (<gobject>
+  #:export (<gobject-class>
+            <gobject>
             gobject-class?
             <ginterface>
             ginterface-class?
@@ -421,6 +422,7 @@
 
 (define-class <ginterface> (<gtype-instance>)
   #:info #t
+  #:g-type -1	;; g-object-find-class-by-g-type
   #:metaclass <gobject-class>)
 
 (define (ginterface-class? class)
@@ -454,7 +456,7 @@
 ;; subclass GdkClipboard.
 
 (define (g-object-find-class-by-g-type g-type)
-  (let loop ((classes (class-subclasses <gobject>)))
+  (let loop ((classes (class-subclasses <gtype-instance>)))
     (match classes
       (() #f)
       ((head . tail)

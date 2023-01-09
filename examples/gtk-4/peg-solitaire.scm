@@ -80,16 +80,23 @@ exec guile -e main -s "$0" "$@"
 ;; method explicitly and temporarily comment the width height args.
 
 (define-vfunc (snapshot-vfunc (self <solitaire-peg>) snapshot width height)
-  (append-color snapshot
-                ;; '(0.6 0.3 0.0 1.0)	;; gtk4-demo
-                ;; '(0.2 0.4 0.64 1.0)	;; tango-sky-blue
-                ;; '(0.46 0.31 0.48 1.0)	;; tango-plum
-                '(0.61 0.1 0.47 1.0)	;; vocaloid
-                (graphene-rect-init (graphene-rect-alloc)
-                                    0 0
-                                    ;; width height
-                                    (get-intrinsic-width self)
-                                    (get-intrinsic-height self))))
+  (receive (outline outline:bounds)
+      (allocate-c-struct gsk-rounded-rect bounds)
+    (gsk-rounded-rect-init-from-rect outline
+                                     (graphene-rect-init (graphene-rect-alloc)
+                                                         0 0
+                                                         ;; width height
+                                                         (get-intrinsic-width self)
+                                                         (get-intrinsic-height self))
+                                       3.5) ;; px - approx. 0.3em [default fontsize]
+      (push-rounded-clip snapshot outline)
+      (append-color snapshot
+                    '(0.61 0.1 0.47 1.0) ;; vocaloid
+                    outline:bounds)
+      ;; pop is a guile scheme syntax, hence its name is protected, See
+      ;; the 'Customization Square', 'GI Syntax Name Protect' section of
+      ;; the G-Golf manual for more on this subject.
+      (pop_ snapshot)))
 
 
 ;;;
@@ -243,10 +250,10 @@ exec guile -e main -s "$0" "$@"
 
 (define %css-data
   ".solitaire-field {
-    border-radius: .3em;
     border: 1px solid lightgray;
     /* border: 3px solid #d4cbb6; texinfo code border */
     /* border: 3px solid #495106; tango trash outline */
+    border-radius: 3.5px; /* approx. 0.3em [default fontsize] */
     /* padding: 2px; */
 }")
 

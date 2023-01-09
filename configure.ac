@@ -6,7 +6,7 @@ dnl
 
 define(G_GOLF_CONFIGURE_COPYRIGHT,[[
 
-Copyright (C) 2016 - 2022
+Copyright (C) 2016 - 2023
 Free Software Foundation, Inc.
 
 This file is part of GNU G-Golf
@@ -31,7 +31,7 @@ AC_PREREQ(2.69)
 
 AC_INIT(
   [g-golf],
-  [0.8.0-a.1],
+  [0.8.0-a.2],
   [bug-g-golf@gnu.org])
 
 AC_CONFIG_AUX_DIR([build-aux])
@@ -87,7 +87,7 @@ AC_SUBST([SITEDIR])
 AC_SUBST([SITECCACHEDIR])
 
 
-PKG_CHECK_MODULES(GOBJECT_INTROSPECTION, gobject-introspection-1.0 >= 1.48.0)
+PKG_CHECK_MODULES(GOBJECT_INTROSPECTION, gobject-introspection-1.0 >= 1.72.0)
 AC_SUBST(GOBJECT_INTROSPECTION_CFLAGS)
 AC_SUBST(GOBJECT_INTROSPECTION_LIBS)
 

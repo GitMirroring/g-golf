@@ -4,7 +4,7 @@
 
 #+BEGIN_COMMENT
 
-Copyright (C) 2016 - 2022
+Copyright (C) 2016 - 2023
 Free Software Foundation, Inc.
 
 This document is part of GNU G-Golf.
@@ -33,14 +33,14 @@ GNU G-Golf needs the following software to run:
 	[[http://www.nongnu.org/guile-lib/][Guile-Lib]]			>= 0.2.5
 	Glib-2.0			>= 2.48.0
 	Gobject-2.0			>= 2.48.0
-	GObject-Introspection-1.0	>= 1.48.0
+	GObject-Introspection-1.0	>= 1.72.0
 
 ** Install from the tarball
 
 G-Golf release are [[http://ftp.gnu.org/gnu/g-golf/][here]].  The latest tarballs are:
 
-	g-golf-0.8.0-a.1.tar.gz
-	g-golf-0.8.0-a.1.tar.gz.sig
+	g-golf-0.8.0-a.2.tar.gz
+	g-golf-0.8.0-a.2.tar.gz.sig
 
 	[ GPG Key: A3057AD7
 	[ gpg --keyserver keys.gnupg.net --recv-keys A3057AD7
@@ -49,8 +49,8 @@ Assuming you have satisfied the dependencies, open a terminal and
 proceed with the following steps:
 
 	cd <download-path>
-	tar zxf g-golf-0.8.0-a.1.tar.gz
-	cd g-golf-0.8.0-a.1
+	tar zxf g-golf-0.8.0-a.2.tar.gz
+	cd g-golf-0.8.0-a.2
 	./configure [--prefix=/your/prefix] [--with-guile-site=yes]
 	make
 	make install

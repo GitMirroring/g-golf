@@ -4,7 +4,7 @@
 
 #+BEGIN_COMMENT
 
-Copyright (C) 2016 - 2022
+Copyright (C) 2016 - 2023
 Free Software Foundation, Inc.
 
 This document is part of GNU G-Golf.
@@ -26,18 +26,22 @@ warranty.
 
 * GNU G-Golf
 
-[[http://www.gnu.org/software/g-golf][GNU G-Golf]]
-GNOME: ([[http://www.gnu.org/software/guile][Guile]] Object Library for).
+[[http://www.gnu.org/software/g-golf][G-Golf]]
+GNOME: (Guile Object Library for).
 
 ** Description
 
-G-Golf is a Guile Object Library for [[https://www.gnome.org/][GNOME]].
+[[http://www.gnu.org/software/g-golf][G-Golf]] is a [[https://www.gnu.org/software/guile/][Guile]] Object Library for [[https://www.gnome.org/][GNOME]].
 
 G-Golf is tool to develop fast and feature-rich graphical applications,
-with a recognizable look and feel.
+with a recognizable look and feel. Here is an overview of the [[https://developer.gnome.org/documentation/introduction/overview/libraries.html][GNOME
+platform libraries]], accessible using G-Golf.
 
-Here is an overview of the [[https://developer.gnome.org/documentation/introduction/overview/libraries.html][GNOME platform libraries]], accessible using
-G-Golf.
+In particular, [[https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/][libadwaita]] provides a number of widgets that change their
+layout based on the available space. This can be used to make
+applications adapt their UI between desktop and mobile devices. The
+[[https://wiki.gnome.org/Apps/Web][GNOME Web]] (best known through its code name, Epiphany, is a good example
+of such an adaptive UI.
 
 G-Golf uses [[https://docs.gtk.org/glib/index.html][GLib]], [[https://docs.gtk.org/gobject/index.html][GObject]] and [[https://gi.readthedocs.io/en/latest/][GObject Introspection]]. As it imports a
 [[https://gi.readthedocs.io/en/latest/][Typelib]] (a GObject introspectable library), G-Golf defines GObject
@@ -46,8 +50,8 @@ are defined and added to their corresponding generic function. Simple
 functions are defined as scheme procedures.
 
 Here is an example, an excerpt taken from the peg-solitaire game, that
-shows the implementation of GtkApplication activate signal callback
-in G-Golf:
+shows the implementation, for the peg-solitaire game, of the
+GtkApplication activate signal callback in G-Golf:
 
 #+BEGIN_SRC scheme
 (define (activate app)
@@ -77,9 +81,9 @@ points to its source code, in the G-Golf sources [[http://git.savannah.gnu.org/c
 
 ** Latest News
 
-December 2022
+January 2023
 
-GNU G-Golf version 0.8.0-a.1 is released.
+GNU G-Golf version 0.8.0-a.2 is released.
 
 Visit the NEWS file or see the [[http://git.savannah.gnu.org/cgit/g-golf.git/tree/NEWS][News]] page for the list of visible changes
 since the last release, as well as older news.

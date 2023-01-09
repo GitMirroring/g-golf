@@ -12,9 +12,11 @@
 * Cache Park:: Accessing G-Golf caches.
 * Customization Square:: G-Golf customization functionality.
 * VFunc Alley:: VFunc G-Golf support.
+* Utils Arcade:: G-Golf utilities.
 @end menu
 
 
 @include ug-ggv-cache.texi
 @include ug-ggv-customization.texi
 @include ug-ggv-vfunc.texi
+@include ug-ggv-utils.texi

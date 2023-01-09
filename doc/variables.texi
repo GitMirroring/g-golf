@@ -65,6 +65,9 @@
 
 @set UGNOME-Libraries https://developer.gnome.org/documentation/introduction/overview/libraries.html
 
+@set ULIBADWAITA https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/
+@set UGNOME-Web https://wiki.gnome.org/Apps/Web
+
 @set UGLIB https://developer.gnome.org/glib/stable/
 @set UGLIB-Mem-Alloc https://developer.gnome.org/glib/stable/glib-Memory-Allocation.html
 @set UGLIB-Main-Event-Loop https://developer.gnome.org/glib/stable/glib-The-Main-Event-Loop.html
@@ -93,6 +96,12 @@
 @set UGOBJECT-Closures https://developer.gnome.org/gobject/stable/gobject-Closures.html
 @set UGOBJECT-Signals https://developer.gnome.org/gobject/stable/gobject-Signals.html
 @set UGOBJECT-Object-add-toggle-ref https://docs.gtk.org/gobject/method.Object.add_toggle_ref.html
+
+@c
+@c Clutter-1.0
+@c
+@set UCLUTTER http://blogs.gnome.org/clutter/
+
 
 @c
 @c Gtk-3.0, Gdk-3.0
@@ -162,6 +171,7 @@
 @c GNU
 @c
 
+@set UGNU-Project http://www.gnu.org/
 @set UGNU-PHILOSOPHY https://gnu.org/philosophy/free-sw.html
 @set UGNU-EVALUATION https://www.gnu.org/help/evaluation.html
 @set UGNU-HELP https://www.gnu.org/help/help.html
