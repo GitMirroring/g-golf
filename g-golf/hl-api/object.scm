@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2022
+;;;; Copyright (C) 2019 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -38,7 +38,6 @@
   #:use-module (g-golf hl-api n-decl)
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api gobject)
-  ;; #:use-module (g-golf hl-api function)
 
   #:duplicates (merge-generics
 		replace
@@ -60,16 +59,14 @@
          (module (resolve-module '(g-golf hl-api gobject)))
          (r-info-cpl (g-object-info-cpl info #:reversed-order? #t)))
     (unless (is-g-object-subclass? r-info-cpl)
-      ;; A 'fundamental type' class, not a GObject subclass. We need to
-      ;; create the parent 'of all', which is the first element of the
-      ;; reversed info-cpl list computed above. It could very well be
-      ;; that the class has no child, but we need to created it before
-      ;; to run the following code, which parse the r-info-cpl assuming
-      ;; the parent class always exists - what must exist, to be
-      ;; precise, is the corresponding goops class.
+      ;; A 'GObject.TypeInstance' class, not a 'GObject.Object' class.
+      ;; We need to check if the parent 'of all' (which is the first
+      ;; element of the r(eversed)-info-cpl list computed above) exists,
+      ;; and create its goops proxy class if it does not exist yet.
       (match r-info-cpl
         ((parent . rest)
-         (g-object-import-with-supers parent '() module
+         (g-object-import-with-supers parent `(,<gtype-instance>) module
+                                      #:metaclass <gtype-class>
                                       #:with-methods? with-methods?
                                       #:force? force?))))
     (let loop ((r-info-cpl r-info-cpl))
@@ -111,7 +108,10 @@
     (member "GObject" info-cpl is-g-object-info-cpl-item?)))
 
 (define* (g-object-import-with-supers child supers module
-                                      #:key (with-methods? #t) (force? #f))
+                                      #:key
+                                      (metaclass #f)
+                                      (with-methods? #t)
+                                      (force? #f))
   (match child
     ((info namespace name)
      (unless (member namespace
@@ -131,7 +131,8 @@
                                       '()
                                       #:name c-name
                                       #:info info
-                                      #:g-struct-fields g-struct-fields)))
+                                      #:g-struct-fields g-struct-fields
+                                      #:metaclass metaclass)))
              (module-define! module c-name c-inst)
              (module-add! public-i c-name
                           (module-variable module c-name))
