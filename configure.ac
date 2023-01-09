@@ -6,7 +6,7 @@ dnl
 
 define(G_GOLF_CONFIGURE_COPYRIGHT,[[
 
-Copyright (C) 2016 - 2022
+Copyright (C) 2016 - 2023
 Free Software Foundation, Inc.
 
 This file is part of GNU G-Golf
@@ -31,7 +31,7 @@ AC_PREREQ(2.69)
 
 AC_INIT(
   [g-golf],
-  [0.8.0-a.1],
+  [0.8.0-a.2],
   [bug-g-golf@gnu.org])
 
 AC_CONFIG_AUX_DIR([build-aux])
