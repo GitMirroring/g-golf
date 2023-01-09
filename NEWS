@@ -4,7 +4,7 @@
 
 #+BEGIN_COMMENT
 
-Copyright (C) 2016 - 2022
+Copyright (C) 2016 - 2023
 Free Software Foundation, Inc.
 
 This document is part of GNU G-Golf.
@@ -26,24 +26,66 @@ warranty.
 
 * Latest News
 
-** December 2022
+** January 2023
 
-[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-a.1 is released.
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-a.2 is released.
 
-This is the first release of the upcoming 0.8.0 release, now available
+This is the second release of the upcoming 0.8.0 release, now available
 for testing.
 
-#+BEGIN_COMMENT
-This is the first release of G-Golf.
+*** Changes since 0.8.0-a.1
 
-Here is a summary of the changes since version 0.0.0. See GNU G-Golf
-[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete description:
-#+END_COMMENT
+Here is a summary of the noteworthy changes since version 0.8.0-a.1. See
+G-Golf [[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** Dependencies
+
+GObject-Introspection-1.0 >= 1.72.0
+
+G-Golf uses GI girffi innterfaces, some only available since 1.72.0.
+
+**** New interfaces
+
+allocate-c-struct
+
+**** Examples
+
+Peg Solitaire
+
+The peg snapshots (which are what users drag while playing the game) now
+also have rounded corners. Before this improvment, they were being
+clipped by their <gtk-image> instance hosts, which use both a css
+border-radius style option and the overflow property, but users were
+dragging a squared rectangle snapshot.
+
+Drawing Widget
+
+New example, which demonstrates how implement a widget that does some
+custom drawing.
+
+**** Performance
+
+~15% improvement
+
+  Note: by performance, until otherwise specified, we only refer to and
+  measure how fast G-Golf imports the entire Gtk 4.0 typelib.
+
+After some changes made to the G-Golf main GI cache, importing Gtk-4.0
+shows a ~15% improvement.
+
+**** Bug fixing
+
+VFunc
+
+A VFunc specializer may also be a g-object class, as the newly added
+example demonstrates. Prior to this fix, a VFunc specializer was assumed
+to (always) be a g-interface class (as in the peg-solitaire example).
+
+GObject.TypeInstance
+
+GObject.TypeInstance fundamental class support fix. They must inherit
+<gtype-instance> and specify <gtype-class> as their metaclass.
 
 * Older News
 
-#+BEGIN_COMMENT
-This is the first release of G-Golf.
-
-For older News, see [[http://www.gnu.org/software/g-golf/news.html][here]]
-#+END_COMMENT
+For older News, see [[http://www.gnu.org/software/g-golf/news.html][here]].
