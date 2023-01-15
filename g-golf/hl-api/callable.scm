@@ -81,6 +81,11 @@
                   'caller-owns (g-callable-info-get-caller-owns info)
                   'return-type return-type
                   'type-desc type-desc
+                  'is-enum? (and (eq? return-type 'interface)
+                                      (match type-desc
+                                        ((type name gi-type g-type confirmed?)
+                                         (or (eq? type 'enum)
+                                             (eq? type 'flags)))))
                   'array-type-desc array-type-desc
                   'may-return-null? (g-callable-info-may-return-null info))
       (initialize-callable-arguments self))))
