@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2022
+;;;; Copyright (C) 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -29,11 +29,25 @@
 (define-module (g-golf support ffi)
   #:use-module (g-golf support libg-golf)
 
-  #:export (ffi-type-size))
+  #:export (ffi-cif-size
+            ffi-type-size
+            ffi-prep-cif
+            ffi-pack-double))
 
 
 ;;;
 ;;; From libg-golf
 ;;;
 
-(define ffi-type-size ffi_type_size)
+(define ffi-cif-size gg_ffi_cif_size)
+
+(define ffi-type-size gg_ffi_type_size)
+
+(define (ffi-prep-cif cif n-args r-type a-types)
+  (let ((ffi-status (gg_ffi_prep_cif cif n-args r-type a-types)))
+    (unless (= ffi-status 0)
+      (scm-error 'failed #f "ffi_prep_cif failed: ~A"
+                 (list ffi-status) #f))))
+
+(define (ffi-pack-double ffi-arg)
+  (gg_ffi_pack_double ffi-arg))

@@ -31,6 +31,7 @@
 #include <math.h>
 
 #include <ffi.h>
+#include <ffitarget.h>
 
 
 /*
@@ -39,9 +40,47 @@
 */
 
 size_t
-ffi_type_size ()
+gg_ffi_cif_size ()
+{
+  size_t n = sizeof(ffi_cif);
+
+  return n;
+}
+
+size_t
+gg_ffi_type_size ()
 {
   size_t n = sizeof(ffi_type *);
 
   return n;
+}
+
+int
+gg_ffi_prep_cif (ffi_cif *cif, \
+                 unsigned n_args, \
+                 ffi_type *r_type, \
+                 ffi_type **a_types)
+{
+  int ffi_status;
+
+  /* printf("return type: %d\n", r_type->type);
+   * for (unsigned i = 0; i < n_args; i++) {
+   *   printf ("  arg %d type: %d\n", i, a_types[i]->type);
+   * }
+  */
+
+  ffi_status = ffi_prep_cif (cif, FFI_DEFAULT_ABI, n_args, r_type, a_types);
+
+  return ffi_status;
+}
+
+double
+gg_ffi_pack_double (void **arg)
+{
+  double dble;
+
+  dble =  *(double *) (*arg);
+  /* printf ("  ffi_arg dble: %f\n", dble); */
+
+  return dble;
 }
