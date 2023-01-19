@@ -73,22 +73,13 @@ exec guile -e main -s "$0" "$@"
 (define-vfunc (get-intrinsic-height-vfunc (self <solitaire-peg>))
   32)
 
-;; For some unknown reason(s) still, the snapshot vfunc is not called with the
-;; the intrinsic width and height values. However both the get-intrinsic-width
-;; and get-intrinsic-height methods work fine, they call their corresponding
-;; vfunc, that we override here above. Till I find out why, let's call those
-;; method explicitly and temporarily comment the width height args.
-
 (define-vfunc (snapshot-vfunc (self <solitaire-peg>) snapshot width height)
   (receive (outline outline:bounds)
       (allocate-c-struct gsk-rounded-rect bounds)
     (gsk-rounded-rect-init-from-rect outline
                                      (graphene-rect-init (graphene-rect-alloc)
-                                                         0 0
-                                                         ;; width height
-                                                         (get-intrinsic-width self)
-                                                         (get-intrinsic-height self))
-                                       3.5) ;; px - approx. 0.3em [default fontsize]
+                                                         0 0  width height)
+                                     3.5) ;; px - approx. 0.3em [default fontsize]
       (push-rounded-clip snapshot outline)
       (append-color snapshot
                     '(0.61 0.1 0.47 1.0) ;; vocaloid
