@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2022
+;;;; Copyright (C) 2019 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -27,6 +27,7 @@
 
 
 (define-module (g-golf hl-api callback)
+  #:use-module (system foreign)
   #:use-module (ice-9 threads)
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
@@ -109,24 +110,35 @@
     (mslot-set! self
                 'ffi-cif (callback-ffi-cif self))))
 
+(define (ffi-prep-cif-elements callback)
+  (let* ((ffi-cif-bv (make-bytevector (ffi-cif-size) 0))
+         (r-type-info (g-callable-info-get-return-type (!info callback)))
+         (r-type (g-type-info-get-ffi-type r-type-info))
+         (n-arg (!n-arg callback))
+         (a-types-bv (make-bytevector (* n-arg (ffi-type-size)) 0)))
+    (g-base-info-unref r-type-info)
+    (values (bytevector->pointer ffi-cif-bv)
+            n-arg
+            r-type
+            (bytevector->pointer a-types-bv))))
+
 (define (callback-ffi-cif callback)
-  (let ((n-arg (!n-arg callback)))
-    (case n-arg
-      ((0) %null-pointer)
-      (else
-       (let ((ffi-cif
-              (bytevector->pointer
-               (make-bytevector (* n-arg (ffi-type-size)) 0))))
-         (let loop ((arguments (!arguments callback))
-                    (w-ptr ffi-cif))
-           (match arguments
-             (() ffi-cif)
-             ((argument . rest)
-              (bv-ptr-set! w-ptr
-                           (gi-type-tag-get-ffi-type (!type-tag argument)
-                                                     (!is-pointer? argument)))
-              (loop rest
-                    (gi-pointer-inc w-ptr))))))))))
+  (receive (ffi-cif n-arg r-type a-types)
+      (ffi-prep-cif-elements callback)
+    (if (= n-arg 0)
+        %null-pointer
+        (let loop ((arguments (!arguments callback))
+                   (w-ptr a-types))
+          (match arguments
+            (()
+             (ffi-prep-cif ffi-cif n-arg r-type a-types)
+             ffi-cif)
+            ((argument . rest)
+             (bv-ptr-set! w-ptr
+                          (gi-type-tag-get-ffi-type (!type-tag argument)
+                                                    (!is-pointer? argument)))
+             (loop rest
+                   (gi-pointer-inc w-ptr))))))))
 
 (define (g-callable-info-make-closure info
                                       ffi-cif
@@ -181,23 +193,60 @@
                                    #:is-method? (!is-method? callback)
                                    #:forced-type return-type))))))
         ((argument . rests)
-         (let ((type-info (!type-info argument)))
-           (if type-info
-               (gi-type-info-extract-ffi-return-value type-info ffi-arg gi-argument)
-               ;; a 'manually built' instance argument, the first argument of
-               ;; a method.
-               (gi-type-tag-extract-ffi-return-value 'interface
-                                                     'object
-                                                     ffi-arg
-                                                     gi-argument))
+         (let* ((type-tag (!type-tag argument))
+                (type-desc (!type-desc argument))
+                (is-pointer? (!is-pointer? argument))
+                (is-enum? (!is-enum? argument))
+                (gi-argument (or (!gi-argument-in argument)
+                                 (!gi-argument-out argument)))
+                (forced-type (!forced-type argument))
+                (ffi-value (ffi-arg->scm ffi-arg type-tag is-pointer? is-enum?)))
            (loop rests
                  (gi-pointer-inc ffi-arg)
-                 (cons (%gi-argument->scm (!type-tag argument)
-                                          (!type-desc argument)
-                                          gi-argument
-                                          argument
-                                          #:forced-type (!forced-type argument)
-                                          #:is-pointer? (!is-pointer? argument))
+                 (cons (case type-tag
+                         ((boolean
+                           int8
+                           uint8
+                           int16
+                           uint16
+                           int32
+                           uint3
+                           unichar
+                           int64
+                           uint64
+                           float
+                           double
+                           gtype
+                           utf
+                           filename)
+                          ffi-value)
+                         ((array
+                           glist
+                           gslist
+                           ghash
+                           error)
+                          (begin
+                            (gi-argument-set! gi-argument 'v-pointer ffi-value)
+                            (%gi-argument->scm type-tag
+                                               type-desc
+                                               gi-argument
+                                               argument
+                                               #:forced-type forced-type
+                                               #:is-pointer? is-pointer?)))
+                         ((interface)
+                          (if is-enum?
+                              (gi-argument-set! gi-argument 'v-int32 ffi-value)
+                              (gi-argument-set! gi-argument 'v-pointer ffi-value))
+                          (%gi-argument->scm type-tag
+                                             type-desc
+                                             gi-argument
+                                             argument
+                                             #:forced-type forced-type
+                                             #:is-pointer? is-pointer?))
+                         ((void)
+                          (if is-pointer?
+                              ffi-value
+                              (error "unlikely possible"))))
                        args))))))))
 
 (define %g-golf-callback-closure-marshal
