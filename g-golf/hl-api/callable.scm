@@ -797,6 +797,7 @@
         #:direction 'in
         #:type-tag 'interface
         #:type-desc (list type r-name gi-type id confirmed?)
+        #:is-enum? #f
         #:forced-type 'pointer
         #:is-pointer? #t
         #:may-be-null? #f

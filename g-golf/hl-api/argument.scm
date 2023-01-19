@@ -102,7 +102,7 @@
   (scope #:accessor !scope)
   (type-tag #:accessor !type-tag #:init-keyword #:type-tag)
   (type-desc #:accessor !type-desc #:init-keyword #:type-desc)
-  (is-enum? #:accessor !is-enum?)
+  (is-enum? #:accessor !is-enum? #:init-keyword #:is-enum?)
   (array-type-desc #:accessor !array-type-desc)
   (forced-type #:accessor !forced-type #:init-keyword #:forced-type)
   (string-pointer #:accessor !string-pointer)
