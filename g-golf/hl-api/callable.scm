@@ -373,6 +373,20 @@
                           (gi-argument-set! gi-argument 'v-pointer value))
                          (else
                           (error "Invalid (uint8 array) argument: " value))))
+                  ((interface)
+                   (match (!array-type-desc clb/arg)
+                     ((type name gi-type g-type confirmed?)
+                      (case type
+                        ((object)
+                         (let ((ptrs (map !g-inst value)))
+                           (gi-argument-set! gi-argument 'v-pointer
+                                             (if (or is-zero-terminated
+                                                     (= arg-n -1))
+                                                 (scm->gi-pointers ptrs)
+                                                 (scm->gi-n-pointer ptrs arg-n)))))
+                        (else
+                         (warning "Unimplemented (prepare args-in) type - array;"
+                                  (format #f "~S" type-desc)))))))
                   (else
                    (warning "Unimplemented (prepare args-in) type - array;"
                             (format #f "~S" type-desc)))))))))
