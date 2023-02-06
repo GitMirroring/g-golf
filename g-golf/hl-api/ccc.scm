@@ -57,6 +57,7 @@
           !override?
           !is-method?
           !n-arg
+          !al-pos
           !caller-owns
           !return-type
           !type-desc
@@ -95,6 +96,7 @@
   (override? #:accessor !override? #:init-keyword #:override? #:init-value #f)
   (is-method? #:accessor !is-method?)
   (n-arg #:accessor !n-arg)
+  (al-pos #:accessor !al-pos)
   (caller-owns #:accessor !caller-owns)
   (return-type #:accessor !return-type)
   (type-desc #:accessor !type-desc)
