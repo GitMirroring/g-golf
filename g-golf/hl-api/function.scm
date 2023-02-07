@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2022
+;;;; Copyright (C) 2019 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -218,7 +218,9 @@
                         (case (!direction argument)
                           ((in
                             inout)
-                           argument)
+                           (if (!al-arg? argument)
+                               #f
+                               argument))
                           (else
                            #f)))
               arguments)))))
