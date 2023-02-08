@@ -26,6 +26,77 @@ warranty.
 
 * Latest News
 
+** February 2023
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-a.3 is released.
+
+This is the third release of the upcoming 0.8.0 release, now available
+for testing.
+
+*** Changes since 0.8.0-a.2
+
+Here is a summary of the noteworthy changes since version 0.8.0-a.2. See
+G-Golf [[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** Enhancement
+
+Skip Array Length Argument(s)
+
+This release implements skip array-length argument mechanism. This
+affects all functions and methods of any upstream (type)lib that accept
+one or more array argument(s), for which the function or method also
+expect an array length argument.
+
+Starting with this release, users don't have to pass those array length
+arg(s) (more accurately, users may not pass those arg(s) anymore), as
+G-Golf will supply those automatically. Note that this is also valid for
+arrays of uint8 - those arg(s) are 'array of chars', that users must
+provide as a string (as opposed to a list) - for example, see the
+peg-solitaire example, updated accordingly, so that the
+gtk-css-provider-load-from-data call does no longer provide the 'data'
+array length argument.
+
+**** Examples
+
+All
+
+Updated, wrt the above enhancement, to call the g-application-run method
+'without' the args length argument.
+
+Peg Solitaire
+
+In addition, updating the call to gtk-css-provider-load-from-data,
+removing the 'data' array length argument.
+
+**** Bug fixing
+
+Callback and VFunc
+
+In G-Golf, both Callback and VFunc use one (identical) marshal
+procedure, g-golf-callback-closure-marshal, entirely written in scheme,
+which implements, in short, the foreign function interface (ffi) arg
+retrieval and transfornmation into their scheme representation, then
+call the callback of vfunc (user provided) scheme code, then sets the GI
+argument to the return value (if any).
+
+To obtain the ffi arg scheme representation values, G-Golf was calling
+gi-type-info-extract-ffi-return-value (a GI function, in the girffi
+module, not a G-Golf procedure) - but that function has some bug.
+
+G-Golf has now been updated so g-golf-callback-closure-marshal calls a
+'self made' ffi-args->scm (see commit 6a30a12dd) for further details on
+this).
+
+Peg Solitaire
+
+The peg-solitaire example has been updated, as the Callback and VFunc
+bug fixed its snapshot-vfunc method. More specifically its width and
+height argument values are now correct, we no longer need to explicitly
+call get-intrinsic-width and get-intrinsic-height.
+
+
+* Older News
+
 ** January 2023
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-a.2 is released.
@@ -86,6 +157,4 @@ GObject.TypeInstance
 GObject.TypeInstance fundamental class support fix. They must inherit
 <gtype-instance> and specify <gtype-class> as their metaclass.
 
-* Older News
-
-For older News, see [[http://www.gnu.org/software/g-golf/news.html][here]].
+** For older News, see [[http://www.gnu.org/software/g-golf/news.html][here]].
