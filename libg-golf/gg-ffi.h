@@ -1,7 +1,7 @@
 /*  -*- mode: C; coding: utf-8 -*-
 
 ####
-#### Copyright (C) 2022
+#### Copyright (C) 2023
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf.
@@ -39,4 +39,16 @@
 */
 
 size_t
-ffi_type_size ();
+gg_ffi_cif_size ();
+
+size_t
+gg_ffi_type_size ();
+
+int
+gg_ffi_prep_cif (ffi_cif *cif, \
+                 uint n_args, \
+                 ffi_type *r_type, \
+                 ffi_type **a_types);
+
+double
+gg_ffi_pack_double (void **arg);

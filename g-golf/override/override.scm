@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2020 - 2022
+;;;; Copyright (C) 2020 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -39,7 +39,7 @@
 
     "gtk_container_child_get_property"
     "gtk_container_child_set_property"
-    "gtk_list_store_newv"
+    #;"gtk_list_store_newv"
     "gtk_list_store_set_value"
     "gtk_tree_store_set_value"
     "gtk_tree_model_get_value"

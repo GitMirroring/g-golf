@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2022
+;;;; Copyright (C) 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -57,9 +57,11 @@
           !override?
           !is-method?
           !n-arg
+          !al-pos
           !caller-owns
           !return-type
           !type-desc
+          !is-enum?
           !array-type-desc
           !string-pointer
           !bv-cache
@@ -94,9 +96,11 @@
   (override? #:accessor !override? #:init-keyword #:override? #:init-value #f)
   (is-method? #:accessor !is-method?)
   (n-arg #:accessor !n-arg)
+  (al-pos #:accessor !al-pos)
   (caller-owns #:accessor !caller-owns)
   (return-type #:accessor !return-type)
   (type-desc #:accessor !type-desc)
+  (is-enum? #:accessor !is-enum?)
   (array-type-desc #:accessor !array-type-desc)
   (string-pointer #:accessor !string-pointer)
   (bv-cache #:accessor !bv-cache #:init-value #f)

@@ -5,7 +5,7 @@ exec guile -e main -s "$0" "$@"
 
 
 ;;;;
-;;;; Copyright (C) 2022
+;;;; Copyright (C) 2022 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -73,22 +73,13 @@ exec guile -e main -s "$0" "$@"
 (define-vfunc (get-intrinsic-height-vfunc (self <solitaire-peg>))
   32)
 
-;; For some unknown reason(s) still, the snapshot vfunc is not called with the
-;; the intrinsic width and height values. However both the get-intrinsic-width
-;; and get-intrinsic-height methods work fine, they call their corresponding
-;; vfunc, that we override here above. Till I find out why, let's call those
-;; method explicitly and temporarily comment the width height args.
-
 (define-vfunc (snapshot-vfunc (self <solitaire-peg>) snapshot width height)
   (receive (outline outline:bounds)
       (allocate-c-struct gsk-rounded-rect bounds)
     (gsk-rounded-rect-init-from-rect outline
                                      (graphene-rect-init (graphene-rect-alloc)
-                                                         0 0
-                                                         ;; width height
-                                                         (get-intrinsic-width self)
-                                                         (get-intrinsic-height self))
-                                       3.5) ;; px - approx. 0.3em [default fontsize]
+                                                         0 0  width height)
+                                     3.5) ;; px - approx. 0.3em [default fontsize]
       (push-rounded-clip snapshot outline)
       (append-color snapshot
                     '(0.61 0.1 0.47 1.0) ;; vocaloid
@@ -270,7 +261,7 @@ exec guile -e main -s "$0" "$@"
                  #:row-spacing 6
                  #:row-homogeneous #t))
          (css-provider (let ((provider (make <gtk-css-provider>)))
-                         (gtk-css-provider-load-from-data provider %css-data -1)
+                         (gtk-css-provider-load-from-data provider %css-data)
                          provider)))
     (set-child window grid)
     (do ((i 0
@@ -331,5 +322,5 @@ exec guile -e main -s "$0" "$@"
   (let ((app (make <gtk-application>
                #:application-id "org.gtk.example")))
     (connect app 'activate activate)
-    (let ((status (g-application-run app (length args) args)))
+    (let ((status (g-application-run app args)))
       (exit status))))

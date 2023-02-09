@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2022
+;;;; Copyright (C) 2022 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -81,6 +81,11 @@
                   'caller-owns (g-callable-info-get-caller-owns info)
                   'return-type return-type
                   'type-desc type-desc
+                  'is-enum? (and (eq? return-type 'interface)
+                                      (match type-desc
+                                        ((type name gi-type g-type confirmed?)
+                                         (or (eq? type 'enum)
+                                             (eq? type 'flags)))))
                   'array-type-desc array-type-desc
                   'may-return-null? (g-callable-info-may-return-null info))
       (initialize-callable-arguments self))))
@@ -107,7 +112,7 @@
 
 (define (initialize-callable-arguments callable)
   (let* ((info (!info callable))
-         (override? (!override? callable)) 
+         (override? (!override? callable))
          (is-method? (!is-method? callable))
          (n-arg (g-callable-info-get-n-args info))
          (args (if is-method?
@@ -115,6 +120,7 @@
                    '())))
     (let loop ((i 0)
                (arg-pos (length args))
+               (al-pos '())
                (arguments args)
                (n-gi-arg-in (length args))
                (args-in args)
@@ -122,41 +128,15 @@
                (n-gi-arg-out 0)
                (args-out '()))
       (if (= i n-arg)
-          (let* ((arguments (reverse arguments))
-                 (args-in (reverse args-in))
-                 (args-out (reverse args-out))
-                 (gi-args-in-bv (if (> n-gi-arg-in 0)
-                                    (make-bytevector (* %gi-argument-size
-                                                        n-gi-arg-in)
-                                                     0)
-                                    #f))
-                 (gi-args-in (if gi-args-in-bv
-                                 (bytevector->pointer gi-args-in-bv)
-                                 %null-pointer))
-                 (gi-args-out-bv (if (> n-gi-arg-out 0)
-                                     (make-bytevector (* %gi-argument-size
-                                                         n-gi-arg-out)
-                                                      0)
-                                     #f))
-                 (gi-args-out (if gi-args-out-bv
-                                  (bytevector->pointer gi-args-out-bv)
-                                  %null-pointer)))
-            (when gi-args-in-bv
-              (finalize-callable-arguments args-in gi-args-in-bv !gi-argument-in))
-            (when gi-args-out-bv
-              (finalize-callable-arguments args-out gi-args-out-bv !gi-argument-out))
-            (mslot-set! callable
-                        'n-arg (if is-method? (+ n-arg 1) n-arg)
-                        'arguments arguments
-                        'n-gi-arg-in n-gi-arg-in
-                        'args-in args-in
-                        'gi-args-in gi-args-in
-                        'gi-args-in-bv gi-args-in-bv
-                        'n-gi-arg-out n-gi-arg-out
-                        'args-out args-out
-                        'gi-args-out gi-args-out
-                        'gi-args-out-bv gi-args-out-bv
-                        'gi-arg-result (make-gi-argument)))
+          (initialize-callable-arguments-final-steps callable
+                                                     is-method?
+                                                     n-arg
+                                                     (reverse al-pos)
+                                                     (reverse arguments)
+                                                     (reverse args-in)
+                                                     (reverse args-out)
+                                                     n-gi-arg-in
+                                                     n-gi-arg-out)
           (let* ((arg-info (g-callable-info-get-arg info i))
                  (argument (make <argument> #:info arg-info)))
             (case (!direction argument)
@@ -168,6 +148,7 @@
                            'gi-argument-in-bv-pos n-gi-arg-in)
                (loop (+ i 1)
                      (+ arg-pos 1)
+                     (al-pos-check argument al-pos is-method?)
                      (cons argument arguments)
                      (+ n-gi-arg-in 1)
                      (cons argument args-in)
@@ -183,6 +164,7 @@
                            'gi-argument-out-bv-pos n-gi-arg-out)
                (loop (+ i 1)
                      (+ arg-pos 1)
+                     al-pos
                      (cons argument arguments)
                      (+ n-gi-arg-in 1)
                      (cons argument args-in)
@@ -195,12 +177,93 @@
                            'gi-argument-out-bv-pos n-gi-arg-out)
                (loop (+ i 1)
                      (+ arg-pos 1)
+                     al-pos
                      (cons argument arguments)
                      n-gi-arg-in
                      args-in
                      n-gi-arg-inout
                      (+ n-gi-arg-out 1)
                      (cons argument args-out)))))))))
+
+(define (al-pos-check argument al-pos is-method?)
+  (case (!type-tag argument)
+    ((array)
+     (match (!type-desc argument)
+       ((array fixed-size is-zero-terminated param-n param-tag)
+        (if (= param-n -1)
+            al-pos
+            (let* ((arg-pos (!arg-pos argument))
+                   (param-n (if is-method? (+ param-n 1) param-n))
+                   (u-args-ar-pos (if (< param-n arg-pos) ;; [1]
+                                      (- arg-pos
+                                         (+ (length al-pos) 1))
+                                      (- arg-pos (length al-pos)))))
+              (cons (list u-args-ar-pos
+                          arg-pos ;; 'real' array pos [2]
+                          param-n)
+                    al-pos))))))
+      (else
+       al-pos)))
+
+;; [1]
+
+;; u-arg-ar-pos are 'shifted' to the left - compared to their 'real'
+;; cble-args-ar-pos - by an amount that depens on both previous al args,
+;; and whether the one being processed has its al-pos, param-n,
+;; preceeding or following the array pos itself.
+
+;; [2]
+
+;; the 'real' array pos is the offset of the array arg in the (complete)
+;; cble-args list - we need it to construct the cble-args list
+
+(define (initialize-callable-arguments-final-steps callable
+                                                   is-method?
+                                                   n-arg	;; callable-info-n-args
+                                                   al-pos
+                                                   arguments
+                                                   args-in
+                                                   args-out
+                                                   n-gi-arg-in
+                                                   n-gi-arg-out)
+  (let* ((gi-args-in-bv (if (> n-gi-arg-in 0)
+                            (make-bytevector (* %gi-argument-size
+                                                n-gi-arg-in)
+                                             0)
+                            #f))
+         (gi-args-in (if gi-args-in-bv
+                         (bytevector->pointer gi-args-in-bv)
+                         %null-pointer))
+         (gi-args-out-bv (if (> n-gi-arg-out 0)
+                             (make-bytevector (* %gi-argument-size
+                                                 n-gi-arg-out)
+                                              0)
+                             #f))
+         (gi-args-out (if gi-args-out-bv
+                          (bytevector->pointer gi-args-out-bv)
+                          %null-pointer)))
+    (when gi-args-in-bv
+      (finalize-callable-arguments args-in gi-args-in-bv !gi-argument-in))
+    (when gi-args-out-bv
+      (finalize-callable-arguments args-out gi-args-out-bv !gi-argument-out))
+    (for-each (lambda (item)
+                (match item
+                  ((u-pos c-pos l-pos)
+                   (set! (!al-arg? (list-ref arguments l-pos)) #t))))
+        al-pos)
+    (mslot-set! callable
+                'n-arg (if is-method? (+ n-arg 1) n-arg)
+                'al-pos al-pos
+                'arguments arguments
+                'n-gi-arg-in n-gi-arg-in
+                'args-in args-in
+                'gi-args-in gi-args-in
+                'gi-args-in-bv gi-args-in-bv
+                'n-gi-arg-out n-gi-arg-out
+                'args-out args-out
+                'gi-args-out gi-args-out
+                'gi-args-out-bv gi-args-out-bv
+                'gi-arg-result (make-gi-argument))))
 
 (define (finalize-callable-arguments args gi-args-bv gi-argument-acc)
   (let loop ((args args)
@@ -215,17 +278,74 @@
              (+ i 1))))))
 
 (define (callable-prepare-gi-arguments callable args)
-  (let ((args-length (length args))
-        (n-arg (!n-arg callable))
-        (n-arg-in (!n-gi-arg-in callable))
-        (override? (!override? callable)))
+  (let* ((args-length (length args))
+         (n-arg (!n-arg callable))
+         (n-arg-in (!n-gi-arg-in callable))
+         (al-pos (!al-pos callable))
+         (effective-n-arg-in (- n-arg-in (length al-pos)))
+         (override? (!override? callable)))
     (if (or (and override?
                  (= args-length n-arg))
-            (= args-length n-arg-in))
-        (begin
+            (= args-length effective-n-arg-in))
+        (let ((args (if (null? al-pos)
+                        args
+                        (u-args->cble-args n-arg-in args al-pos))))
           (callable-prepare-gi-args-in callable args)
           (callable-prepare-gi-args-out callable args args-length n-arg))
-        (error "Wrong number of arguments: " args))))
+        (scm-error 'wrong-arg-nb #f "Wrong number of arguments: ~A ~S"
+                   (list (!name callable) args) #f))))
+
+#!
+
+;; example - to play with
+
+(define cble-args
+  '(e0 3 (ar1-0 ar1-1 ar1-2) e3 (ar2-0) 1 e6 2 (ar3-0 ar3-1)))
+
+(define u-args
+  '(e0 (ar1-0 ar1-1 ar1-2) e3 (ar2-0) e6 (ar3-0 ar3-1)))
+
+(define al-pos
+  '((1 2 1)	;; [1]
+    (3 4 5)
+    (5 8 7)))
+
+;; [1]
+
+;; 0.	u-args ar-pos
+;; 1.	cble-arg ar-pos
+;; 2.	cble-arg al-pos
+
+!#
+
+(define (u-args->cble-args n-arg-in u-args al-pos)
+  (let loop ((i 0)
+             (args u-args)
+             (al-pos al-pos)
+             (cble-args '()))
+    (if (= i n-arg-in)
+        (reverse! cble-args)
+        (if (null? al-pos)
+            (loop (+ i 1)
+                  (cdr args)
+                  '()
+                  (cons (car args) cble-args))
+            (match (car al-pos)
+              ((u-pos c-pos l-pos)
+               (if (= i l-pos)
+                   (let ((ar (list-ref u-args u-pos)))
+                     (loop (+ i 1)
+                           args
+                           (cdr al-pos)
+                           (cons (cond ((list? ar) (length ar))
+                                       ((string? ar) -1)
+                                       (else
+                                        (error "What array is this " ar)))
+                                 cble-args)))
+                   (loop (+ i 1)
+                         (cdr args)
+                         al-pos
+                         (cons (car args) cble-args)))))))))
 
 (define %allow-none-exceptions
   '(child-setup-data-destroy))
@@ -332,11 +452,12 @@
                (error "Invalid array argument: " value))
            (match type-desc
              ((array fixed-size is-zero-terminated param-n param-tag)
-              (let* ((param-n (case param-n
-                                ((-1) param-n)
-                                (else
-                                 (if is-method? (+ param-n 1) param-n))))
-                     (arg-n (list-ref args param-n)))
+              (let* ((param-n (if (= param-n -1)
+                                  -1
+                                  (if is-method? (+ param-n 1) param-n)))
+                     (arg-n (if (= param-n -1)
+                                -1
+                                (list-ref args param-n))))
                 (case param-tag
                   ((utf8
                     filename)
@@ -368,6 +489,20 @@
                           (gi-argument-set! gi-argument 'v-pointer value))
                          (else
                           (error "Invalid (uint8 array) argument: " value))))
+                  ((interface)
+                   (match (!array-type-desc clb/arg)
+                     ((type name gi-type g-type confirmed?)
+                      (case type
+                        ((object)
+                         (let ((ptrs (map !g-inst value)))
+                           (gi-argument-set! gi-argument 'v-pointer
+                                             (if (or is-zero-terminated
+                                                     (= arg-n -1))
+                                                 (scm->gi-pointers ptrs)
+                                                 (scm->gi-n-pointer ptrs arg-n)))))
+                        (else
+                         (warning "Unimplemented (prepare args-in) type - array;"
+                                  (format #f "~S" type-desc)))))))
                   (else
                    (warning "Unimplemented (prepare args-in) type - array;"
                             (format #f "~S" type-desc)))))))))
@@ -792,6 +927,7 @@
         #:direction 'in
         #:type-tag 'interface
         #:type-desc (list type r-name gi-type id confirmed?)
+        #:is-enum? #f
         #:forced-type 'pointer
         #:is-pointer? #t
         #:may-be-null? #f

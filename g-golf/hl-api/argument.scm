@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2022
+;;;; Copyright (C) 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -67,6 +67,8 @@
           !scope
           !type-tag
           !type-desc
+          !is-enum?
+          !al-arg?
           !array-type-desc
           !forced-type
           !string-pointer
@@ -101,6 +103,8 @@
   (scope #:accessor !scope)
   (type-tag #:accessor !type-tag #:init-keyword #:type-tag)
   (type-desc #:accessor !type-desc #:init-keyword #:type-desc)
+  (is-enum? #:accessor !is-enum? #:init-keyword #:is-enum?)
+  (al-arg? #:accessor !al-arg? #:init-value #f)
   (array-type-desc #:accessor !array-type-desc)
   (forced-type #:accessor !forced-type #:init-keyword #:forced-type)
   (string-pointer #:accessor !string-pointer)
@@ -160,6 +164,11 @@
                        'scope scope
                        'type-tag type-tag
                        'type-desc type-desc
+                       'is-enum? (and (eq? type-tag 'interface)
+                                      (match type-desc
+                                        ((type name gi-type g-type confirmed?)
+                                         (or (eq? type 'enum)
+                                             (eq? type 'flags)))))
                        'array-type-desc array-type-desc
                        'forced-type forced-type
                        'is-pointer? is-pointer?

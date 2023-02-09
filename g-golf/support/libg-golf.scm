@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2022
+;;;; Copyright (C) 2016 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -31,7 +31,10 @@
   #:use-module (g-golf init)
   
   #:export (;; FFI
-            ffi_type_size
+            gg_ffi_cif_size
+            gg_ffi_type_size
+            gg_ffi_prep_cif
+            gg_ffi_pack_double
 
             ;; Misc.
             pointer_address_size
@@ -67,11 +70,32 @@
 ;;; FFI
 ;;;
 
-(define ffi_type_size
+(define gg_ffi_cif_size
   (pointer->procedure size_t
-                      (dynamic-func "ffi_type_size"
+                      (dynamic-func "gg_ffi_cif_size"
                                     %libg-golf)
                       (list)))
+
+(define gg_ffi_type_size
+  (pointer->procedure size_t
+                      (dynamic-func "gg_ffi_type_size"
+                                    %libg-golf)
+                      (list)))
+
+(define gg_ffi_prep_cif
+  (pointer->procedure int
+                      (dynamic-func "gg_ffi_prep_cif"
+                                    %libg-golf)
+                      (list '*			;; *cif
+                            unsigned-int	;; n-args
+                            '*			;; *return-type
+                            '*)))		;; **arg-types
+
+(define gg_ffi_pack_double
+  (pointer->procedure double
+                      (dynamic-func "gg_ffi_pack_double"
+                                    %libg-golf)
+                      (list '*)))		;; *ffi-arg
 
 
 ;;;

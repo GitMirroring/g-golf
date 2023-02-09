@@ -5,7 +5,7 @@ exec guile -e main -s "$0" "$@"
 
 
 ;;;;
-;;;; Copyright (C) 2022
+;;;; Copyright (C) 2022 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -96,5 +96,5 @@ exec guile -e main -s "$0" "$@"
   (let ((app (make <gtk-application>
                #:application-id "org.gtk.example")))
     (connect app 'activate activate)
-    (let ((status (g-application-run app (length args) args)))
+    (let ((status (g-application-run app args)))
       (exit status))))
