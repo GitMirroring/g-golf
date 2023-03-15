@@ -52,8 +52,7 @@ exec guile -e main -s "$0" "$@"
   (default-duplicate-binding-handler
     '(merge-generics replace warn-override-core warn last))
 
-  (use-modules (g-golf)
-               (cairo))
+  (use-modules (g-golf))
 
   (g-irepository-require "Gtk" #:version "4.0")
   (for-each (lambda (name)
@@ -66,50 +65,8 @@ exec guile -e main -s "$0" "$@"
         "ApplicationWindow"
         "Image")))
 
-
-(define-class <nuclear-icon> (<gobject> <gdk-paintable>)
-  (rotation #:accessor !rotation #:init-keyword #:rotation))
-
-(define-vfunc (get-flags-vfunc (self <nuclear-icon>))
-  '(size contents))
-
-(define-vfunc (snapshot-vfunc (self <nuclear-icon>) snapshot width height)
-  (nuclear-snapshot snapshot
-                    '(0.9 0.75 0.15 1.0)	;; nuclear yellow
-                    '(0.0 0.0 0.0 1.0)		;; black
-                    width
-                    height
-                    (!rotation self)))
-
-(define (nuclear-snapshot snapshot background foreground width height rotation)
-  (append-color snapshot
-                background
-                (graphene-rect-init (graphene-rect-alloc) 0 0 width height))
-  (let* ((size (min width height))
-         (ctx (append-cairo snapshot
-                            (graphene-rect-init (graphene-rect-alloc)
-                                                (/ (- width size) 2)
-                                                (/ (- height size) 2)
-                                                size
-                                                size)))
-         (cr (cairo-pointer->context ctx))
-         (radius 0.3)
-         (pi (acos -1)))
-    (match foreground
-      ((r g b a)
-       (cairo-set-source-rgba cr r g b a)))
-    (cairo-translate cr (/ width 2.0) (/ height 2.0))
-    (cairo-scale cr size size)
-    (cairo-rotate cr rotation)
-
-    (cairo-arc cr 0 0 0.1 (- pi) pi)
-    (cairo-fill cr)
-
-    (cairo-set-line-width cr radius)
-    (cairo-set-dash cr `#(,(/ (* radius pi) 3)) 0.0)
-    (cairo-arc cr 0 0 radius (- pi) pi)
-    (cairo-stroke cr)
-    (cairo-destroy cr)))
+(add-to-load-path (dirname (current-filename)))
+(use-modules (nuclear-icon))
 
 
 (define (activate app)
