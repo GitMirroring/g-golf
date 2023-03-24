@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2022
+;;;; Copyright (C) 2022 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -96,10 +96,13 @@
 (define g-name-transform-exception-remove #f)
 (define g-name-transform-exception-reset #f)
 
-(let ((%g-name-transform-exception
+(let* ((%g-name-transform-exception-default
        '(("GObject" . "gobject")
+         ("GInterface" . "ginterface")
          ("GIVFuncInfo" . "gi-vfunc-info")
-         ("GIVFuncInfoFlags" . "gi-vfunc-info-flags"))))
+         ("GIVFuncInfoFlags" . "gi-vfunc-info-flags")))
+       (%g-name-transform-exception
+        %g-name-transform-exception-default))
 
   (set! g-name-transform-exception
         (lambda ()
@@ -116,14 +119,14 @@
 
   (set! g-name-transform-exception-remove
         (lambda (key)
-          (unless (string=? key "GObject")
+          (unless (assoc-ref %g-name-transform-exception-default key)
             (set! %g-name-transform-exception
                   (assoc-remove! %g-name-transform-exception key)))))
 
   (set! g-name-transform-exception-reset
         (lambda ()
           (set! %g-name-transform-exception
-                '(("GObject" . "gobject"))))))
+                %g-name-transform-exception-default))))
 
 
 ;;;
