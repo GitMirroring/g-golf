@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2022
+;;;; Copyright (C) 2016 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -260,8 +260,12 @@
   (gi-import-by-name "GObject" "BindingFlags" #:force? #t)
   (gi-import-by-name "GObject" "TypeFlags" #:force? #t)
 
-  (let ((%gi-import-object-methods
-         (@@ (g-golf hl-api object) gi-import-object-methods))
-        (g-object-info
-         (g-irepository-find-by-name "GObject" "Object")))
+  (let* ((%gi-import-object-methods
+          (@@ (g-golf hl-api object) gi-import-object-methods))
+         (g-object-info
+          (g-irepository-find-by-name "GObject" "Object"))
+         (class-struct (g-object-info-get-class-struct g-object-info)))
+    (mslot-set! <gobject>
+                'info g-object-info
+                'g-struct-fields (gi-struct-field-desc class-struct))
     (%gi-import-object-methods g-object-info #:force? #t)))
