@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2022 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2023 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -24,6 +24,7 @@ Type Information — The GLib Runtime type identification and management system
 @item @ref{g-type-class-ref}
 @item @ref{g-type-class-peek}
 @item @ref{g-type-class-unref}
+@item @ref{g-type-class-peek-parent}
 @item @ref{g-type-interface-peek}
 @item @ref{g-type-interfaces}
 @item @ref{g-type-query}
@@ -169,6 +170,17 @@ Decrements the reference count for @var{g-class} (a pointer to a
 @code{GTypeClass} structure). Once the last reference count of a class
 has been released, it may be finalized by the type system. Attempting to
 further dereference a finalized class is invalid.
+@end deffn
+
+
+@anchor{g-type-class-peek-parent}
+@deffn Procedure g-type-class-peek-parent g-class
+
+Returns a pointer or @code{#f}.
+
+Obtains and returns a pointer to the class structure of the immediate
+parent type for @var{g-class} (a pointer to a @code{GTypeClass}
+structure). If no immediate parent type exists, it returns @code{#f}.
 @end deffn
 
 
