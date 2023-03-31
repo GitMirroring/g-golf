@@ -88,62 +88,62 @@
 (define-syntax define-vfunc
   (syntax-rules ()
     ((_ (gf-name . args) body ...)
-     (let ((inst (vfunc args body ...)))
+     (let ((vf (vfunc args body ...)))
        (receive (specializer g-name g-long-name-prefix gf-long-name? info)
-           (vfunc-checks 'gf-name inst)
-         (mslot-set! inst
+           (vfunc-checks 'gf-name vf)
+         (mslot-set! vf
                      'specializer specializer
                      'name (g-name->name g-name)
                      'g-name (string->symbol g-name)
                      'long-name-prefix (g-name->name g-long-name-prefix)
                      'gf-long-name? gf-long-name?
                      'info info)
-         (add-method! (gi-add-method-gf 'gf-name) inst)
-         (add-vfunc-closure inst))))))
+         (add-method! (gi-add-method-gf 'gf-name) vf)
+         (add-vfunc-closure vf))))))
 
-(define (add-vfunc-closure inst)
+(define (add-vfunc-closure vf)
   (receive (closure callback-closure)
-      (g-golf-vfunc-closure inst)
+      (g-golf-vfunc-closure vf)
     (let* ((vfunc-g-object-class-specializer
-            (find-vfunc-g-object-class-specializer inst))
-           (specializer (!specializer inst))
+            (find-vfunc-g-object-class-specializer vf))
+           (specializer (!specializer vf))
            (iface/class-struct (if (ginterface-class? specializer)
                                    (g-type-interface-peek
                                     (!g-class vfunc-g-object-class-specializer)
                                     (!g-type specializer))
                                    (g-type-class-peek
                                     (!g-type vfunc-g-object-class-specializer)))))
-      (slot-set! inst
+      (slot-set! vf
                  'callback (!callback callback-closure))
-      (match (vfunc-struct-field inst)
+      (match (vfunc-struct-field vf)
         ((type-tag offset flags)
          (bv-ptr-set! (gi-pointer-inc iface/class-struct offset)
                       closure))))))
 
-(define (find-vfunc-g-object-class-specializer inst)
+(define (find-vfunc-g-object-class-specializer vf)
   ;; There can only be one GObject class - as GObject is a single
-  ;; inheritance oop system - in the list of the <vfunc> inst
+  ;; inheritance oop system - in the list of the <vfunc> vf
   ;; specializers.
-  (let loop ((specializers (slot-ref inst 'specializers)))
+  (let loop ((specializers (slot-ref vf 'specializers)))
     (match specializers
       (()
        (scm-error 'impossible #f "No GObject specializer for: ~S"
-                  (list (!name inst)) #f))
+                  (list (!name vf)) #f))
       ((specializer . rests)
        (or (and (gobject-class? specializer)
                 specializer)
            (loop rests))))))
 
-(define (vfunc-struct-field inst)
-  (assq-ref (!g-struct-fields (!specializer inst))
-            (!name inst)))
+(define (vfunc-struct-field vf)
+  (assq-ref (!g-struct-fields (!specializer vf))
+            (!name vf)))
 
-(define (g-golf-vfunc-closure inst)
-  (let* ((name (symbol-append (!long-name-prefix inst)
+(define (g-golf-vfunc-closure vf)
+  (let* ((name (symbol-append (!long-name-prefix vf)
                               '-
-                              (!name inst)))
-         (info (!info inst))
-         (proc (slot-ref inst 'procedure))
+                              (!name vf)))
+         (info (!info vf))
+         (proc (slot-ref vf 'procedure))
          (callback (gi-import-vfunc name info))
          (callback-closure (make <callback-closure>
                              #:callback callback
@@ -175,13 +175,13 @@
   "More then one specializer defines a VFunc (method) for NAME: ~S. In these
 situations a VFunc (method) long name is mandatory and ~S is invalid.")
 
-(define (vfunc-checks gf-name inst)
+(define (vfunc-checks gf-name vf)
   (let ((str-name (symbol->string gf-name)))
     (case (string-suffix-length str-name "-vfunc")
       ((6)
        (let* ((name (string-drop-right str-name 6))
               (g-name (name->g-name name 'as-string))
-              (results (specializers-vfunc-lookup inst g-name)))
+              (results (specializers-vfunc-lookup vf g-name)))
          (match results
            (()
             (scm-error 'wrong-type-arg #f "No such VFunc : ~S"
@@ -226,8 +226,8 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
               result
               (loop rest))))))))
 
-(define (specializers-vfunc-lookup inst g-name)
-  (let loop ((specializers (slot-ref inst 'specializers))
+(define (specializers-vfunc-lookup vf g-name)
+  (let loop ((specializers (slot-ref vf 'specializers))
              (results '()))
     (match specializers
       (() results)
