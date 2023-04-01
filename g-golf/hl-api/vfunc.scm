@@ -124,15 +124,9 @@
   ;; There can only be one GObject class - as GObject is a single
   ;; inheritance oop system - in the list of the <vfunc> vf
   ;; specializers.
-  (let loop ((specializers (slot-ref vf 'specializers)))
-    (match specializers
-      (()
-       (scm-error 'impossible #f "No GObject specializer for: ~S"
-                  (list (!name vf)) #f))
-      ((specializer . rests)
-       (or (and (gobject-class? specializer)
-                specializer)
-           (loop rests))))))
+  (or (find gobject-class? (slot-ref vf 'specializers))
+      (scm-error 'impossible #f "No GObject specializer for: ~S"
+                 (list (!name vf)) #f)))
 
 (define (vfunc-struct-field vf)
   (assq-ref (!g-struct-fields (!specializer vf))
