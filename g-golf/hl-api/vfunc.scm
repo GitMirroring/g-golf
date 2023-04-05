@@ -96,10 +96,10 @@
 
 (define-syntax define-vfunc
   (syntax-rules ()
-    ((_ (gf-name . args) body ...)
+    ((_ (vf-name . args) body ...)
      (let ((vf (vfunc args body ...)))
        (receive (specializer g-name g-long-name-prefix gf-long-name? info)
-           (vfunc-checks 'gf-name vf)
+           (vfunc-checks 'vf-name vf #;(slot-ref vf 'specializers))
          (mslot-set! vf
                      'specializer specializer
                      'name (g-name->name g-name)
@@ -107,7 +107,7 @@
                      'long-name-prefix (g-name->name g-long-name-prefix)
                      'gf-long-name? gf-long-name?
                      'info info)
-         (add-method! (gi-add-method-gf 'gf-name) vf)
+         (add-method! (gi-add-method-gf 'vf-name) vf)
          (add-vfunc-closure vf))))))
 
 (define (add-vfunc-closure vf)
@@ -178,13 +178,14 @@
   "More then one specializer defines a VFunc (method) for NAME: ~S. In these
 situations a VFunc (method) long name is mandatory and ~S is invalid.")
 
-(define (vfunc-checks gf-name vf)
-  (let ((str-name (symbol->string gf-name)))
+(define (vfunc-checks vf-name vf #;specializers)
+  (let ((specializers (slot-ref vf 'specializers))
+        (str-name (symbol->string vf-name)))
     (case (string-suffix-length str-name "-vfunc")
       ((6)
        (let* ((name (string-drop-right str-name 6))
               (g-name (name->g-name name 'as-string))
-              (results (specializers-vfunc-lookup vf g-name)))
+              (results (specializers-vfunc-lookup specializers g-name)))
          (match results
            (()
             (scm-error 'wrong-type-arg #f "No such VFunc : ~S"
@@ -199,15 +200,15 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
             ;; Then there is more then one specializer that defines a VFunc
             ;; for G-NAME. In this case, we filter the results to keep, if
             ;; any, the only one result that would have its gf-long-name?
-            ;; #t. Otherwise, it means that GF-NAME is a VFunc short name,
-            ;; which in this situation is invalid, or GF-NAME is an invalid
+            ;; #t. Otherwise, it means that VF-NAME is a VFunc short name,
+            ;; which in this situation is invalid, or VF-NAME is an invalid
             ;; long name (as a typo in the long name prefix) an exception is
             ;; raised.
             (let ((the-result (vfunc-checks-filter results)))
               (match the-result
                 (#f
                  (scm-error 'wrong-type-arg #f %mandatory-long-name-error-msg
-                            (list results gf-name) #f))
+                            (list results vf-name) #f))
                 ((specializer g-name g-long-name-prefix gf-long-name? info)
                  (values specializer
                          g-name
@@ -216,7 +217,7 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
                          info))))))))
       (else
        (scm-error 'wrong-type-arg #f "Invalid vfunc name: ~S"
-                  (list gf-name) #f)))))
+                  (list vf-name) #f)))))
 
 (define (vfunc-checks-filter results)
   (let loop ((results results))
@@ -229,8 +230,8 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
               result
               (loop rest))))))))
 
-(define (specializers-vfunc-lookup vf g-name)
-  (let loop ((specializers (slot-ref vf 'specializers))
+(define (specializers-vfunc-lookup specializers g-name)
+  (let loop ((specializers specializers)
              (results '()))
     (match specializers
       (() results)
