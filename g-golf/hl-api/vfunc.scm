@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2022
+;;;; Copyright (C) 2022 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -83,6 +83,15 @@
 			    (format #f "~S" (slot-ref self name))
 			    "#<unbound>"))))
       (class-direct-slots (class-of self)))
+  #;(format #t "    Method slots are: ~%")
+  #;(for-each (lambda (slot)
+	      (let ((name (slot-definition-name slot)))
+		(format #t "      ~S = ~A~%"
+			name
+			(if (slot-bound? self name)
+			    (format #f "~S" (slot-ref self name))
+			    "#<unbound>"))))
+      (class-direct-slots <method>))
   *unspecified*)
 
 (define-syntax define-vfunc
@@ -270,11 +279,13 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
   (g-interface-info-find-vfunc (!info c-lass) g-name))
 
 
-;; Below is a copy of the (define-syntax method ...) code in (oop goops) - a
-;; copy just slightly altered, changing <method> occurrences to <vfunc>. I
-;; actualy had to do this, rather then merely call (make <vfunc ...), because
-;; this syntax is full of internal defs that one also needs when subclassing
-;; <method>.
+;; Below is a modified version of the (define-syntax method ...) code in
+;; (oop goops) - from which the vfunc syntax-case below is largely
+;; inspired.
+
+(define %next-vfunc
+  (lambda args
+    (dimfi 'next-vfunc args)))
 
 (define-syntax vfunc
   (lambda (x)
@@ -323,7 +334,7 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
           (()              (reverse out))
           (tail            (reverse (cons #'tail out))))))
 
-    (define (compute-make-procedure formals body next-method)
+    #;(define (compute-make-procedure formals body next-method)
       (syntax-case body ()
         ((body ...)
          (with-syntax ((next-method next-method))
@@ -332,6 +343,7 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
               #'(lambda (real-next-method)
                   (lambda (formal ...)
                     (let ((next-method (lambda args
+                                         (dimfi 'next-method args)
                                          (if (null? args)
                                              (real-next-method formal ...)
                                              (apply real-next-method args)))))
@@ -341,12 +353,13 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
                 #'(lambda (real-next-method)
                     (lambda formals
                       (let ((next-method (lambda args
+                                           (dimfi 'next-method args)
                                            (if (null? args)
                                                (apply real-next-method formal ...)
                                                (apply real-next-method args)))))
                         body ...))))))))))
 
-    (define (compute-procedures formals body)
+    #;(define (compute-procedures formals body)
       ;; So, our use of this is broken, because it operates on the
       ;; pre-expansion source code. It's equivalent to just searching
       ;; for referent in the datums. Ah well.
@@ -358,19 +371,48 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
             (values (compute-procedure formals body)
                     #'#f))))
 
+    (define (compute-procedure-with-next-vfunc formals body next-vfunc)
+      (syntax-case body ()
+        ((body0 ...)
+         (with-syntax ((next-vfunc next-vfunc))
+           (syntax-case formals ()
+             ((formal ...)
+              #'(lambda (formal ...)
+                  (let ((next-vfunc (lambda args
+                                      (if (null? args)
+                                          (%next-vfunc formal ...)
+                                          (apply %next-vfunc args)))))
+                    body0 ...)))
+             (formals
+              (with-syntax (((formal ...) (->proper #'formals)))
+                #'(lambda formals
+                    (let ((next-vfunc (lambda args
+                                        (if (null? args)
+                                            (apply %next-vfunc formal ...)
+                                            (apply %next-vfunc args)))))
+                      body0 ...)))))))))
+
+    (define (compute-procedures formals body)
+      ;; In this version, we always return #f as the second value, which
+      ;; is the make-procedure in the next-method version.
+      (let ((id (find-free-id body 'next-vfunc)))
+        (if id
+            (values (compute-procedure-with-next-vfunc formals body id)
+                    #'#f)
+            (values (compute-procedure formals body)
+                    #'#f))))
+
     (syntax-case x ()
       ((_ args) #'(vfunc args (if #f #f)))
       ((_ args body0 body1 ...)
        (with-syntax (((formals (specializer ...)) (parse-args #'args)))
-         (call-with-values
-             (lambda ()
-               (compute-procedures #'formals #'(body0 body1 ...)))
-           (lambda (procedure make-procedure)
-             (with-syntax ((procedure procedure)
-                           (make-procedure make-procedure))
-               #'(make <vfunc>
-                   #:specializers (cons* specializer ...)
-                   #:formals 'formals
-                   #:body '(body0 body1 ...)
-                   #:make-procedure make-procedure
-                   #:procedure procedure)))))))))
+         (receive (procedure make-procedure)
+             (compute-procedures #'formals #'(body0 body1 ...))
+           (with-syntax ((procedure procedure)
+                         (make-procedure make-procedure))
+             #'(make <vfunc>
+                 #:specializers (cons* specializer ...)
+                 #:formals 'formals
+                 #:body '(body0 body1 ...)
+                 #:make-procedure make-procedure
+                 #:procedure procedure))))))))
