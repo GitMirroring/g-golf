@@ -97,7 +97,7 @@
 (define-syntax define-vfunc
   (syntax-rules ()
     ((_ (vf-name . args) body ...)
-     (let ((vf (vfunc args body ...)))
+     (let ((vf (vfunc 'vf-name args body ...)))
        (receive (specializer g-name g-long-name-prefix gf-long-name? info)
            (vfunc-checks 'vf-name (slot-ref vf 'specializers))
          (mslot-set! vf
@@ -371,43 +371,44 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
             (values (compute-procedure formals body)
                     #'#f))))
 
-    (define (compute-procedure-with-next-vfunc formals body next-vfunc)
+    (define (compute-procedure-with-next-vfunc vf-name formals body next-vfunc)
       (syntax-case body ()
         ((body0 ...)
-         (with-syntax ((next-vfunc next-vfunc))
+         (with-syntax ((vf-name vf-name)
+                       (next-vfunc next-vfunc))
            (syntax-case formals ()
              ((formal ...)
               #'(lambda (formal ...)
                   (let ((next-vfunc (lambda args
                                       (if (null? args)
-                                          (%next-vfunc formal ...)
-                                          (apply %next-vfunc args)))))
+                                          (%next-vfunc vf-name formal ...)
+                                          (apply %next-vfunc (cons vf-name args))))))
                     body0 ...)))
              (formals
               (with-syntax (((formal ...) (->proper #'formals)))
                 #'(lambda formals
                     (let ((next-vfunc (lambda args
                                         (if (null? args)
-                                            (apply %next-vfunc formal ...)
-                                            (apply %next-vfunc args)))))
+                                            (apply %next-vfunc vf-name formal ...)
+                                            (apply %next-vfunc (cons vf-name args))))))
                       body0 ...)))))))))
 
-    (define (compute-procedures formals body)
+    (define (compute-procedures vf-name formals body)
       ;; In this version, we always return #f as the second value, which
       ;; is the make-procedure in the next-method version.
       (let ((id (find-free-id body 'next-vfunc)))
         (if id
-            (values (compute-procedure-with-next-vfunc formals body id)
+            (values (compute-procedure-with-next-vfunc vf-name formals body id)
                     #'#f)
             (values (compute-procedure formals body)
                     #'#f))))
 
     (syntax-case x ()
-      ((_ args) #'(vfunc args (if #f #f)))
-      ((_ args body0 body1 ...)
+      ((_ vf-name args) #'(vfunc vf-name args (if #f #f)))
+      ((_ vf-name args body0 body1 ...)
        (with-syntax (((formals (specializer ...)) (parse-args #'args)))
          (receive (procedure make-procedure)
-             (compute-procedures #'formals #'(body0 body1 ...))
+             (compute-procedures #'vf-name #'formals #'(body0 body1 ...))
            (with-syntax ((procedure procedure)
                          (make-procedure make-procedure))
              #'(make <vfunc>
