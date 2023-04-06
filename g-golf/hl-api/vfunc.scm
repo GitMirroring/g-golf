@@ -99,7 +99,7 @@
     ((_ (vf-name . args) body ...)
      (let ((vf (vfunc args body ...)))
        (receive (specializer g-name g-long-name-prefix gf-long-name? info)
-           (vfunc-checks 'vf-name vf #;(slot-ref vf 'specializers))
+           (vfunc-checks 'vf-name (slot-ref vf 'specializers))
          (mslot-set! vf
                      'specializer specializer
                      'name (g-name->name g-name)
@@ -178,9 +178,8 @@
   "More then one specializer defines a VFunc (method) for NAME: ~S. In these
 situations a VFunc (method) long name is mandatory and ~S is invalid.")
 
-(define (vfunc-checks vf-name vf #;specializers)
-  (let ((specializers (slot-ref vf 'specializers))
-        (str-name (symbol->string vf-name)))
+(define (vfunc-checks vf-name specializers)
+  (let ((str-name (symbol->string vf-name)))
     (case (string-suffix-length str-name "-vfunc")
       ((6)
        (let* ((name (string-drop-right str-name 6))
