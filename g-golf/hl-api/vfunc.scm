@@ -285,10 +285,43 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
 
 (define %next-vfunc
   (lambda args
-    (dimfi 'next-vfunc args)))
+    (dimfi 'next-vfunc args)
+    (match args
+      ((vf-name . rest)
+       (receive (vf specializer s-class)
+           (find-vf vf-name rest)
+         (let* ((name (!name vf))
+                (p-class (find gobject-class?
+                               (class-direct-supers s-class)))
+                (g-struct-fields (!g-struct-fields p-class)))
+           (match (assq-ref g-struct-fields name)
+             ((type-tag offset flags)
+              (let* ((g-class (!g-class p-class))
+                     (bv-ptr (gi-pointer-inc g-class offset))
+                     (vfunc-ptr (bv-ptr-ref bv-ptr))
+                     ;; just to check, we'll need to build a closure
+                     (procedure (pointer->procedure void
+                                                    vfunc-ptr
+                                                    (list '*))))
+                (procedure (!g-inst specializer)))))))))))
+
+(define (find-vf vf-name args)
+  (letrec* ((module (resolve-module '(g-golf hl-api gobject)))
+            (gf (module-ref module vf-name))
+            (specializer (find (lambda (arg)
+                                 (and (gobject-class? (class-of arg))
+                                      arg))
+                               args))
+            (s-class (class-of specializer))
+            (vf-pred (lambda (vf)
+                       (memq s-class (slot-ref vf 'specializers)))))
+    (values (find vf-pred (generic-function-methods gf))
+            specializer
+            s-class)))
 
 (define-syntax vfunc
   (lambda (x)
+
     (define (parse-args args)
       (let lp ((ls args) (formals '()) (specializers '()))
         (syntax-case ls ()
