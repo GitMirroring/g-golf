@@ -217,7 +217,7 @@
                            float
                            double
                            gtype
-                           utf
+                           utf8
                            filename)
                           ffi-value)
                          ((array
