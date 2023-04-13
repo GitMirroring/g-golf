@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2020 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2023 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -18,11 +18,13 @@ GICallableInfo — Struct representing a callable.
 
 @indentedblock
 @table @code
+@item @ref{g-callable-info-can-throw-gerror}
 @item @ref{g-callable-info-get-n-args}
 @item @ref{g-callable-info-get-arg}
 @item @ref{g-callable-info-get-caller-owns}
 @item @ref{g-callable-info-get-instance-ownership-transfer}
 @item @ref{g-callable-info-get-return-type}
+@item @ref{g-callable-info-invoke}
 @item @ref{g-callable-info-is-method}
 @item @ref{g-callable-info-may-return-null}
 @item @ref{g-callable-info-create-closure}
@@ -65,6 +67,14 @@ direction and a flag which decides if it returns null.
 
 Note: in this section, the @var{info} argument is [must be] a pointer to
 a @code{GICallableInfo}.
+
+
+@anchor{g-callable-info-can-throw-gerror}
+@deffn Procedure g-callable-info-can-throw-gerror info
+
+Returns @code{#t} if the callable @var{info} can throw a GError,
+otherwise it returns @code{#f}.
+@end deffn
 
 
 @anchor{g-callable-info-get-n-args}
@@ -114,6 +124,61 @@ Returns a pointer to the @code{GITypeInfo}.
 
 It must be freed by calling @ref{g-base-info-unref} when done accessing
 the data.
+@end deffn
+
+
+@anchor{g-callable-info-invoke}
+@deffn Procedure g-callable-info-invoke info function in-args n-in @
+       out-args n-out r-val is-method throws g-error
+
+Returns @code{#t} if the function has been invoked, @code{#f} if an
+error occured.
+
+Invokes the function described in @var{info} with the given
+arguments. Note that i@code{nout} parameters must appear in both
+argument lists. The arguments are:
+
+@indentedblock
+@table @code
+@item @emph{info}
+a pointer to a @code{GIFunctionInfo} describing the function to invoke.
+
+@item @emph{function}
+a pointer to the function to invoke.
+
+@item @emph{in-args}
+a pointer to an array of @code{GIArguments}, one for each @code{in} and
+@code{inout} parameter of @var{info}. If there are no @code{in}
+parameter, @var{in-args} must be the @code{%null-pointer}.
+
+@item @emph{n-in}
+the length of the @var{in-args} array.
+
+@item @emph{out-args}
+a pointer to an array of @code{GIArguments}, one for each @code{out} and
+@code{inout} parameter of @var{info}. If there are no @code{out}
+parameter, @var{out-args} must be the @code{%null-pointer}.
+
+@item @emph{n-out}
+the length of the @var{out-args} array.
+
+@item @emph{r-val}
+a pointer to a @code{GIArguments}, the return location for the return
+value of the function. If the function returns @code{void}, @var{r-val}
+must be the @code{%null-pointer}.
+
+@item @emph{is-method}
+is the callable info is a method.
+
+@item @emph{throws}
+can the callable throw a @code{GError}.
+
+@item @emph{g-error}
+a pointer to a newly allocated (and @samp{empty}) @code{GError} (the
+recommended way for procedure calls that need such a pointer is to
+@samp{surround} the call using @ref{with-gerror}).
+@end table
+@end indentedblock
 @end deffn
 
 
