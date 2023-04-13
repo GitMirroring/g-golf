@@ -171,11 +171,11 @@
         #f)))
 
 (define (g-function-info-invoke info
-                                in-args n-int
+                                in-args n-in
                                 out-args n-out
                                 r-val
                                 g-error)
-  (g_function_info_invoke info in-args n-int out-args n-out r-val g-error))
+  (g_function_info_invoke info in-args n-in out-args n-out r-val g-error))
 
 
 ;;;
