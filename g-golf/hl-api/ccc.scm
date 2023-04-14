@@ -55,6 +55,7 @@
           !g-name
           !name
           !override?
+          !can-throw-gerror
           !is-method?
           !n-arg
           !al-pos
@@ -94,6 +95,7 @@
   (g-name #:accessor !g-name #:init-keyword #:g-name)
   (name #:accessor !name #:init-keyword #:name)
   (override? #:accessor !override? #:init-keyword #:override? #:init-value #f)
+  (can-throw-gerror #:accessor !can-throw-gerror  #:init-keyword #:can-throw-gerror)
   (is-method? #:accessor !is-method?)
   (n-arg #:accessor !n-arg)
   (al-pos #:accessor !al-pos)

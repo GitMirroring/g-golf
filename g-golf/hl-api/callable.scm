@@ -77,6 +77,7 @@
                     'g-name g-name
                     'name name))
       (mslot-set! self
+                  'can-throw-gerror (g-callable-info-can-throw-gerror info)
                   'is-method? (g-callable-info-is-method info)
                   'caller-owns (g-callable-info-get-caller-owns info)
                   'return-type return-type
