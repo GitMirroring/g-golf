@@ -128,8 +128,8 @@
                           in-args n-in
                           out-args n-out
                           r-val
-                          is-method
-                          throws
+                          (scm->gi is-method 'boolean)
+                          (scm->gi throws 'boolean)
                           g-error))
 
 (define (g-callable-info-is-method info)
