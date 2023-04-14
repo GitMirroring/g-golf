@@ -35,6 +35,7 @@
   #:use-module (g-golf glib)
   #:use-module (g-golf gobject)
   #:use-module (g-golf gi)
+  #:use-module (g-golf hl-api n-decl)
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api gobject)
   #:use-module (g-golf hl-api argument)
@@ -285,7 +286,7 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
 
 (define %next-vfunc
   (lambda args
-    (dimfi 'next-vfunc args)
+    #;(dimfi 'next-vfunc args)
     (match args
       ((vf-name . rest)
        (receive (vf specializer s-class)
@@ -299,11 +300,8 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
               (let* ((g-class (!g-class p-class))
                      (bv-ptr (gi-pointer-inc g-class offset))
                      (vfunc-ptr (bv-ptr-ref bv-ptr))
-                     ;; just to check, we'll need to build a closure
-                     (procedure (pointer->procedure void
-                                                    vfunc-ptr
-                                                    (list '*))))
-                (procedure (!g-inst specializer)))))))))))
+                     (procedure (%next-vfunc-proc (!callback vf) vfunc-ptr)))
+                (apply procedure rest))))))))))
 
 (define (find-vf vf-name args)
   (letrec* ((module (resolve-module '(g-golf hl-api gobject)))
@@ -318,6 +316,57 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
     (values (find vf-pred (generic-function-methods gf))
             specializer
             s-class)))
+
+(define (%next-vfunc-proc callback function)
+  (lambda args
+    (let ((callback callback)
+          (info (!info callback))
+          (name (!name callback))
+          (return-type (!return-type callback))
+          (n-gi-arg-in (!n-gi-arg-in callback))
+          (gi-args-in (!gi-args-in callback))
+          (n-gi-arg-out (!n-gi-arg-out callback))
+          (gi-args-out (!gi-args-out callback))
+          (gi-arg-result (!gi-arg-result callback)))
+      #;(dimfi '%next-vfunc-proc)
+      #;(dimfi "  " return-type n-gi-arg-in n-gi-arg-out)
+      (callable-prepare-gi-arguments callback args)
+      (with-gerror g-error
+        (g-callable-info-invoke info
+                                function
+                                gi-args-in
+                                n-gi-arg-in
+			        gi-args-out
+                                n-gi-arg-out
+			        gi-arg-result
+                                (!is-method? callback)
+                                (!can-throw-gerror callback)
+                                g-error))
+      #;(dimfi "  " 'after-g-callable-info-invoke)
+      (if (> n-gi-arg-out 0)
+          (case return-type
+            ((boolean)
+             (if (gi-strip-boolean-result? name)
+                 (if (callable-return-value->scm callback)
+                     (apply values
+                            (map callable-arg-out->scm (!args-out callback)))
+                     (error " " name " failed."))
+                 (apply values
+                        (cons (callable-return-value->scm callback)
+                              (map callable-arg-out->scm (!args-out callback))))))
+            ((void)
+             (apply values
+                    (map callable-arg-out->scm (!args-out callback))))
+            (else
+             (let ((args-out (map callable-arg-out->scm (!args-out callback))))
+               (apply values
+                      (cons (callable-return-value->scm callback #:args-out args-out)
+                            args-out)))))
+          (case return-type
+            ((void) (values))
+            (else
+             (callable-return-value->scm callback)))))))
+
 
 (define-syntax vfunc
   (lambda (x)

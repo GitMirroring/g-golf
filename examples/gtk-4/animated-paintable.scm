@@ -120,19 +120,11 @@ exec guile -e main -s "$0" "$@"
   ;; change, so report that flag.
   '(size))
 
-#!
-
-;; Needs more work, which is fine, it's only called when the user quits
-;; the app, which frees everything anyway ... But it will be nice to fix
-;; it.
-
 (define-vfunc (finalize-vfunc (self <nuclear-animation>))
   (g-source-remove (!source-id self))
-  ;; need to 'chain-up
-  ;; G_OBJECT_CLASS (gtk_nuclear_animation_parent_class)->finalize (object);
-  )
-
-!#
+  ;; This vfunc must 'chain-up' - call the <nuclear-animation> parent
+  ;; finalize virtual method.
+  (next-vfunc))
 
 
 (define (activate app)
