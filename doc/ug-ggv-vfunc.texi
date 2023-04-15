@@ -55,6 +55,15 @@ context.
 @end indentedblock
 
 
+@subheading Special Form
+
+@indentedblock
+@table @code
+@item @ref{next-vfunc}
+@end table
+@end indentedblock
+
+
 @subheading Description
 
 Welcome to the VFunc G-Golf Alley.
@@ -102,9 +111,9 @@ numerous virtual methods:
 @end lisp
 
 The only difference, from a user point of view and as you can see in the
-exmple above, is that define-vfunc imposes one (or two, depending on the
-context) additional constraint(s) to the VFunc name, fully described in
-the @ref{define-vfunc} definition.
+example above, is that define-vfunc imposes one (or two, depending on
+the context) additional constraint(s) to the VFunc name, fully described
+in the @ref{define-vfunc} definition.
 
 
 @c @noindent
@@ -280,3 +289,32 @@ Returns the content of their respective slot for @var{inst} (a <vfunc>
 instance).
 
 @end deffn
+
+
+@anchor{next-vfunc}
+@subheading Next-vfunc
+
+In G-Golf, from a user perspective, the next-vfunc concept and mechanism
+is to the GObject virtual method system what the next-method concept and
+mechanism is to the GOOPS (compute applicable) method system.
+
+If a vfunc refers to @samp{next-vfunc} in its body, that vfunc will call
+the corresponding @samp{immediate parent} virtual function. The exact
+@samp{next-vfunc} implementation is only known at runtime, as it is a
+function of the vfunc specializer argument.
+
+G-Golf implements @samp{next-vfunc} by binding it as a closure variable.
+An effective virtual method is bound to a specific @samp{next-vfunc} by
+the internal @code{%next-vfunc-proc}, which returns the new closure.
+
+Let's look at an excerpt form the animated-paintable.scm example, which
+specializes the GObject finalize virtual method, and as the GNOME team
+would say, needs to @samp{chain-up}:
+
+@lisp
+(define-vfunc (finalize-vfunc (self <nuclear-animation>))
+  (g-source-remove (!source-id self))
+  ;; This vfunc must 'chain-up' - call the <nuclear-animation> parent
+  ;; finalize virtual method.
+  (next-vfunc))
+@end lisp
