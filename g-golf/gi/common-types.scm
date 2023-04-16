@@ -58,7 +58,8 @@
             gi-argument-ref
             gi-argument-set!
             gi-type-tag->field
-            gi-type-tag->bv-acc))
+            gi-type-tag->bv-acc
+            gi-type-tag->ffi-type))
 
 
 ;;;
@@ -242,6 +243,36 @@ add as a comment)."
     ((double) f64vector-ref)
     (else
      (error "No such GI type tag: " type-tag))))
+
+(define (gi-type-tag->ffi-type type-tag is-pointer? is-enum?)
+  (case type-tag
+    ((boolean) int)
+    ((int8
+      uint8
+      int16
+      uint16
+      int32
+      uint32
+      int64
+      uint64
+      float
+      double) (primitive-eval type-tag))
+    ((gtype) unsigned-long)
+    ((utf8
+      filename
+      array
+      glist
+      gslist
+      ghash
+      error) '*)
+    ((interface)
+     (if is-enum? int32 '*))
+    ((void)
+     (if is-pointer? '* void))
+    (else
+     (scm-error 'failed #f
+                "Unimplemented gi-type-tag->ffi-type type-tag: ~A"
+                (list type-tag) #f))))
 
 
 ;;;

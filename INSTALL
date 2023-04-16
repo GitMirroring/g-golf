@@ -23,7 +23,9 @@ Gnome: (Guile Object Library for)
 
 ** Dependencies
 
-GNU G-Golf needs the following software to run:
+*** Main Dependencies
+
+G-Golf needs the following software to run:
 
 	Autoconf			>= 2.69
 	Automake			>= 1.14
@@ -35,12 +37,32 @@ GNU G-Golf needs the following software to run:
 	Gobject-2.0			>= 2.48.0
 	GObject-Introspection-1.0	>= 1.72.0
 
+*** Test-Suite Dependencies
+
+G-Golf currently needs the following additional
+software to run its test-suite:
+
+	Clutter-1.0			>= 1.24.0
+	Gtk-3.0				>= 3.10.0
+
+*** Examples Dependencies
+
+G-Golf currently needs the following additional software to run its
+examples:
+
+	Gtk-4.0				>= 4.10.0
+	Guile-Cairo			> 1.11.2
+
+    G-Golf actually requires a patched version of guile-cairo that
+    contains the following new interface (which is not in guile-cairo
+    1.11.2):	 cairo-pointer->context
+
 ** Install from the tarball
 
 G-Golf release are [[http://ftp.gnu.org/gnu/g-golf/][here]].  The latest tarballs are:
 
-	g-golf-0.8.0-a.3.tar.gz
-	g-golf-0.8.0-a.3.tar.gz.sig
+	g-golf-0.8.0-a.4.tar.gz
+	g-golf-0.8.0-a.4.tar.gz.sig
 
 	[ GPG Key: A3057AD7
 	[ gpg --keyserver keys.gnupg.net --recv-keys A3057AD7
@@ -49,8 +71,8 @@ Assuming you have satisfied the dependencies, open a terminal and
 proceed with the following steps:
 
 	cd <download-path>
-	tar zxf g-golf-0.8.0-a.3.tar.gz
-	cd g-golf-0.8.0-a.3
+	tar zxf g-golf-0.8.0-a.4.tar.gz
+	cd g-golf-0.8.0-a.4
 	./configure [--prefix=/your/prefix] [--with-guile-site=yes]
 	make
 	make install

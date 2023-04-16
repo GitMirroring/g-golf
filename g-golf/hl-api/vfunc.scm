@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2022
+;;;; Copyright (C) 2022 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -35,6 +35,7 @@
   #:use-module (g-golf glib)
   #:use-module (g-golf gobject)
   #:use-module (g-golf gi)
+  #:use-module (g-golf hl-api n-decl)
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api gobject)
   #:use-module (g-golf hl-api argument)
@@ -83,67 +84,70 @@
 			    (format #f "~S" (slot-ref self name))
 			    "#<unbound>"))))
       (class-direct-slots (class-of self)))
+  #;(format #t "    Method slots are: ~%")
+  #;(for-each (lambda (slot)
+	      (let ((name (slot-definition-name slot)))
+		(format #t "      ~S = ~A~%"
+			name
+			(if (slot-bound? self name)
+			    (format #f "~S" (slot-ref self name))
+			    "#<unbound>"))))
+      (class-direct-slots <method>))
   *unspecified*)
 
 (define-syntax define-vfunc
   (syntax-rules ()
-    ((_ (gf-name . args) body ...)
-     (let ((inst (vfunc args body ...)))
+    ((_ (vf-name . args) body ...)
+     (let ((vf (vfunc 'vf-name args body ...)))
        (receive (specializer g-name g-long-name-prefix gf-long-name? info)
-           (vfunc-checks 'gf-name inst)
-         (mslot-set! inst
+           (vfunc-checks 'vf-name (slot-ref vf 'specializers))
+         (mslot-set! vf
                      'specializer specializer
                      'name (g-name->name g-name)
                      'g-name (string->symbol g-name)
                      'long-name-prefix (g-name->name g-long-name-prefix)
                      'gf-long-name? gf-long-name?
                      'info info)
-         (add-method! (gi-add-method-gf 'gf-name) inst)
-         (add-vfunc-closure inst))))))
+         (add-method! (gi-add-method-gf 'vf-name) vf)
+         (add-vfunc-closure vf))))))
 
-(define (add-vfunc-closure inst)
+(define (add-vfunc-closure vf)
   (receive (closure callback-closure)
-      (g-golf-vfunc-closure inst)
+      (g-golf-vfunc-closure vf)
     (let* ((vfunc-g-object-class-specializer
-            (find-vfunc-g-object-class-specializer inst))
-           (specializer (!specializer inst))
+            (find-vfunc-g-object-class-specializer vf))
+           (specializer (!specializer vf))
            (iface/class-struct (if (ginterface-class? specializer)
                                    (g-type-interface-peek
                                     (!g-class vfunc-g-object-class-specializer)
                                     (!g-type specializer))
                                    (g-type-class-peek
                                     (!g-type vfunc-g-object-class-specializer)))))
-      (slot-set! inst
+      (slot-set! vf
                  'callback (!callback callback-closure))
-      (match (vfunc-struct-field inst)
+      (match (vfunc-struct-field vf)
         ((type-tag offset flags)
          (bv-ptr-set! (gi-pointer-inc iface/class-struct offset)
                       closure))))))
 
-(define (find-vfunc-g-object-class-specializer inst)
+(define (find-vfunc-g-object-class-specializer vf)
   ;; There can only be one GObject class - as GObject is a single
-  ;; inheritance oop system - in the list of the <vfunc> inst
+  ;; inheritance oop system - in the list of the <vfunc> vf
   ;; specializers.
-  (let loop ((specializers (slot-ref inst 'specializers)))
-    (match specializers
-      (()
-       (scm-error 'impossible #f "No GObject specializer for: ~S"
-                  (list (!name inst)) #f))
-      ((specializer . rests)
-       (or (and (gobject-class? specializer)
-                specializer)
-           (loop rests))))))
+  (or (find gobject-class? (slot-ref vf 'specializers))
+      (scm-error 'impossible #f "No GObject specializer for: ~S"
+                 (list (!name vf)) #f)))
 
-(define (vfunc-struct-field inst)
-  (assq-ref (!g-struct-fields (!specializer inst))
-            (!name inst)))
+(define (vfunc-struct-field vf)
+  (assq-ref (!g-struct-fields (!specializer vf))
+            (!name vf)))
 
-(define (g-golf-vfunc-closure inst)
-  (let* ((name (symbol-append (!long-name-prefix inst)
+(define (g-golf-vfunc-closure vf)
+  (let* ((name (symbol-append (!long-name-prefix vf)
                               '-
-                              (!name inst)))
-         (info (!info inst))
-         (proc (slot-ref inst 'procedure))
+                              (!name vf)))
+         (info (!info vf))
+         (proc (slot-ref vf 'procedure))
          (callback (gi-import-vfunc name info))
          (callback-closure (make <callback-closure>
                              #:callback callback
@@ -175,13 +179,13 @@
   "More then one specializer defines a VFunc (method) for NAME: ~S. In these
 situations a VFunc (method) long name is mandatory and ~S is invalid.")
 
-(define (vfunc-checks gf-name inst)
-  (let ((str-name (symbol->string gf-name)))
+(define (vfunc-checks vf-name specializers)
+  (let ((str-name (symbol->string vf-name)))
     (case (string-suffix-length str-name "-vfunc")
       ((6)
        (let* ((name (string-drop-right str-name 6))
               (g-name (name->g-name name 'as-string))
-              (results (specializers-vfunc-lookup inst g-name)))
+              (results (specializers-vfunc-lookup specializers g-name)))
          (match results
            (()
             (scm-error 'wrong-type-arg #f "No such VFunc : ~S"
@@ -196,15 +200,15 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
             ;; Then there is more then one specializer that defines a VFunc
             ;; for G-NAME. In this case, we filter the results to keep, if
             ;; any, the only one result that would have its gf-long-name?
-            ;; #t. Otherwise, it means that GF-NAME is a VFunc short name,
-            ;; which in this situation is invalid, or GF-NAME is an invalid
+            ;; #t. Otherwise, it means that VF-NAME is a VFunc short name,
+            ;; which in this situation is invalid, or VF-NAME is an invalid
             ;; long name (as a typo in the long name prefix) an exception is
             ;; raised.
             (let ((the-result (vfunc-checks-filter results)))
               (match the-result
                 (#f
                  (scm-error 'wrong-type-arg #f %mandatory-long-name-error-msg
-                            (list results gf-name) #f))
+                            (list results vf-name) #f))
                 ((specializer g-name g-long-name-prefix gf-long-name? info)
                  (values specializer
                          g-name
@@ -213,7 +217,7 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
                          info))))))))
       (else
        (scm-error 'wrong-type-arg #f "Invalid vfunc name: ~S"
-                  (list gf-name) #f)))))
+                  (list vf-name) #f)))))
 
 (define (vfunc-checks-filter results)
   (let loop ((results results))
@@ -226,8 +230,8 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
               result
               (loop rest))))))))
 
-(define (specializers-vfunc-lookup inst g-name)
-  (let loop ((specializers (slot-ref inst 'specializers))
+(define (specializers-vfunc-lookup specializers g-name)
+  (let loop ((specializers specializers)
              (results '()))
     (match specializers
       (() results)
@@ -276,14 +280,97 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
   (g-interface-info-find-vfunc (!info c-lass) g-name))
 
 
-;; Below is a copy of the (define-syntax method ...) code in (oop goops) - a
-;; copy just slightly altered, changing <method> occurrences to <vfunc>. I
-;; actualy had to do this, rather then merely call (make <vfunc ...), because
-;; this syntax is full of internal defs that one also needs when subclassing
-;; <method>.
+;; Below is a modified version of the (define-syntax method ...) code in
+;; (oop goops) - from which the vfunc syntax-case below is largely
+;; inspired.
+
+(define %next-vfunc
+  (lambda args
+    #;(dimfi 'next-vfunc args)
+    (match args
+      ((vf-name . rest)
+       (receive (vf specializer s-class)
+           (find-vf vf-name rest)
+         (let* ((name (!name vf))
+                (p-class (find gobject-class?
+                               (class-direct-supers s-class)))
+                (g-struct-fields (!g-struct-fields p-class)))
+           (match (assq-ref g-struct-fields name)
+             ((type-tag offset flags)
+              (let* ((g-class (!g-class p-class))
+                     (bv-ptr (gi-pointer-inc g-class offset))
+                     (vfunc-ptr (bv-ptr-ref bv-ptr))
+                     (procedure (%next-vfunc-proc (!callback vf) vfunc-ptr)))
+                (apply procedure rest))))))))))
+
+(define (find-vf vf-name args)
+  (letrec* ((module (resolve-module '(g-golf hl-api gobject)))
+            (gf (module-ref module vf-name))
+            (specializer (find (lambda (arg)
+                                 (and (gobject-class? (class-of arg))
+                                      arg))
+                               args))
+            (s-class (class-of specializer))
+            (vf-pred (lambda (vf)
+                       (memq s-class (slot-ref vf 'specializers)))))
+    (values (find vf-pred (generic-function-methods gf))
+            specializer
+            s-class)))
+
+(define (%next-vfunc-proc callback function)
+  (lambda args
+    (let ((callback callback)
+          (info (!info callback))
+          (name (!name callback))
+          (return-type (!return-type callback))
+          (n-gi-arg-in (!n-gi-arg-in callback))
+          (gi-args-in (!gi-args-in callback))
+          (n-gi-arg-out (!n-gi-arg-out callback))
+          (gi-args-out (!gi-args-out callback))
+          (gi-arg-result (!gi-arg-result callback)))
+      #;(dimfi '%next-vfunc-proc)
+      #;(dimfi "  " return-type n-gi-arg-in n-gi-arg-out)
+      (callable-prepare-gi-arguments callback args)
+      (with-gerror g-error
+        (g-callable-info-invoke info
+                                function
+                                gi-args-in
+                                n-gi-arg-in
+			        gi-args-out
+                                n-gi-arg-out
+			        gi-arg-result
+                                (!is-method? callback)
+                                (!can-throw-gerror callback)
+                                g-error))
+      #;(dimfi "  " 'after-g-callable-info-invoke)
+      (if (> n-gi-arg-out 0)
+          (case return-type
+            ((boolean)
+             (if (gi-strip-boolean-result? name)
+                 (if (callable-return-value->scm callback)
+                     (apply values
+                            (map callable-arg-out->scm (!args-out callback)))
+                     (error " " name " failed."))
+                 (apply values
+                        (cons (callable-return-value->scm callback)
+                              (map callable-arg-out->scm (!args-out callback))))))
+            ((void)
+             (apply values
+                    (map callable-arg-out->scm (!args-out callback))))
+            (else
+             (let ((args-out (map callable-arg-out->scm (!args-out callback))))
+               (apply values
+                      (cons (callable-return-value->scm callback #:args-out args-out)
+                            args-out)))))
+          (case return-type
+            ((void) (values))
+            (else
+             (callable-return-value->scm callback)))))))
+
 
 (define-syntax vfunc
   (lambda (x)
+
     (define (parse-args args)
       (let lp ((ls args) (formals '()) (specializers '()))
         (syntax-case ls ()
@@ -329,7 +416,7 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
           (()              (reverse out))
           (tail            (reverse (cons #'tail out))))))
 
-    (define (compute-make-procedure formals body next-method)
+    #;(define (compute-make-procedure formals body next-method)
       (syntax-case body ()
         ((body ...)
          (with-syntax ((next-method next-method))
@@ -338,6 +425,7 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
               #'(lambda (real-next-method)
                   (lambda (formal ...)
                     (let ((next-method (lambda args
+                                         (dimfi 'next-method args)
                                          (if (null? args)
                                              (real-next-method formal ...)
                                              (apply real-next-method args)))))
@@ -347,12 +435,13 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
                 #'(lambda (real-next-method)
                     (lambda formals
                       (let ((next-method (lambda args
+                                           (dimfi 'next-method args)
                                            (if (null? args)
                                                (apply real-next-method formal ...)
                                                (apply real-next-method args)))))
                         body ...))))))))))
 
-    (define (compute-procedures formals body)
+    #;(define (compute-procedures formals body)
       ;; So, our use of this is broken, because it operates on the
       ;; pre-expansion source code. It's equivalent to just searching
       ;; for referent in the datums. Ah well.
@@ -364,19 +453,49 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
             (values (compute-procedure formals body)
                     #'#f))))
 
+    (define (compute-procedure-with-next-vfunc vf-name formals body next-vfunc)
+      (syntax-case body ()
+        ((body0 ...)
+         (with-syntax ((vf-name vf-name)
+                       (next-vfunc next-vfunc))
+           (syntax-case formals ()
+             ((formal ...)
+              #'(lambda (formal ...)
+                  (let ((next-vfunc (lambda args
+                                      (if (null? args)
+                                          (%next-vfunc vf-name formal ...)
+                                          (apply %next-vfunc (cons vf-name args))))))
+                    body0 ...)))
+             (formals
+              (with-syntax (((formal ...) (->proper #'formals)))
+                #'(lambda formals
+                    (let ((next-vfunc (lambda args
+                                        (if (null? args)
+                                            (apply %next-vfunc vf-name formal ...)
+                                            (apply %next-vfunc (cons vf-name args))))))
+                      body0 ...)))))))))
+
+    (define (compute-procedures vf-name formals body)
+      ;; In this version, we always return #f as the second value, which
+      ;; is the make-procedure in the next-method version.
+      (let ((id (find-free-id body 'next-vfunc)))
+        (if id
+            (values (compute-procedure-with-next-vfunc vf-name formals body id)
+                    #'#f)
+            (values (compute-procedure formals body)
+                    #'#f))))
+
     (syntax-case x ()
-      ((_ args) #'(vfunc args (if #f #f)))
-      ((_ args body0 body1 ...)
+      ((_ vf-name args) #'(vfunc vf-name args (if #f #f)))
+      ((_ vf-name args body0 body1 ...)
        (with-syntax (((formals (specializer ...)) (parse-args #'args)))
-         (call-with-values
-             (lambda ()
-               (compute-procedures #'formals #'(body0 body1 ...)))
-           (lambda (procedure make-procedure)
-             (with-syntax ((procedure procedure)
-                           (make-procedure make-procedure))
-               #'(make <vfunc>
-                   #:specializers (cons* specializer ...)
-                   #:formals 'formals
-                   #:body '(body0 body1 ...)
-                   #:make-procedure make-procedure
-                   #:procedure procedure)))))))))
+         (receive (procedure make-procedure)
+             (compute-procedures #'vf-name #'formals #'(body0 body1 ...))
+           (with-syntax ((procedure procedure)
+                         (make-procedure make-procedure))
+             #'(make <vfunc>
+                 #:specializers (cons* specializer ...)
+                 #:formals 'formals
+                 #:body '(body0 body1 ...)
+                 #:make-procedure make-procedure
+                 #:procedure procedure))))))))

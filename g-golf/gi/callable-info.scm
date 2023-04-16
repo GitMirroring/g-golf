@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2022
+;;;; Copyright (C) 2016 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -39,11 +39,13 @@
 
   #:export (gi-callable-show
 
+            g-callable-info-can-throw-gerror
             g-callable-info-get-n-args
 	    g-callable-info-get-arg
 	    g-callable-info-get-caller-owns
             g-callable-info-get-instance-ownership-transfer
 	    g-callable-info-get-return-type
+            g-callable-info-invoke
             g-callable-info-is-method
 	    g-callable-info-may-return-null
             g-callable-info-create-closure))
@@ -60,6 +62,7 @@
           namespace: ~S
                name: ~S
                type: ~S
+   can-throw-gerror: ~S
               n-arg: ~A
         caller-owns: ~S
                 iot: ~S	 [ instance-ownership-transfer
@@ -79,6 +82,7 @@
                   (g-base-info-get-namespace info)
                   (g-base-info-get-name info)
                   (g-base-info-get-type info)
+                  (g-callable-info-can-throw-gerror info)
                   (g-callable-info-get-n-args info)
                   (g-callable-info-get-caller-owns info)
                   (g-callable-info-get-instance-ownership-transfer info)
@@ -90,6 +94,9 @@
 ;;;
 ;;; Low level API
 ;;;
+
+(define (g-callable-info-can-throw-gerror info)
+  (gi->scm (g_callable_info_can_throw_gerror info) 'boolean))
 
 (define (g-callable-info-get-n-args info)
   (g_callable_info_get_n_args info))
@@ -107,6 +114,23 @@
 
 (define (g-callable-info-get-return-type info)
   (gi->scm (g_callable_info_get_return_type info) 'pointer))
+
+(define (g-callable-info-invoke info
+                                f-ptr
+                                in-args n-in
+                                out-args n-out
+                                r-val
+                                is-method
+                                throws
+                                g-error)
+  (g_callable_info_invoke info
+                          f-ptr
+                          in-args n-in
+                          out-args n-out
+                          r-val
+                          (scm->gi is-method 'boolean)
+                          (scm->gi throws 'boolean)
+                          g-error))
 
 (define (g-callable-info-is-method info)
   (gi->scm (g_callable_info_is_method info) 'boolean))
@@ -145,6 +169,12 @@
 ;;; GI Bindings
 ;;;
 
+(define g_callable_info_can_throw_gerror
+  (pointer->procedure int
+                      (dynamic-func "g_callable_info_can_throw_gerror"
+				    %libgirepository)
+                      (list '*)))
+
 (define g_callable_info_get_n_args
   (pointer->procedure int
                       (dynamic-func "g_callable_info_get_n_args"
@@ -174,6 +204,21 @@
                       (dynamic-func "g_callable_info_get_return_type"
 				    %libgirepository)
                       (list '*)))
+
+(define g_callable_info_invoke
+  (pointer->procedure int
+                      (dynamic-func "g_callable_info_invoke"
+				    %libgirepository)
+                      (list '*		;; info
+                            '*		;; function
+                            '*		;; in-args
+                            int		;; n-in
+                            '*		;; out-args
+                            int		;; n-out
+                            '*  	;; r-val
+                            int		;; is-method
+                            int		;; throws
+                            '*)))	;; g-error
 
 (define g_callable_info_is_method
   (pointer->procedure int

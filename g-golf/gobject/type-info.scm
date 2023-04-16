@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2022
+;;;; Copyright (C) 2016 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -57,6 +57,7 @@
             g-type-class-ref
             g-type-class-peek
             g-type-class-unref
+            g-type-class-peek-parent
             g-type-interface-peek
             g-type-interfaces
             g-type-query
@@ -126,6 +127,9 @@
 
 (define (g-type-class-unref g-class)
   (g_type_class_unref g-class))
+
+(define (g-type-class-peek-parent g-class)
+  (gi->scm (g_type_class_peek_parent g-class) 'pointer))
 
 (define (g-type-interface-peek g-class iface-type)
   (gi->scm (g_type_interface_peek g-class iface-type)
@@ -283,6 +287,12 @@
 (define g_type_class_unref
   (pointer->procedure void
                       (dynamic-func "g_type_class_unref"
+				    %libgobject)
+                      (list '*)))
+
+(define g_type_class_peek_parent
+  (pointer->procedure '*
+                      (dynamic-func "g_type_class_peek_parent"
 				    %libgobject)
                       (list '*)))
 

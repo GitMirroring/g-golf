@@ -77,6 +77,7 @@
                     'g-name g-name
                     'name name))
       (mslot-set! self
+                  'can-throw-gerror (g-callable-info-can-throw-gerror info)
                   'is-method? (g-callable-info-is-method info)
                   'caller-owns (g-callable-info-get-caller-owns info)
                   'return-type return-type
@@ -721,12 +722,12 @@
                       callable 		;; the type-desc instance 'owner'
                       #:args-out args-out)))
 
-(define* (gi-argument->scm type-tag type-desc gi-argument funarg
+(define* (gi-argument->scm type-tag type-desc gi-argument clb/arg
                            #:key (forced-type #f) (is-pointer? #f) (args-out #f))
   ;; forced-type is only used for 'inout and 'out arguments, in which
   ;; case it is 'pointer - see 'simple' types below.
 
-  ;; funarg is the instance that owns the type-desc, which might need to
+  ;; clb/arg is the instance that owns the type-desc, which might need to
   ;; be updated - see the comment in the 'interface/'object section of
   ;; the code below, as well as the comment in registered-type->gi-type
   ;; which explains why/when this might happen.
@@ -765,8 +766,8 @@
                (else
                 (if (or (!is-opaque? gi-type)
                         (!is-semi-opaque? gi-type))
-                    (let ((bv (slot-ref funarg 'bv-cache))
-                          (bv-ptr (slot-ref funarg 'bv-cache-ptr)))
+                    (let ((bv (slot-ref clb/arg 'bv-cache))
+                          (bv-ptr (slot-ref clb/arg 'bv-cache-ptr)))
                       (if bv
                           (begin
                             (g-boxed-sa-guard bv-ptr bv)
@@ -803,7 +804,7 @@
                      (not (null-pointer? foreign))
                      (receive (class name g-type)
                          (g-object-find-class foreign)
-                       ;; We used to update the funarg 'type-desc
+                       ;; We used to update the clb/arg 'type-desc
                        ;; argument when it wasn't confirmed?, but that
                        ;; actually won't work anymore, see the comment
                        ;; labeled [1] in (g-golf hl-api gobject) for a
@@ -811,7 +812,7 @@
                        ;; code, commented, for now, until I clear all
                        ;; occurrences of the confirmed? pattern entries.
                        #;(unless confirmed?
-                         (set! (!type-desc funarg)
+                         (set! (!type-desc clb/arg)
                                (list 'object name class g-type #t)))
                        (make class #:g-inst foreign)))))))))))
     ((array)

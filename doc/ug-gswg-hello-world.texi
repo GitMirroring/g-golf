@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2021 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2023 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -81,7 +81,7 @@ that it is safe to declare it imperceptible.
 It would be beyond the scope of this introduction to describe the
 @code{<gtk-application> / g-application-run} instance creation and run
 mechanism in detail, for this, please consult and carefully read their
-respective entries in the @uref{@value{UGTK-APPLICATION}, Gtk} and
+respective entries in the @uref{@value{UGTK4-APPLICATION}, Gtk} and
 @uref{@value{UGIO-G-APPLICATION}, Gio} reference manuals.
 
 The GNOME team also maintains a wiki called @uref{@value{UHDI}, HowDoI},
@@ -97,7 +97,7 @@ newcomers:
 
 @item
 as you can see, we do not need to call @code{gtk-init}, it is done
-automatically (more on this in the @uref{@value{UGTK-APPLICATION},
+automatically (more on this in the @uref{@value{UGTK4-APPLICATION},
 GtkApplication} section of the Gtk Reference Manual);@*@*
 
 @item

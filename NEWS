@@ -26,6 +26,49 @@ warranty.
 
 * Latest News
 
+** April 2023
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-a.4 is released.
+
+This is the fourth release of the upcoming 0.8.0 release, now available
+for testing.
+
+*** Changes since 0.8.0-a.3
+
+Here is a summary of the noteworthy changes since version 0.8.0-a.3. See
+G-Golf [[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** New features
+
+Next-vfunc
+
+  This release adds full support for a next-vfunc mechanism - which is
+  to the GObject virtual method system what the next-method concept and
+  mechanism is to the GOOPS (compute applicable) method system.
+
+**** Examples
+
+Simple Paintable
+Animated Paintable
+
+  New examples. Please note that these examples requires
+  [[https://www.nongnu.org/guile-cairo/][guile-cairo]]. They actually requires a patched version of guile-cairo
+  that contains the following new interface (which is not in guile-cairo
+  1.11.2):
+
+	cairo-pointer->context
+
+**** Bug fixing
+
+Missing <gobject> g-struct-fields
+
+  At (load eval) time, the (g-golf defined) <gobject> class must be
+  completed: retreive the class-struct and fill the <gobject>
+  g-struct-fields slot - used by the vfunc mechanism.
+
+
+* Older News
+
 ** February 2023
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-a.3 is released.
@@ -93,9 +136,6 @@ The peg-solitaire example has been updated, as the Callback and VFunc
 bug fixed its snapshot-vfunc method. More specifically its width and
 height argument values are now correct, we no longer need to explicitly
 call get-intrinsic-width and get-intrinsic-height.
-
-
-* Older News
 
 ** January 2023
 
