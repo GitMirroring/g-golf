@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2021 - 2022 Free Software Foundation, Inc.
+@c Copyright (C) 2021 - 2023 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -22,8 +22,8 @@ Handling events from the window system.
 
 Most of the numerous, important and sometimes radical changes in between
 @uref{@value{UGTK3}, Gtk-3.0}/@uref{@value{UGDK3}, Gdk-3.0} and
-@uref{@value{UGTK}, Gtk-4.0}/@uref{@value{UGDK},
-Gdk-4.0}/@uref{@value{UGSK}, Gsk-4.0} have had no impact on G-Golf. And
+@uref{@value{UGTK4}, Gtk-4.0}/@uref{@value{UGDK4},
+Gdk-4.0}/@uref{@value{UGSK4}, Gsk-4.0} have had no impact on G-Golf. And
 by most, we actually mean all but one: the GdkEvent and its API.
 
 For this reason, this section is split/organized in two subheading,
@@ -388,7 +388,7 @@ list:
 @sp 1
 @ @ @sup{_} @strong{In Gdk-4.0}
 
-In @uref{@value{UGDK}, Gdk-4.0}, GdkEvent is a class@footnote{From a GI
+In @uref{@value{UGDK4}, Gdk-4.0}, GdkEvent is a class@footnote{From a GI
 point of view - internally, it is a C struct.}. GdkEvent structs are
 opaque and immutable. Direct access to GdkEvent structs is no longer
 possible in GTK 4. All event fields have accessors.
