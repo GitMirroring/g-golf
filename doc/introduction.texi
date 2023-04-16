@@ -161,6 +161,10 @@ examples:
 
 @item
 @uref{@value{UGUILE-CAIRO}, Guile-Cairo} > 1.11.2
+
+G-Golf actually requires a patched version of guile-cairo that contains
+the following new interface (which is not in guile-cairo 1.11.2):
+@code{cairo-pointer->context}.
 @end itemize
 
 
