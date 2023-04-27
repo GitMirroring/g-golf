@@ -75,7 +75,7 @@ exec guile -e main -s "$0" "$@"
     (set-child window box)
     (append box label)
     (append box button)
-    (show window)))
+    (present window)))
 
 
 (define (main args)

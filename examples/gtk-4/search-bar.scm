@@ -101,7 +101,7 @@ exec guile -e main -s "$0" "$@"
     (set-child search-bar search-entry)
     (append box search-bar)
     (append box label)
-    (show window)))
+    (present window)))
 
 
 (define (main args)

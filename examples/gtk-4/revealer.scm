@@ -93,7 +93,7 @@ exec guile -e main -s "$0" "$@"
                                 #f
                                 #t))))
          (add-window app window)
-         (show window))))))
+         (present window))))))
 
 (define (main args)
   (let ((app (make <gtk-application>

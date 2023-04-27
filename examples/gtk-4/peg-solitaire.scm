@@ -315,7 +315,7 @@ exec guile -e main -s "$0" "$@"
     (set-titlebar window header-bar)
     (pack-start header-bar restart)
     (create-board window)
-    (show window)))
+    (present window)))
 
 
 (define (main args)
