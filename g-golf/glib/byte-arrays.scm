@@ -32,7 +32,7 @@
   #:use-module (g-golf gi utils)
   #:use-module (g-golf init)
 
-  #:export (g_bytes_new))
+  #:export (g-bytes-new))
 
 
 ;;;
@@ -49,7 +49,7 @@
 ;;; Glib Bindings
 ;;;
 
-(define g_quark_from_string
+(define g_bytes_new
   (pointer->procedure '*
                       (dynamic-func "g_bytes_new"
 				    %libglib)

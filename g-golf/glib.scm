@@ -80,4 +80,5 @@
                               (g-golf glib unix-utils)
                               (g-golf glib glist)
                               (g-golf glib gslist)
+                              (g-golf glib byte-arrays)
                               (g-golf glib quarks)))
