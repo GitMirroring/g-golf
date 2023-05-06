@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2020
+;;;; Copyright (C) 2016 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -52,6 +52,7 @@
   #:use-module (g-golf glib unix-utils)
   #:use-module (g-golf glib glist)
   #:use-module (g-golf glib gslist)
+  #:use-module (g-golf glib byte-arrays)
   #:use-module (g-golf glib quarks)
 
 

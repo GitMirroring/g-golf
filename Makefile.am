@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2016 - 2022
+#### Copyright (C) 2016 - 2023
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -51,6 +51,7 @@ SOURCES = \
 	g-golf/glib/unix-utils.scm		\
 	g-golf/glib/glist.scm			\
 	g-golf/glib/gslist.scm			\
+	g-golf/glib/byte-arrays.scm		\
 	g-golf/glib/quarks.scm			\
 	g-golf/glib.scm				\
 	g-golf/gobject/type-info.scm		\
