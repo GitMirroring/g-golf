@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2022
+;;;; Copyright (C) 2016 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -50,6 +50,7 @@
   #:use-module (g-golf support union)
   #:use-module (g-golf support bytevector)
   #:use-module (g-golf support ffi)
+  #:use-module (g-golf support sxml)
 
   #:duplicates (merge-generics
 		replace
@@ -73,4 +74,5 @@
                               (g-golf support struct)
                               (g-golf support union)
                               (g-golf support bytevector)
-                              (g-golf support ffi)))
+                              (g-golf support ffi)
+                              (g-golf support sxml)))
