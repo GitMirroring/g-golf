@@ -41,7 +41,8 @@ exec guile -e main -s "$0" "$@"
   (g-irepository-require "Gtk" #:version "4.0")
   (for-each (lambda (name)
               (gi-import-by-name "Adw" name))
-      '("Application"))
+      '("Application"
+        "ApplicationWindow"))
   (for-each (lambda (name)
               (gi-import-by-name "Gtk" name))
       '("ApplicationWindow"
@@ -51,7 +52,7 @@ exec guile -e main -s "$0" "$@"
 
 
 (define (activate app)
-  (let ((window (make <gtk-application-window>
+  (let ((window (make <adw-application-window>
                   #:title "Hello"
                   #:default-width 320
                   #:default-height 240
@@ -74,7 +75,7 @@ exec guile -e main -s "$0" "$@"
 	     (lambda (b)
                (close window)))
 
-    (set-child window box)
+    (set-content window box)
     (append box label)
     (append box button)
     (present window)))
