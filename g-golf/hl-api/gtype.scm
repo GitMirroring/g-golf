@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2018 - 2022
+;;;; Copyright (C) 2018 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -57,12 +57,14 @@
 
 
 (g-export !info
-          !derived
           !namespace
           !g-type
           !g-name
           !g-class
           !g-struct-fields
+          !derived
+          !class-init-func
+          !instance-init-func
 
           !g-inst
           unref
@@ -77,14 +79,15 @@
 
 (define-class <gtype-class> (<class>)
   (info #:accessor !info #:init-keyword #:info)
-  (derived #:accessor !derived
-           #:init-keyword #:derived #:init-value #f)
   (namespace #:accessor !namespace #:init-value #f)
   (g-type #:accessor !g-type #:init-keyword #:g-type)
   (g-name #:accessor !g-name)
   (g-class #:accessor !g-class)
   (g-struct-fields #:accessor !g-struct-fields
-                   #:init-keyword #:g-struct-fields #:init-value #f))
+                   #:init-keyword #:g-struct-fields #:init-value #f)
+  (derived #:accessor !derived #:init-keyword #:derived #:init-value #f)
+  (class-init-func #:accessor !class-init-func #:init-value #f)
+  (instance-init-func #:accessor !instance-init-func #:init-value #f))
 
 (define-method (initialize (self <gtype-class>) initargs)
   (let ((info (or (get-keyword #:info initargs #f)

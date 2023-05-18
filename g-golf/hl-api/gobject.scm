@@ -255,9 +255,61 @@
      (cond (info initargs)
            (g-type (cons* #:info g-type initargs))
            (else
-            (cons* #:derived #t
-                   #:info (g-golf-type-register class initargs)
-                   initargs))))))
+            (receive (g-type class-init-func instance-init-func)
+                (g-golf-type-register class initargs)
+              (when class-init-func
+                (mslot-set! class
+                            'class-init-func class-init-func
+                            'instance-init-func instance-init-func))
+              (cons* #:derived #t
+                     #:info g-type
+                     initargs)))))))
+
+(define %class-init-func
+  (lambda (class-name template)
+    (let* ((module (resolve-module '(g-golf hl-api function)))
+           (set-template
+            (module-ref module 'gtk-widget-class-set-template))
+           (bind-template-child-full
+            (module-ref module 'gtk-widget-class-bind-template-child-full))
+           (template-bv (call-with-input-file template
+                         (lambda (port) (get-bytevector-all port)) #:binary #t))
+           (g-bytes (g-bytes-new (bytevector->pointer template-bv)
+                                 (bytevector-length template-bv))))
+      (procedure->pointer void
+                          (lambda (g-class class-data)
+                            (let ((class-name class-name)
+                                  (g-bytes g-bytes))
+                              #;(dimfi 'derived-with-template-class-init class-name)
+                              (set-template g-class g-bytes)
+                              ;; an 'arbitrary' test, adw1-demo child "id"
+                              (bind-template-child-full g-class
+                                                        "color-scheme-button"
+                                                        #f
+                                                        0) ;; but so far so bad ...
+                              (values)))
+                          (list '* '*)))))
+
+(define %instance-init-func
+  (lambda (class-name)
+    (let* ((module (resolve-module '(g-golf hl-api function)))
+           (init-template (module-ref module 'gtk-widget-init-template)))
+      (procedure->pointer void
+                          (lambda (instance g-class)
+                            (let ((class-name class-name)
+                                  (class (primitive-eval class-name)))
+                              #;(dimfi 'derived-with-template-instance-init class)
+                              ;; the init-template binding expects a goops instance,
+                              ;; so we use the same code as in gi-argument->scm.
+                              (init-template (make class #:g-inst instance))
+                              (values)))
+                          (list '* '*)))))
+
+(define (is-a-gtk-widget? dsupers)
+  (member '<gtk-widget>
+          (map class-name
+            (apply append (map class-precedence-list
+                            dsupers)))))
 
 (define (g-golf-type-register class initargs)
   (let* ((name (get-keyword #:name initargs #f))
@@ -265,22 +317,34 @@
          (dsupers (get-keyword #:dsupers initargs '()))
          (p-type (!g-type (find gobject-class?
                                 (apply append
-                                       (map class-precedence-list dsupers))))))
-    (match (g-type-query p-type)
-      ((p-type p-name class-size instance-size)
-       (let ((g-type (g-type-register-static-simple p-type
-                                                    g-name
-                                                    class-size
-                                                    #f ;; class-init-func
-                                                    instance-size
-                                                    #f ;; instance-init-func
-                                                    '())))
-         (for-each (lambda (iface-class)
-                     (g-golf-type-add-interface g-type iface-class))
-             (filter-map (lambda (class)
-                           (and (ginterface-class? class) class))
-                 dsupers))
-         g-type)))))
+                                       (map class-precedence-list dsupers)))))
+         (template (get-keyword #:template initargs #f)))
+    (if (and template
+             (not (is-a-gtk-widget? dsupers)))
+        (scm-error 'invalid-class #f
+                   "Invalid (template) class: ~A"
+                   (list name) #f)
+        (match (g-type-query p-type)
+          ((p-type p-name class-size instance-size)
+           (let* ((class-init-func (and template
+                                        (%class-init-func name template)))
+                  (instance-init-func (and template
+                                           (%instance-init-func name)))
+                  (g-type (g-type-register-static-simple p-type
+                                                        g-name
+                                                        class-size
+                                                        class-init-func
+                                                        instance-size
+                                                        instance-init-func
+                                                        '())))
+             (for-each (lambda (iface-class)
+                         (g-golf-type-add-interface g-type iface-class))
+                 (filter-map (lambda (class)
+                               (and (ginterface-class? class) class))
+                     dsupers))
+             (values g-type
+                     class-init-func
+                     instance-init-func)))))))
 
 (define (g-golf-type-add-interface g-type iface-class)
   (g-type-add-interface-static g-type
