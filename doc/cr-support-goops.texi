@@ -16,6 +16,7 @@
 @item @ref{class-virtual-slots}
 @item @ref{class-direct-g-property-slots}
 @item @ref{class-g-property-slots}
+@item @ref{class-direct-child-id-slots}
 @item @ref{mslot-set!}
 @item @ref{generic?}
 @end table
@@ -63,6 +64,15 @@ Returns a list.
 Obtains and returns the list of the class slots for @var{self} that
 satisfy the @code{(eq? (slot-definition-allocation slot) #:g-property)}
 predicate.
+@end deffn
+
+@anchor{class-direct-child-id-slots}
+@deffn Method class-direct-child-id-slots (self <class>)
+
+Returns a (possibly empty) list.
+
+Obtains and returns the (possibly empty) list of the class direct slots
+for @var{self} that contain a @code{#:child-id} slot definition option.
 @end deffn
 
 

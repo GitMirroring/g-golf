@@ -63,6 +63,7 @@
 	  class-virtual-slots
           class-direct-g-property-slots
           class-g-property-slots
+          class-direct-child-id-slots
 	  #;describe)
 
 
@@ -110,6 +111,14 @@
                           #:g-property)
                      slot-definition))
       (class-slots self)))
+
+(define-method (class-direct-child-id-slots (self <class>))
+  (filter-map (lambda (slot-definition)
+                (and (get-keyword #:child-id
+                                  (slot-definition-options slot-definition)
+                                  #f)
+                     slot-definition))
+      (class-direct-slots self)))
 
 #;(define-method* (describe (self <object>) #:key (port #t))
   (format port "~S - instance of ~A~%"
