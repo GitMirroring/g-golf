@@ -266,10 +266,9 @@
                      initargs)))))))
 
 (define %class-init-func
-  (lambda (class-name template)
+  (lambda (class-name template child-ids)
     (let* ((module (resolve-module '(g-golf hl-api function)))
-           (set-template
-            (module-ref module 'gtk-widget-class-set-template))
+           (set-template (module-ref module 'gtk-widget-class-set-template))
            (bind-template-child-full
             (module-ref module 'gtk-widget-class-bind-template-child-full))
            (template-bv (call-with-input-file template
@@ -279,29 +278,31 @@
       (procedure->pointer void
                           (lambda (g-class class-data)
                             (let ((class-name class-name)
-                                  (g-bytes g-bytes))
-                              #;(dimfi 'derived-with-template-class-init class-name)
+                                  (g-bytes g-bytes)
+                                  (child-ids child-ids))
+                              #;(dimfi '%class-init-func class-name child-ids)
                               (set-template g-class g-bytes)
-                              ;; an 'arbitrary' test, adw1-demo child "id"
-                              (bind-template-child-full g-class
-                                                        "color-scheme-button"
-                                                        #f
-                                                        0) ;; but so far so bad ...
+                              (for-each (lambda (child-id)
+                                          (bind-template-child-full g-class
+                                                                    child-id
+                                                                    #f
+                                                                    0))
+                                  child-ids)
                               (values)))
                           (list '* '*)))))
 
 (define %instance-init-func
   (lambda (class-name)
-    (let* ((module (resolve-module '(g-golf hl-api function)))
-           (init-template (module-ref module 'gtk-widget-init-template)))
+    (let* ((init-template-func (gi-cache-ref 'function 'gtk-widget-init-template))
+           (gi-argument (slot-ref init-template-func 'gi-args-in))
+           (init-template (slot-ref init-template-func 'i-func)))
       (procedure->pointer void
-                          (lambda (instance g-class)
-                            (let ((class-name class-name)
-                                  (class (primitive-eval class-name)))
-                              #;(dimfi 'derived-with-template-instance-init class)
-                              ;; the init-template binding expects a goops instance,
-                              ;; so we use the same code as in gi-argument->scm.
-                              (init-template (make class #:g-inst instance))
+                          (lambda (g-inst g-class)
+                            (let ((class-name class-name))
+                              #;(dimfi '%instance-init-func class-name)
+                              (gi-argument-set! gi-argument 'v-pointer g-inst)
+                              (apply init-template
+                                     (list g-inst 'skip-prepare-gi-arguments))
                               (values)))
                           (list '* '*)))))
 
@@ -318,7 +319,8 @@
          (p-type (!g-type (find gobject-class?
                                 (apply append
                                        (map class-precedence-list dsupers)))))
-         (template (get-keyword #:template initargs #f)))
+         (template (get-keyword #:template initargs #f))
+         (child-ids (get-keyword #:child-ids initargs '())))
     (if (and template
              (not (is-a-gtk-widget? dsupers)))
         (scm-error 'invalid-class #f
@@ -327,7 +329,7 @@
         (match (g-type-query p-type)
           ((p-type p-name class-size instance-size)
            (let* ((class-init-func (and template
-                                        (%class-init-func name template)))
+                                        (%class-init-func name template child-ids)))
                   (instance-init-func (and template
                                            (%instance-init-func name)))
                   (g-type (g-type-register-static-simple p-type
