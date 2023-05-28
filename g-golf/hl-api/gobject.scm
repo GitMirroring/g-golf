@@ -277,18 +277,18 @@
                                  (bytevector-length template-bv))))
       (procedure->pointer void
                           (lambda (g-class class-data)
-                            (let ((class-name class-name)
-                                  (g-bytes g-bytes)
-                                  (child-ids child-ids))
-                              (dimfi '%class-init-func class-name)
-                              (dimfi "  " 'g-class g-class 'child-ids child-ids)
-                              (set-template g-class g-bytes)
+                            (let ((%class-name class-name)
+                                  (%g-bytes g-bytes)
+                                  (%child-ids child-ids))
+                              (dimfi '%class-init-func %class-name)
+                              (dimfi "  " 'g-class g-class 'child-ids %child-ids)
+                              (set-template g-class %g-bytes)
                               (for-each (lambda (child-id)
                                           (bind-template-child-full g-class
                                                                     child-id
                                                                     #f
                                                                     0))
-                                  child-ids)
+                                  %child-ids)
                               (values)))
                           (list '* '*)))))
 
@@ -299,8 +299,8 @@
            (init-template (slot-ref init-template-func 'i-func)))
       (procedure->pointer void
                           (lambda (g-inst g-class)
-                            (let ((class-name class-name))
-                              (dimfi '%instance-init-func class-name)
+                            (let ((%class-name class-name))
+                              (dimfi '%instance-init-func %class-name)
                               (dimfi "  " 'g-class g-class 'g-inst g-inst)
                               (gi-argument-set! gi-argument 'v-pointer g-inst)
                               (apply init-template
