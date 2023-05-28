@@ -280,7 +280,8 @@
                             (let ((class-name class-name)
                                   (g-bytes g-bytes)
                                   (child-ids child-ids))
-                              #;(dimfi '%class-init-func class-name child-ids)
+                              (dimfi '%class-init-func class-name)
+                              (dimfi "  " 'g-class g-class 'child-ids child-ids)
                               (set-template g-class g-bytes)
                               (for-each (lambda (child-id)
                                           (bind-template-child-full g-class
@@ -299,7 +300,8 @@
       (procedure->pointer void
                           (lambda (g-inst g-class)
                             (let ((class-name class-name))
-                              #;(dimfi '%instance-init-func class-name)
+                              (dimfi '%instance-init-func class-name)
+                              (dimfi "  " 'g-class g-class 'g-inst g-inst)
                               (gi-argument-set! gi-argument 'v-pointer g-inst)
                               (apply init-template
                                      (list g-inst 'skip-prepare-gi-arguments))
