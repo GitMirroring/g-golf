@@ -254,8 +254,7 @@
 (define-method (initialize (self <gtype-instance>) initargs)
   (let* ((class (class-of self))
          (g-type (!g-type class))
-         (g-type-name (g-type->symbol (g-type-fundamental g-type)))
-         (child-id-slots (class-direct-child-id-slots class)))
+         (g-type-name (g-type->symbol (g-type-fundamental g-type))))
     (receive (split-kw split-rest)
         (split-keyword-args (map slot-definition-init-keyword
                               (class-g-property-slots class))
@@ -264,30 +263,31 @@
              (g-inst (or g-inst?
                         (g-inst-construct self split-kw))))
         (next-method self split-rest)
+        (set! (!g-inst self) g-inst)
+        (g-inst-cache-set! g-inst self)
         (case g-type-name
           ((object) ;; [not when interface]
            (when (g-object-is-floating g-inst)
              (g-object-ref-sink g-inst))
            (g-object-add-toggle-ref g-inst %g-toggle-notify #f)))
-        (set! (!g-inst self) g-inst)
-        (g-inst-cache-set! g-inst self)
-        (unless (null? child-id-slots)
-          (initialize-child-id-slots self g-type child-id-slots))))))
+        (initialize-child-id-slots self)))))
 
-(define (initialize-child-id-slots inst g-type child-id-slots)
+(define (initialize-child-id-slots inst)
   (let* ((module (resolve-module '(g-golf hl-api function)))
          (get-template-child
           (module-ref module 'gtk-widget-get-template-child)))
-    (for-each (lambda (slot)
-                (let* ((options (slot-definition-options slot))
-                       (name (get-keyword #:name options))
-                       (child-id (get-keyword #:child-id options)))
-                  (slot-set! inst
-                             name
-                             (get-template-child inst
-                                                 g-type
-                                                 child-id))))
-        child-id-slots)))
+    (for-each (lambda (cpl-class)
+                (for-each (lambda (slot)
+                            (let* ((options (slot-definition-options slot))
+                                   (name (get-keyword #:name options))
+                                   (child-id (get-keyword #:child-id options)))
+                              (slot-set! inst
+                                         name
+                                         (get-template-child inst
+                                                             (!g-type cpl-class)
+                                                             child-id))))
+                    (class-direct-child-id-slots cpl-class)))
+        (class-precedence-list (class-of inst)))))
 
 (define %g_value_init
   (@@ (g-golf gobject generic-values) g_value_init))
