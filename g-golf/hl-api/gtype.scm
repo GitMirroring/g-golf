@@ -270,7 +270,8 @@
            (when (g-object-is-floating g-inst)
              (g-object-ref-sink g-inst))
            (g-object-add-toggle-ref g-inst %g-toggle-notify #f)))
-        (initialize-child-id-slots self)))))
+        (unless (null? (class-child-id-slots class))
+          (initialize-child-id-slots self))))))
 
 (define (initialize-child-id-slots inst)
   (let* ((module (resolve-module '(g-golf hl-api function)))
