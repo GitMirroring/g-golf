@@ -39,6 +39,13 @@
             g-inst-cache-remove!
             g-inst-cache-show
 
+            ;; class cache
+            %g-class-cache
+            g-class-cache-ref
+            g-class-cache-set!
+            g-class-cache-remove!
+            g-class-cache-show
+
             ;; boxed sa - scheme allocated - cache
             %g-boxed-sa-cache
             g-boxed-sa-cache-ref
@@ -120,7 +127,49 @@
 
 
 ;;;
-;;; The g-boxed(instance) scheme allocated cache
+;;; The g-class cache
+;;;
+
+
+(define %g-class-cache #f)
+(define g-class-cache-ref #f)
+(define g-class-cache-set! #f)
+(define g-class-cache-remove! #f)
+(define g-class-cache-show #f)
+
+(eval-when (expand load eval)
+  (let* ((%g-class-cache-default-size 1013)
+         (g-class-cache
+          (make-hash-table %g-class-cache-default-size)))
+
+    (set! %g-class-cache
+          (lambda () g-class-cache))
+
+    (set! g-class-cache-ref
+          (lambda (g-class)
+            (hashq-ref g-class-cache
+                       (pointer-address g-class))))
+
+    (set! g-class-cache-set!
+          (lambda (g-class class)
+            (hashq-set! g-class-cache
+                        (pointer-address g-class)
+                        class)))
+
+    (set! g-class-cache-remove!
+          (lambda (g-class)
+            (hashq-remove! g-class-cache
+                           (pointer-address g-class))))
+
+    (set! g-class-cache-show
+          (lambda ()
+            (hash-for-each (lambda (key value)
+                             (%dimfi key value))
+                           g-class-cache)))))
+
+
+;;;
+;;; The g-boxed(classance) scheme allocated cache
 ;;;
 
 (define %dimfi
