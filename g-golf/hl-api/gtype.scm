@@ -53,7 +53,8 @@
   #:export (<gtype-class>
             <gtype-instance>
 
-            g-type-class))
+            g-type-class
+            %g-inst-construct-g-type))
 
 
 (g-export !info
@@ -105,7 +106,9 @@
                      'namespace namespace
                      'g-type g-type
                      'g-name g-name
-                     'g-class g-class)))
+                     'g-class g-class)
+         (and g-class
+              (g-class-cache-set! g-class self))))
       ((? number?)		;; either a runtime or a derived class
        (let* ((g-type info)
               (g-name (g-type-name g-type))
@@ -114,7 +117,9 @@
                      'info #f
                      'g-type g-type
                      'g-name g-name
-                     'g-class g-class))))))
+                     'g-class g-class)
+         (and g-class
+              (g-class-cache-set! g-class self)))))))
 
 (define* (g-type-class info #:key (g-type #f))
   (let* ((g-type (or g-type
@@ -293,43 +298,46 @@
 (define %g_value_init
   (@@ (g-golf gobject generic-values) g_value_init))
 
+
+(define %g-inst-construct-g-type (make-parameter #f))
+
 (define-method (g-inst-construct (self <gtype-instance>)
                                  g-property-initargs)
-  (if (null? g-property-initargs)
-      (g-object-new (!g-type (class-of self)))
-      (let* ((class (class-of self))
-             (g-type (!g-type class))
-             (slot-def-init-val-pairs
-              (slot-definition-init-value-pairs self g-property-initargs))
-             (n-prop (length slot-def-init-val-pairs))
-             (%g-value-size (g-value-size))
-             (g-values (bytevector->pointer
-                        (make-bytevector (* n-prop %g-value-size) 0)))
-             (names
-              (let loop ((i 0)
-                         (names '())
-                         (g-value g-values)
-                         (slot-def-init-val-pairs slot-def-init-val-pairs))
-                (match slot-def-init-val-pairs
-                  (()
-                   (reverse! names))
-                  ((slot-def-init-val-pair . rest)
-                   (match slot-def-init-val-pair
-                     ((slot-def . init-val)
-                      (let* ((slot-opts (slot-definition-options slot-def))
-                             (g-name (get-keyword #:g-name slot-opts #f))
-                             (g-type (get-keyword #:g-type slot-opts #f)))
-                        (%g_value_init g-value g-type)
-                        (g-value-set! g-value
-                                      (%g-inst-set-property-value g-type init-val))
-                        (loop (+ i 1)
-                              (cons g-name names)
-                              (gi-pointer-inc g-value %g-value-size)
-                              rest)))))))))
-        (g-object-new-with-properties g-type
-                                      n-prop
-                                      (scm->gi names 'strings)
-                                      g-values))))
+  (let ((g-type (!g-type (class-of self))))
+    (parameterize ((%g-inst-construct-g-type g-type))
+      (if (null? g-property-initargs)
+          (g-object-new g-type)
+          (let* ((slot-def-init-val-pairs
+                  (slot-definition-init-value-pairs self g-property-initargs))
+                 (n-prop (length slot-def-init-val-pairs))
+                 (%g-value-size (g-value-size))
+                 (g-values (bytevector->pointer
+                            (make-bytevector (* n-prop %g-value-size) 0)))
+                 (names
+                  (let loop ((i 0)
+                             (names '())
+                             (g-value g-values)
+                             (slot-def-init-val-pairs slot-def-init-val-pairs))
+                    (match slot-def-init-val-pairs
+                      (()
+                       (reverse! names))
+                      ((slot-def-init-val-pair . rest)
+                       (match slot-def-init-val-pair
+                         ((slot-def . init-val)
+                          (let* ((slot-opts (slot-definition-options slot-def))
+                                 (g-name (get-keyword #:g-name slot-opts #f))
+                                 (g-type (get-keyword #:g-type slot-opts #f)))
+                            (%g_value_init g-value g-type)
+                            (g-value-set! g-value
+                                          (%g-inst-set-property-value g-type init-val))
+                            (loop (+ i 1)
+                                  (cons g-name names)
+                                  (gi-pointer-inc g-value %g-value-size)
+                                  rest)))))))))
+            (g-object-new-with-properties g-type
+                                          n-prop
+                                          (scm->gi names 'strings)
+                                          g-values))))))
 
 (define (%g-inst-set-property-value g-type value)
   (let ((g-type (if (symbol? g-type)
