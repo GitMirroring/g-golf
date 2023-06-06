@@ -266,7 +266,7 @@
                      initargs)))))))
 
 (define %class-init-func
-  (lambda (class-name template child-ids)
+  (lambda (name template child-ids)
     (let* ((module (resolve-module '(g-golf hl-api function)))
            (set-template (module-ref module 'gtk-widget-class-set-template))
            (bind-template-child-full
@@ -277,11 +277,11 @@
                                  (bytevector-length template-bv))))
       (procedure->pointer void
                           (lambda (g-class class-data)
-                            (let ((%class-name class-name)
+                            (let ((%name name)
                                   (%g-bytes g-bytes)
                                   (%child-ids child-ids))
-                              (dimfi '%class-init-func %class-name)
-                              (dimfi "  " 'g-class g-class 'child-ids %child-ids)
+                              #;(dimfi '%class-init-func %name)
+                              #;(dimfi "  " 'g-class g-class 'child-ids %child-ids)
                               (set-template g-class %g-bytes)
                               (for-each (lambda (child-id)
                                           (bind-template-child-full g-class
@@ -293,18 +293,25 @@
                           (list '* '*)))))
 
 (define %instance-init-func
-  (lambda (class-name)
+  (lambda (c-name)
     (let* ((init-template-func (gi-cache-ref 'function 'gtk-widget-init-template))
            (gi-argument (slot-ref init-template-func 'gi-args-in))
            (init-template (slot-ref init-template-func 'i-func)))
       (procedure->pointer void
                           (lambda (g-inst g-class)
-                            (let ((%class-name class-name))
-                              (dimfi '%instance-init-func %class-name)
-                              (dimfi "  " 'g-class g-class 'g-inst g-inst)
+                            (let* ((%c-name c-name)
+                                   (class (g-class-cache-ref g-class))
+                                   (g-type (!g-type class)))
                               (gi-argument-set! gi-argument 'v-pointer g-inst)
                               (apply init-template
                                      (list g-inst 'skip-prepare-gi-arguments))
+                              #;(dimfi '%instance-init-func (class-name class))
+                              #;(dimfi "  " 'closure-name %c-name 'g-type (!g-type class))
+                              #;(dimfi "  " 'g-inst-construct-g-type (%g-inst-construct-g-type))
+                              (let ((g-inst-construct-g-type (%g-inst-construct-g-type)))
+                                (unless (and g-inst-construct-g-type
+                                             (= g-type g-inst-construct-g-type))
+                                  (make class #:g-inst g-inst)))
                               (values)))
                           (list '* '*)))))
 
