@@ -351,7 +351,7 @@
            'string))
 
 (define (g-object-info-get-get-value-function-pointer info)
-  (gi->scm (g_object_info_get_set_value_function_pointer info)
+  (gi->scm (g_object_info_get_get_value_function_pointer info)
            'pointer))
 
 
