@@ -99,7 +99,6 @@
       ((? pointer?)		;; a GI class definition
        (let* ((namespace (g-base-info-get-namespace info))
               (g-type (g-registered-type-info-get-g-type info))
-              (g-f-type (g-type-fundamental g-type))
               (g-name (g-registered-type-info-get-type-name info))
               (g-class (g-type-class info #:g-type g-type)))
          (mslot-set! self
