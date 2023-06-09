@@ -132,6 +132,14 @@
                                       #:name c-name
                                       #:info info
                                       #:g-struct-fields g-struct-fields
+                                      #:set-value-func
+                                      (g-object-info-get-set-value-function info)
+                                      #:set-value-func-ptr
+                                      (g-object-info-get-set-value-function-pointer info)
+                                      #:get-value-func
+                                      (g-object-info-get-get-value-function info)
+                                      #:get-value-func-ptr
+                                      (g-object-info-get-get-value-function-pointer info)
                                       #:metaclass metaclass)))
              (module-define! module c-name c-inst)
              (module-add! public-i c-name

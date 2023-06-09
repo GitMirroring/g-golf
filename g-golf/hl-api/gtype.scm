@@ -66,6 +66,10 @@
           !derived
           !class-init-func
           !instance-init-func
+          !set-value-func
+          !set-value-func-ptr
+          !get-value-func
+          !get-value-func-ptr
 
           !g-inst
           unref
@@ -88,7 +92,15 @@
                    #:init-keyword #:g-struct-fields #:init-value #f)
   (derived #:accessor !derived #:init-keyword #:derived #:init-value #f)
   (class-init-func #:accessor !class-init-func #:init-value #f)
-  (instance-init-func #:accessor !instance-init-func #:init-value #f))
+  (instance-init-func #:accessor !instance-init-func #:init-value #f)
+  (set-value-func #:accessor !set-value-func
+                  #:init-keyword #:set-value-func #:init-value #f)
+  (set-value-func-ptr #:accessor !set-value-func-ptr
+                      #:init-keyword #:set-value-func-ptr #:init-value #f)
+  (get-value-func #:accessor !get-value-func
+                  #:init-keyword #:get-value-func #:init-value #f)
+  (get-value-func-ptr #:accessor !get-value-func-ptr
+                      #:init-keyword #:get-value-func-ptr #:init-value #f))
 
 (define-method (initialize (self <gtype-class>) initargs)
   (let ((info (or (get-keyword #:info initargs #f)
