@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016, 2021
+;;;; Copyright (C) 2016, 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -76,7 +76,11 @@
 	    g-object-info-get-n-vfuncs
 	    g-object-info-get-vfunc
 	    g-object-info-find-vfunc
-	    g-object-info-get-class-struct))
+	    g-object-info-get-class-struct
+            g-object-info-get-set-value-function
+            g-object-info-get-set-value-function-pointer
+            g-object-info-get-get-value-function
+            g-object-info-get-get-value-function-pointer))
 
 
 ;;;
@@ -111,6 +115,8 @@
        n-properties: ~A
           n-signals: ~A
           n-vfuncts: ~A
+ set-value-function: ~A
+ get-value-function: ~A
 
 ")
 
@@ -147,7 +153,9 @@
              (g-object-info-get-n-methods info)
              (g-object-info-get-n-properties info)
              (g-object-info-get-n-signals info)
-             (g-object-info-get-n-vfuncs info)))
+             (g-object-info-get-n-vfuncs info)
+             (g-object-info-get-set-value-function info)
+             (g-object-info-get-get-value-function info)))
     (gi-object-show-methods info port)
     (values)))
 
@@ -330,6 +338,22 @@
 	#f
 	pointer)))
 
+(define (g-object-info-get-set-value-function info)
+  (gi->scm (g_object_info_get_set_value_function info)
+           'string))
+
+(define (g-object-info-get-set-value-function-pointer info)
+  (gi->scm (g_object_info_get_set_value_function_pointer info)
+           'pointer))
+
+(define (g-object-info-get-get-value-function info)
+  (gi->scm (g_object_info_get_get_value_function info)
+           'string))
+
+(define (g-object-info-get-get-value-function-pointer info)
+  (gi->scm (g_object_info_get_set_value_function_pointer info)
+           'pointer))
+
 
 ;;;
 ;;; GI Bindings
@@ -464,5 +488,29 @@
 (define g_object_info_get_class_struct
   (pointer->procedure '*
                       (dynamic-func "g_object_info_get_class_struct"
+				    %libgirepository)
+                      (list '*)))
+
+(define g_object_info_get_set_value_function
+  (pointer->procedure '*
+                      (dynamic-func "g_object_info_get_set_value_function"
+				    %libgirepository)
+                      (list '*)))
+
+(define g_object_info_get_set_value_function_pointer
+  (pointer->procedure '*
+                      (dynamic-func "g_object_info_get_set_value_function_pointer"
+				    %libgirepository)
+                      (list '*)))
+
+(define g_object_info_get_get_value_function
+  (pointer->procedure '*
+                      (dynamic-func "g_object_info_get_get_value_function"
+				    %libgirepository)
+                      (list '*)))
+
+(define g_object_info_get_get_value_function_pointer
+  (pointer->procedure '*
+                      (dynamic-func "g_object_info_get_get_value_function_pointer"
 				    %libgirepository)
                       (list '*)))

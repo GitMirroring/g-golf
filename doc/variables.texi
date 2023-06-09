@@ -85,6 +85,7 @@
 @set UGOBJECT-Concepts-GType https://developer.gnome.org/gobject/stable/chapter-gtype.html
 @set UGOBJECT-Concepts-GObject https://developer.gnome.org/gobject/stable/chapter-gobject.html
 @set UGOBJECT-Concepts-Signals https://developer.gnome.org/gobject/stable/chapter-signal.html
+@set UGOBJECT-Class-Hierarchy https://docs.gtk.org/gobject/classes_hierarchy.html
 
 @set UGOBJECT-Type-Info https://developer.gnome.org/gobject/stable/gobject-Type-Information.html
 @set UGOBJECT-GType-Module https://developer.gnome.org/gobject/stable/GTypeModule.html
