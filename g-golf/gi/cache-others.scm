@@ -39,6 +39,13 @@
             g-inst-cache-remove!
             g-inst-cache-show
 
+            ;; g-type cache
+            %g-type-cache
+            g-type-cache-ref
+            g-type-cache-set!
+            g-type-cache-remove!
+            g-type-cache-show
+
             ;; class cache
             %g-class-cache
             g-class-cache-ref
@@ -124,6 +131,44 @@
          (format port "The g-inst cache has ~A entry(ies):~%"
                  n-entry)
          (g-inst-cache-for-each show))))))
+
+
+;;;
+;;; The g-type cache
+;;;
+
+
+(define %g-type-cache #f)
+(define g-type-cache-ref #f)
+(define g-type-cache-set! #f)
+(define g-type-cache-remove! #f)
+(define g-type-cache-show #f)
+
+(eval-when (expand load eval)
+  (let* ((%g-type-cache-default-size 1013)
+         (g-type-cache
+          (make-hash-table %g-type-cache-default-size)))
+
+    (set! %g-type-cache
+          (lambda () g-type-cache))
+
+    (set! g-type-cache-ref
+          (lambda (g-type)
+            (hashq-ref g-type-cache g-type)))
+
+    (set! g-type-cache-set!
+          (lambda (g-type class)
+            (hashq-set! g-type-cache g-type class)))
+
+    (set! g-type-cache-remove!
+          (lambda (g-type)
+            (hashq-remove! g-type-cache g-type)))
+
+    (set! g-type-cache-show
+          (lambda ()
+            (hash-for-each (lambda (key value)
+                             (%dimfi key value))
+                g-type-cache)))))
 
 
 ;;;
