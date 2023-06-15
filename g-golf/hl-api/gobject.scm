@@ -60,6 +60,8 @@
             <ginterface>
             ginterface-class?
 
+            g-value->scm
+
             g-object-find-class-by-g-type
             g-object-find-class
             g-object-make-class
@@ -363,52 +365,46 @@
                                (gi-iface-info-struct iface-class)))
 
 (define (g-inst-get-property inst g-name g-type)
-  (let* ((g-value (g-value-init g-type))
-         (dummy (g-object-get-property inst g-name g-value))
-         (result (%g-inst-get-property-value g-value)))
-    (g-value-unset g-value)
-    result))
+  (let ((g-value (g-value-init g-type)))
+    (g-object-get-property inst g-name g-value)
+    (let ((result (g-value->scm g-value g-type)))
+      (g-value-unset g-value)
+      result)))
 
-(define (%g-inst-get-property-value g-value)
-  (let ((value (g-value-ref g-value)))
-    (case (g-value-type-tag g-value)
-      ((object)
+(define (g-value->scm g-value g-type)
+  (case (g-type->symbol g-type)
+    ((#f)
+     ;; Most likely a fundamental type that is not in GObject.
+     (receive (value class)
+         (g-value-func-ref g-value g-type)
+       (if (or (not value)
+               (null-pointer? value))
+           #f
+           (make class #:g-inst value))))
+    ((object
+      interface)
+     (let ((value (g-value-ref g-value)))
        (if (or (not value)
                (null-pointer? value))
            #f
            (or (g-inst-cache-ref value)
-               (let* ((module (resolve-module '(g-golf hl-api gobject)))
-                      (r-type (g-value-type g-value))
-                      (info (g-irepository-find-by-gtype r-type))
-                      (g-name (g-registered-type-info-get-type-name info))
-                      (c-name (g-name->class-name g-name))
-                      (type (module-ref module c-name)))
-                 (make type #:g-inst value)))))
-      ((interface)
-       (if (or (not value)
-               (null-pointer? value))
-           #f
-           (or (g-inst-cache-ref value)
-               (let* ((module (resolve-module '(g-golf hl-api gobject)))
-                      (r-type (g-value-type g-value))
-                      (info (g-irepository-find-by-gtype r-type))
-                      (g-name (g-registered-type-info-get-type-name info))
-                      (c-name (g-name->class-name g-name))
-                      (type (module-ref module c-name)))
-                 (make type #:g-inst value)))))
-      (else
-       value))))
+               (let ((class (g-type-cache-ref g-type)))
+                 (make class #:g-inst value))))))
+    (else
+     (g-value-ref g-value))))
 
 (define* (g-inst-set-property inst g-name g-type value)
   (let ((g-value (g-value-init g-type)))
-    (g-value-set! g-value
-                  (%g-inst-set-property-value g-type value))
+    (match (g-type->symbol g-type)
+      (#f
+       ;; Most likely a fundamental type that is not in GObject.
+       (g-value-func-set g-value g-type value))
+      (else
+       (g-value-set! g-value
+                     (scm->g-property g-type value))))
     (g-object-set-property inst g-name g-value)
     (g-value-unset g-value)
     (values)))
-
-(define %g-inst-set-property-value
-  (@@ (g-golf hl-api gtype) %g-inst-set-property-value))
 
 
 ;;;

@@ -54,7 +54,10 @@
             <gtype-instance>
 
             g-type-class
-            %g-inst-construct-g-type))
+            %g-inst-construct-g-type
+            g-value-func-ref
+            g-value-func-set
+            scm->g-property))
 
 
 (g-export !info
@@ -68,8 +71,10 @@
           !instance-init-func
           !set-value-func
           !set-value-func-ptr
+          !g-value-set-proc
           !get-value-func
           !get-value-func-ptr
+          !g-value-get-proc
 
           !g-inst
           unref
@@ -97,10 +102,14 @@
                   #:init-keyword #:set-value-func #:init-value #f)
   (set-value-func-ptr #:accessor !set-value-func-ptr
                       #:init-keyword #:set-value-func-ptr #:init-value #f)
+  (g-value-set-proc #:accessor !g-value-set-proc
+                    #:init-keyword #:g-value-set-proc #:init-value #f)
   (get-value-func #:accessor !get-value-func
                   #:init-keyword #:get-value-func #:init-value #f)
   (get-value-func-ptr #:accessor !get-value-func-ptr
-                      #:init-keyword #:get-value-func-ptr #:init-value #f))
+                      #:init-keyword #:get-value-func-ptr #:init-value #f)
+  (g-value-get-proc #:accessor !g-value-get-proc
+                    #:init-keyword #:g-value-get-proc #:init-value #f))
 
 (define-method (initialize (self <gtype-class>) initargs)
   (let ((info (or (get-keyword #:info initargs #f)
@@ -118,6 +127,7 @@
                      'g-type g-type
                      'g-name g-name
                      'g-class g-class)
+         (g-type-cache-set! g-type self)
          (and g-class
               (g-class-cache-set! g-class self))))
       ((? number?)		;; either a runtime or a derived class
@@ -129,6 +139,7 @@
                      'g-type g-type
                      'g-name g-name
                      'g-class g-class)
+         (g-type-cache-set! g-type self)
          (and g-class
               (g-class-cache-set! g-class self)))))))
 
@@ -339,8 +350,13 @@
                                  (g-name (get-keyword #:g-name slot-opts #f))
                                  (g-type (get-keyword #:g-type slot-opts #f)))
                             (%g_value_init g-value g-type)
-                            (g-value-set! g-value
-                                          (%g-inst-set-property-value g-type init-val))
+                            (match (g-type->symbol g-type)
+                              (#f
+                               ;; Most likely a fundamental type that is not in GObject.
+                               (g-value-func-set g-value g-type init-val))
+                              (else
+                               (g-value-set! g-value
+                                             (scm->g-property g-type init-val))))
                             (loop (+ i 1)
                                   (cons g-name names)
                                   (gi-pointer-inc g-value %g-value-size)
@@ -350,7 +366,29 @@
                                           (scm->gi names 'strings)
                                           g-values))))))
 
-(define (%g-inst-set-property-value g-type value)
+(define (g-value-func-ref g-value g-type)
+  (let ((class (g-type-cache-ref g-type)))
+    (if class
+        (let ((g-value-get-proc (!g-value-get-proc class)))
+          (if g-value-get-proc
+              (values (g-value-get-proc g-value) class)
+              (scm-error 'failed #f "Undefined g-value-get-proc for g-type: ~A"
+                   (list g-type) #f)))
+        (scm-error 'failed #f "Undefined class for g-type: ~A"
+                   (list g-type) #f))))
+
+(define (g-value-func-set g-value g-type value)
+  (let ((class (g-type-cache-ref g-type)))
+    (if class
+        (let ((g-value-set-proc (!g-value-set-proc class)))
+          (if g-value-set-proc
+              (g-value-set-proc g-value (!g-inst value))
+              (scm-error 'failed #f "Undefined g-value-set-proc for g-type: ~A"
+                   (list g-type) #f)))
+        (scm-error 'failed #f "Undefined class for g-type: ~A"
+                   (list g-type) #f))))
+
+(define (scm->g-property g-type value)
   (let ((g-type (if (symbol? g-type)
                     g-type
                     (g-type->symbol g-type))))

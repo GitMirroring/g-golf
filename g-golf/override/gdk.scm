@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2021
+;;;; Copyright (C) 2021 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -36,12 +36,10 @@
    #f
    `(lambda (clipboard value)
       (let* ((i-func ,proc)
-             (g-value-set-value
-              ,(@@ (g-golf hl-api gobject) %g-inst-set-property-value))
              (g-type (scm->g-type value))
              (g-value (g-value-init g-type)))
         (g-value-set! g-value
-                      (g-value-set-value g-type value))
+                      (scm->g-property g-type value))
         (i-func clipboard g-value)
         (g-value-unset g-value)
         (values)))
@@ -53,14 +51,12 @@
    #f
    `(lambda (content-provider)
       (let* ((i-func ,proc)
-             (g-value-get-value
-              ,(@@ (g-golf hl-api gobject) %g-inst-get-property-value))
              (content-formats (ref-formats content-provider))
              (g-types (gdk-content-formats-get-gtypes content-formats))
              (g-type (car g-types))
              (g-value (g-value-init g-type))
              (dum (i-func content-provider g-value))
-             (value (g-value-get-value g-value)))
+             (value (g-value->scm g-value g-type)))
         (g-boxed-free (g-param-spec-type
                        (g-object-class-find-property
                         (!g-class (class-of content-provider))
