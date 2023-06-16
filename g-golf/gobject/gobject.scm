@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2022
+;;;; Copyright (C) 2016 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -43,7 +43,8 @@
 		warn
 		last)
 
-  #:export (g-object-class-find-property
+  #:export (g-object-class-install-property
+            g-object-class-find-property
             g-object-new
             g-object-new-with-properties
             g-object-ref
@@ -55,13 +56,16 @@
             g-object-remove-toggle-ref
             g-object-type		;; from libg-golf
             g-object-type-name		;; from libg-golf
-            g-object-get-property	;; from libg-golf
-            g-object-set-property))	;; from libg-golf
+            g-object-get-property
+            g-object-set-property))
 
 
 ;;;
 ;;; GObject Low level API
 ;;;
+
+(define (g-object-class-install-property g-class p-id p-spec)
+  (g_object_class_install_property g-class p-id p-spec))
 
 (define (g-object-class-find-property g-class property-name)
   (gi->scm (g_object_class_find_property g-class
@@ -104,6 +108,7 @@
 (define (g-object-type object)
   (g_object_type object))
 
+;; from libg-golf
 (define (g-object-type-name object)
   (g-type-name (g-object-type object)))
 
@@ -121,6 +126,14 @@
 ;;;
 ;;; GObject Bindings
 ;;;
+
+(define g_object_class_install_property
+  (pointer->procedure void
+                      (dynamic-func "g_object_class_install_property"
+				    %libgobject)
+                      (list '*			;; g-class
+                            unsigned-int	;; p-id
+                            '*)))		;; p-spec
 
 (define g_object_class_find_property
   (pointer->procedure '*
