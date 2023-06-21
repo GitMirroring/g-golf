@@ -1,7 +1,7 @@
 /*  -*- mode: C; coding: utf-8 -*-
 
 ####
-#### Copyright (C) 2021
+#### Copyright (C) 2021 - 2023
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf.
@@ -58,5 +58,84 @@ uint
 g_closure_ref_count (GClosure *closure);
 
 
+/*
+ * GParamFlags
+ */
+
 GParamFlags
 g_param_spec_get_flags (GParamSpec *pspec);
+
+
+/*
+ * Parameters and Values
+ *   Types and Values
+ */
+
+GType
+g_type_param_boolean ();
+
+GType
+g_type_param_char ();
+
+GType
+g_type_param_uchar ();
+
+GType
+g_type_param_int ();
+
+GType
+g_type_param_uint ();
+
+GType
+g_type_param_long ();
+
+GType
+g_type_param_ulong ();
+
+GType
+g_type_param_int64 ();
+
+GType
+g_type_param_uint64 ();
+
+GType
+g_type_param_float ();
+
+GType
+g_type_param_double ();
+
+GType
+g_type_param_enum ();
+
+GType
+g_type_param_flags ();
+
+GType
+g_type_param_string ();
+/* G_VALUE_INTERNED_STRING */
+
+GType
+g_type_param_param ();
+
+GType
+g_type_param_boxed ();
+
+GType
+g_type_param_pointer ();
+
+GType
+g_type_param_object ();
+
+GType
+g_type_param_unichar ();
+
+/* G_TYPE_PARAM_VALUE_ARRAY deprecated in 2.32 */
+
+GType
+g_type_param_override ();
+
+GType
+g_type_param_gtype ();
+
+GType
+g_type_param_variant ();

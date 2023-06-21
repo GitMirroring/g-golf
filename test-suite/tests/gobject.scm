@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2022
+;;;; Copyright (C) 2016 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -247,6 +247,35 @@
 ;; clutter-actor-new, which requires "libclutter-1.0", something G-Golf
 ;; does not need to depend upon.  As soon as G-Golf can make instances,
 ;; we will add a proper test here.
+
+
+;;;
+;;; Parameter and Values
+;;;
+
+(define-method (test-g-params-vals (self <g-golf-test-gobject>))
+  (assert (g-type-param-boolean))
+  (assert (g-type-param-char))
+  (assert (g-type-param-uchar))
+  (assert (g-type-param-int))
+  (assert (g-type-param-uint))
+  (assert (g-type-param-long))
+  (assert (g-type-param-ulong))
+  (assert (g-type-param-int64))
+  (assert (g-type-param-uint64))
+  (assert (g-type-param-float))
+  (assert (g-type-param-double))
+  (assert (g-type-param-enum))
+  (assert (g-type-param-flags))
+  (assert (g-type-param-string))
+  (assert (g-type-param-param))
+  (assert (g-type-param-boxed))
+  (assert (g-type-param-pointer))
+  (assert (g-type-param-object))
+  (assert (g-type-param-unichar))
+  (assert (g-type-param-override))
+  (assert (g-type-param-gtype))
+  (assert (g-type-param-variant)))
 
 
 ;;;
