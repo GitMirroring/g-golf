@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016, 2021
+;;;; Copyright (C) 2016, 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -65,6 +65,8 @@
           class-g-property-slots
           class-direct-child-id-slots
           class-child-id-slots
+          class-direct-g-param-slots
+          class-g-param-slots
 	  #;describe)
 
 
@@ -124,6 +126,22 @@
 (define-method (class-child-id-slots (self <class>))
   (filter-map (lambda (slot-definition)
                 (and (get-keyword #:child-id
+                                  (slot-definition-options slot-definition)
+                                  #f)
+                     slot-definition))
+      (class-slots self)))
+
+(define-method (class-direct-g-param-slots (self <class>))
+  (filter-map (lambda (slot-definition)
+                (and (get-keyword #:g-param
+                                  (slot-definition-options slot-definition)
+                                  #f)
+                     slot-definition))
+      (class-direct-slots self)))
+
+(define-method (class-g-param-slots (self <class>))
+  (filter-map (lambda (slot-definition)
+                (and (get-keyword #:g-param
                                   (slot-definition-options slot-definition)
                                   #f)
                      slot-definition))
