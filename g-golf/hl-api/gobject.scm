@@ -237,14 +237,8 @@
             (g-name (get-keyword #:g-name slot-opts #f))
             (g-type (get-keyword #:g-type slot-opts #f)))
        (list (lambda (obj)
-               #;(if (is-readable? slot-def slot-opts)
-                   (g-inst-get-property (!g-inst obj) g-name g-type)
-                   (error "Unreadable slot:" name))
                (g-inst-get-property (!g-inst obj) g-name g-type))
              (lambda (obj val)
-               #;(if (is-writable? slot-def slot-opts)
-                   (g-inst-set-property (!g-inst obj) g-name g-type val)
-                   (error "Unwritable slot:" name))
                (g-inst-set-property (!g-inst obj) g-name g-type val)))))
     (else
      (next-method))))
@@ -258,7 +252,7 @@
            (g-type (cons* #:info g-type initargs))
            (else
             (receive (g-type class-init-func instance-init-func)
-                (g-golf-type-register class initargs)
+                (g-golf-g-type-register class initargs)
               (when class-init-func
                 (mslot-set! class
                             'class-init-func class-init-func
@@ -323,7 +317,7 @@
             (apply append (map class-precedence-list
                             dsupers)))))
 
-(define (g-golf-type-register class initargs)
+(define (g-golf-g-type-register class initargs)
   (let* ((name (get-keyword #:name initargs #f))
          (g-name (class-name->g-name name))
          (dsupers (get-keyword #:dsupers initargs '()))
@@ -351,7 +345,7 @@
                                                         instance-init-func
                                                         '())))
              (for-each (lambda (iface-class)
-                         (g-golf-type-add-interface g-type iface-class))
+                         (g-golf-g-type-add-interface g-type iface-class))
                  (filter-map (lambda (class)
                                (and (ginterface-class? class) class))
                      dsupers))
@@ -359,7 +353,7 @@
                      class-init-func
                      instance-init-func)))))))
 
-(define (g-golf-type-add-interface g-type iface-class)
+(define (g-golf-g-type-add-interface g-type iface-class)
   (g-type-add-interface-static g-type
                                (!g-type iface-class)
                                (gi-iface-info-struct iface-class)))
