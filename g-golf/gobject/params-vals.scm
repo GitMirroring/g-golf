@@ -231,10 +231,13 @@
 (define (g-value-set-double g-value double)
   (g_value_set_double g-value double))
 
-(define (g-param-spec-enum name nick blurb g-type default flags)
+(define (g-param-spec-enum name nick blurb type default flags)
   (let* ((nick (or nick name))
          (blurb (or blurb nick))
-         (default (or default 0))
+         (g-type (!g-type type))
+         (default (if default
+                      (enum->value type default)
+                      0))
          (flags (or flags '(readable writable)))
          (g-param-flags
           (@ (g-golf gobject param-spec) %g-param-flags)))

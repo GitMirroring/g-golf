@@ -238,8 +238,8 @@ Sets the content of @var{g-value} to @var{double}.
 
 
 @anchor{g-param-spec-enum}
-@deffn Procedure g-param-spec-enum name nick blurb g-type @
-         default-value flags
+@deffn Procedure g-param-spec-enum name nick blurb type @
+         default flags
 
 Returns a pointer.
 
@@ -247,10 +247,9 @@ Creates and returns a pointer to a new @code{GParamSpecEnum} instance
 specifying a @code{G_TYPE_ENUM} property.
 
 The @var{name} is the canonical name of the property specified,
-@var{nick} its nick name, @var{blurb} its description, @var{g-type} the
-enum GType derived from @code{G_TYPE_ENUM}, @var{default-value} the
-default-value for the property and @var{flags} the flags for the
-property specified.
+@var{nick} its nick name, @var{blurb} its description, @var{type} a
+@code{<gi-enum>} instance, @var{default} the default value for the
+property and @var{flags} the flags for the property specified.
 @end deffn
 
 
