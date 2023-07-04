@@ -210,7 +210,7 @@
                            int16
                            uint16
                            int32
-                           uint3
+                           uint32
                            unichar
                            int64
                            uint64
