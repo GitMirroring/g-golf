@@ -91,7 +91,7 @@
   (info #:accessor !info #:init-keyword #:info)
   (namespace #:accessor !namespace #:init-value #f)
   (g-type #:accessor !g-type #:init-keyword #:g-type)
-  (g-name #:accessor !g-name)
+  (g-name #:accessor !g-name #:init-keyword #:g-name)
   (g-class #:accessor !g-class)
   (g-struct-fields #:accessor !g-struct-fields
                    #:init-keyword #:g-struct-fields #:init-value #f)

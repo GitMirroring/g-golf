@@ -488,6 +488,7 @@
 (define-class <ginterface> (<gtype-instance>)
   #:info #t
   #:g-type -1	;; g-object-find-class-by-g-type
+  #:g-name "GInterface" ;; fake name - specializer-vfunc-lookup needs one
   #:metaclass <gobject-class>)
 
 (define (ginterface-class? class)
