@@ -150,6 +150,14 @@
       (g-callable-info-prepare-closure
        info ffi-cif ffi-closure-callback user-data)))
 
+(define (preserve-g-value-ptr? callback)
+  (case (!name callback)
+    ((get-property
+      set-property)
+     #t)
+    (else
+     #f)))
+
 (define (g-golf-callback-closure-marshal ffi-cif
                                          return-value
                                          ffi-args
@@ -161,6 +169,7 @@
          (callback-closure (pointer->scm user-data))
          (callback (!callback callback-closure))
          (procedure (!procedure callback-closure))
+         (g-value-ptr? (preserve-g-value-ptr? callback))
          (return-type (!return-type callback))
          (gi-argument (!gi-arg-result callback)))
     (when (%debug)
@@ -242,7 +251,8 @@
                                              gi-argument
                                              argument
                                              #:forced-type forced-type
-                                             #:is-pointer? is-pointer?))
+                                             #:is-pointer? is-pointer?
+                                             #:g-value-ptr? g-value-ptr?))
                          ((void)
                           (if is-pointer?
                               ffi-value
