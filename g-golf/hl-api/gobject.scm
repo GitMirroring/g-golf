@@ -44,6 +44,7 @@
   #:use-module (g-golf gobject)
   #:use-module (g-golf gi)
   #:use-module (g-golf hl-api gtype)
+  #:use-module (g-golf hl-api gparam)
   #:use-module (g-golf hl-api iface)
 
   #:replace (connect)
@@ -259,34 +260,122 @@
                             'instance-init-func instance-init-func))
               (cons* #:derived #t
                      #:info g-type
-                     initargs)))))))
+                     initargs)))))
+    (install-properties class)))
+
+(define (install-properties class)
+  ;; To expose slots as gobject properties, <gobject> processes a
+  ;; #:g-param slot option and creates a new gobject property.
+  (let loop ((id 1)
+             (slots (class-direct-g-param-slots class)))
+    (match slots
+      (() 'done)
+      ((slot . rest)
+       (install-property class slot id)
+       (loop (+ id 1)
+             rest)))))
+
+(define (install-property class slot id)
+  (unless (!derived class)
+    (scm-error 'invalid-class #f
+               "Can't add properties to non-derived type: ~S"
+               (list class) #f))
+  (let ((g-class (!g-class class))
+        (name (slot-definition-name slot)))
+    (if (g-object-class-find-property g-class
+                                      (symbol->string name))
+        (scm-error 'invalid-property #f
+                   "There is already a property named ~A in ~S"
+                   (list name class) #f)
+        (g-object-class-install-property g-class
+                                         id
+                                         (g-param-construct slot)))))
+
+(define (lookup-template-procedures-make-g-bytes template)
+  (if template
+      (let* ((module (resolve-module '(g-golf hl-api function)))
+             (template-bv (call-with-input-file template
+                            (lambda (port) (get-bytevector-all port)) #:binary #t))
+             (g-bytes (g-bytes-new (bytevector->pointer template-bv)
+                                   (bytevector-length template-bv))))
+        (values (module-ref module 'gtk-widget-class-set-template)
+                (module-ref module 'gtk-widget-class-bind-template-child-full)
+                g-bytes))
+      (values #f #f #f)))
+
+(define %get-set-property-default-func-warning-msg
+  "
+WARNING: I can see that you are adding new properties to your
+derived class, but failed to provide a custom [get|set]-property
+vfunc, so those newly added properties won't work as expected.
+
+")
+
+(define %get-property-func
+  (procedure->pointer void
+                      (lambda (object p-id g-value p-spec)
+                        (displayln %get-set-property-default-func-warning-msg)
+                        (values))
+                      (list '*
+                            unsigned-int
+                            '*
+                            '*)))
+
+(define %set-property-func
+  (procedure->pointer void
+                      (lambda (object p-id g-value p-spec)
+                        (displayln %get-set-property-default-func-warning-msg)
+                        (values))
+                      (list '*
+                            unsigned-int
+                            '*
+                            '*)))
+
+(define (lookup-g-class-get-set-p-vfunc-offset)
+  (let ((g-object-struct-fields (!g-struct-fields <gobject>)))
+    (values
+     (match (assq-ref g-object-struct-fields 'get-property)
+       ((type offset flags) offset))
+     (match (assq-ref g-object-struct-fields 'set-property)
+       ((type offset flags) offset)))))
 
 (define %class-init-func
-  (lambda (name template child-ids)
-    (let* ((module (resolve-module '(g-golf hl-api function)))
-           (set-template (module-ref module 'gtk-widget-class-set-template))
-           (bind-template-child-full
-            (module-ref module 'gtk-widget-class-bind-template-child-full))
-           (template-bv (call-with-input-file template
-                         (lambda (port) (get-bytevector-all port)) #:binary #t))
-           (g-bytes (g-bytes-new (bytevector->pointer template-bv)
-                                 (bytevector-length template-bv))))
-      (procedure->pointer void
-                          (lambda (g-class class-data)
-                            (let ((%name name)
-                                  (%g-bytes g-bytes)
-                                  (%child-ids child-ids))
-                              #;(dimfi '%class-init-func %name)
-                              #;(dimfi "  " 'g-class g-class 'child-ids %child-ids)
-                              (set-template g-class %g-bytes)
-                              (for-each (lambda (child-id)
-                                          (bind-template-child-full g-class
-                                                                    child-id
-                                                                    #f
-                                                                    0))
-                                  %child-ids)
-                              (values)))
-                          (list '* '*)))))
+  (lambda (name properties template child-ids)
+    (if (and (null? properties)
+             (not template))
+        ;; we return #f, g-type-register-static-simple will then select
+        ;; the %class-init-func defined in (g-golf gobject type-info)
+        #f
+        (receive (set-template bind-template-child-full g-bytes)
+            (lookup-template-procedures-make-g-bytes template)
+          (procedure->pointer void
+                              (lambda (g-class class-data)
+                                (let ((%name name)
+                                      (%properties properties)
+                                      (%child-ids child-ids)
+                                      (%g-bytes g-bytes))
+                                  #;(dimfi '%class-init-func %name)
+                                  #;(dimfi "  " 'g-class g-class
+                                         'child-ids %child-ids 'g-bytes %g-bytes)
+                                  (unless (null? %properties)
+                                    (receive (get-p-vfunc-offset set-p-vfunc-offset)
+                                        (lookup-g-class-get-set-p-vfunc-offset)
+                                      (bv-ptr-set! (gi-pointer-inc g-class
+                                                                   get-p-vfunc-offset)
+                                                   %get-property-func)
+                                      (bv-ptr-set! (gi-pointer-inc g-class
+                                                                   set-p-vfunc-offset)
+                                                   %set-property-func)))
+                                  (when %g-bytes
+                                    (set-template g-class %g-bytes)
+                                    (for-each (lambda (child-id)
+                                                (bind-template-child-full g-class
+                                                                          child-id
+                                                                          #f
+                                                                          0))
+                                        %child-ids))
+                                  (values)))
+                              (list '* '*))))))
 
 (define %instance-init-func
   (lambda (c-name)
@@ -314,16 +403,26 @@
 (define (is-a-gtk-widget? dsupers)
   (member '<gtk-widget>
           (map class-name
-            (apply append (map class-precedence-list
-                            dsupers)))))
+            (apply append (map class-precedence-list dsupers)))))
+
+(define (find-parent-g-type dsupers)
+  (!g-type (find gobject-class?
+                 (apply append
+                        (map class-precedence-list dsupers)))))
+
+(define (find-g-param-slots slots)
+  (filter-map (lambda (slot-description)
+                (and (get-keyword #:g-param (cdr slot-description) #f)
+                     slot-description))
+      slots))
 
 (define (g-golf-g-type-register class initargs)
   (let* ((name (get-keyword #:name initargs #f))
          (g-name (class-name->g-name name))
          (dsupers (get-keyword #:dsupers initargs '()))
-         (p-type (!g-type (find gobject-class?
-                                (apply append
-                                       (map class-precedence-list dsupers)))))
+         (p-type (find-parent-g-type dsupers))
+         (slots (get-keyword #:slots initargs '()))
+         (properties (find-g-param-slots slots))
          (template (get-keyword #:template initargs #f))
          (child-ids (get-keyword #:child-ids initargs '())))
     (if (and template
@@ -333,8 +432,8 @@
                    (list name) #f)
         (match (g-type-query p-type)
           ((p-type p-name class-size instance-size)
-           (let* ((class-init-func (and template
-                                        (%class-init-func name template child-ids)))
+           (let* ((class-init-func
+                   (%class-init-func name properties template child-ids))
                   (instance-init-func (and template
                                            (%instance-init-func name)))
                   (g-type (g-type-register-static-simple p-type
