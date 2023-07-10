@@ -56,6 +56,7 @@
             g-value-type-name
             g-value-ref
             g-value-set!
+            g-param-spec-int
             g-value-get-int
             g-value-set-int
             g-value-get-uint
@@ -206,6 +207,24 @@
 (define (g-value-set-boolean g-value bool)
   (g_value_set_boolean g-value
                        (if bool 1 0)))
+
+(define (g-param-spec-int name nick blurb minimum maximum default flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (minimum (or minimum -2147483648)) ;; FIXME import G_MININT
+         (maximum (or maximum 2147483647)) ;; FIXME import G_MAXINT
+         (default (or default 0))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_int (string->pointer name)
+                               (string->pointer nick)
+                               (string->pointer blurb)
+                               minimum
+                               maximum
+                               default
+                               (flags->integer g-param-flags flags))
+             'pointer)))
 
 (define (g-value-get-int g-value)
   (g_value_get_int g-value))
@@ -412,18 +431,17 @@
                       (list '*
                             int)))
 
-(define g_value_get_uint
-  (pointer->procedure unsigned-int
-                      (dynamic-func "g_value_get_uint"
+(define g_param_spec_int
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_int"
 				    %libgobject)
-                      (list '*)))
-
-(define g_value_set_uint
-  (pointer->procedure void
-                      (dynamic-func "g_value_set_uint"
-				    %libgobject)
-                      (list '*
-                            unsigned-int)))
+                      (list '*		;; name
+                            '*		;; nick
+                            '*		;; blurb
+                            int		;; minimum
+                            int		;; maximum
+                            int		;; default-value
+                            unsigned-int))) ;; flags
 
 (define g_value_get_int
   (pointer->procedure int
@@ -437,6 +455,19 @@
 				    %libgobject)
                       (list '*
                             int)))
+
+(define g_value_get_uint
+  (pointer->procedure unsigned-int
+                      (dynamic-func "g_value_get_uint"
+				    %libgobject)
+                      (list '*)))
+
+(define g_value_set_uint
+  (pointer->procedure void
+                      (dynamic-func "g_value_set_uint"
+				    %libgobject)
+                      (list '*
+                            unsigned-int)))
 
 (define g_value_get_float
   (pointer->procedure float

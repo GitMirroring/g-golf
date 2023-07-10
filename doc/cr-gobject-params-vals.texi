@@ -22,6 +22,7 @@ Parameters and Values — Standard Parameter and Value Types
 @item @ref{g-value-set!}
 @item @ref{g-value-get-boolean}
 @item @ref{g-value-set-boolean}
+@item @ref{g-param-spec-int}
 @item @ref{g-value-get-int}
 @item @ref{g-value-set-int}
 @item @ref{g-value-get-uint}
@@ -165,6 +166,22 @@ Sets the content of @var{g-value} to @code{0} if @var{val} is
 @end deffn
 
 
+@anchor{g-param-spec-int}
+@deffn Procedure g-param-spec-int name nick blurb @
+         minimum maximum default flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecEnum} instance
+specifying a @code{G_TYPE_INT} property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{minimum} the
+minimum value, @var{maximum} the maximum value, @var{default} the
+default value and @var{flags} the flags - for the property specified.
+@end deffn
+
+
 @anchor{g-value-get-int}
 @deffn Procedure g-value-get-int g-value
 
@@ -248,8 +265,8 @@ specifying a @code{G_TYPE_ENUM} property.
 
 The @var{name} is the canonical name of the property specified,
 @var{nick} its nick name, @var{blurb} its description, @var{type} a
-@code{<gi-enum>} instance, @var{default} the default value for the
-property and @var{flags} the flags for the property specified.
+@code{<gi-enum>} instance, @var{default} the default value and
+@var{flags} the flags  - for the property specified.
 @end deffn
 
 

@@ -40,7 +40,10 @@
 		warn
 		last)
 
-  #:export (g-param-construct))
+  #:export (g-param-construct
+
+            g-param-construct-int
+            g-param-construct-enum))
 
 
 #;(g-export )
@@ -50,16 +53,34 @@
   (let* ((options (slot-definition-options slot))
          (name (get-keyword #:name options #f))
          (p-spec (get-keyword #:g-param options #f)))
-    (dimfi 'g-param-construct name p-spec)
+    #;(dimfi 'g-param-construct name p-spec)
     (match p-spec
       ((param-type . param-desc)
        (case param-type
+         ((int)
+          (g-param-construct-int name param-desc))
          ((enum)
           (g-param-construct-enum name param-desc))
          (else
           (scm-error 'g-param-construct #f
                      "Unimplemented g-param-construct type: ~S"
                      (list param-type) #f)))))))
+
+
+(define (g-param-construct-int name param-desc)
+  (let ((nick (get-keyword #:nick param-desc #f))
+        (blurb (get-keyword #:blurb param-desc #f))
+        (minimum (get-keyword #:minimum param-desc #f))
+        (maximum (get-keyword #:maximum param-desc #f))
+        (default (get-keyword #:default param-desc #f))
+        (flags (get-keyword #:flags param-desc #f)))
+    (g-param-spec-int (symbol->string name)
+                      nick
+                      blurb
+                      minimum
+                      maximum
+                      default
+                      flags)))
 
 (define (g-param-construct-enum name param-desc)
   (let ((nick (get-keyword #:nick param-desc #f))
