@@ -457,9 +457,9 @@ vfunc, so those newly added properties won't work as expected.
                                (!g-type iface-class)
                                (gi-iface-info-struct iface-class)))
 
-(define (g-inst-get-property inst g-name g-type)
+(define (g-inst-get-property g-inst g-name g-type)
   (let ((g-value (g-value-init g-type)))
-    (g-object-get-property inst g-name g-value)
+    (g-object-get-property g-inst g-name g-value)
     (let ((result (g-value->scm g-value g-type)))
       (g-value-unset g-value)
       result)))
@@ -486,7 +486,7 @@ vfunc, so those newly added properties won't work as expected.
     (else
      (g-value-ref g-value))))
 
-(define* (g-inst-set-property inst g-name g-type value)
+(define* (g-inst-set-property g-inst g-name g-type value)
   (let ((g-value (g-value-init g-type)))
     (match (g-type->symbol g-type)
       (#f
@@ -495,7 +495,7 @@ vfunc, so those newly added properties won't work as expected.
       (else
        (g-value-set! g-value
                      (scm->g-property g-type value))))
-    (g-object-set-property inst g-name g-value)
+    (g-object-set-property g-inst g-name g-value)
     (g-value-unset g-value)
     (values)))
 
