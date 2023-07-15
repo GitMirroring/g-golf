@@ -38,6 +38,7 @@
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 format)
+  #:use-module (srfi srfi-1)
   #:use-module (oop goops)
   #:use-module (g-golf support)
   #:use-module (g-golf glib)
@@ -297,8 +298,37 @@
            (when (g-object-is-floating g-inst)
              (g-object-ref-sink g-inst))
            (g-object-add-toggle-ref g-inst %g-toggle-notify #f)))
+        (initialize-g-param-slots self)
         (unless (null? (class-child-id-slots class))
           (initialize-child-id-slots self))))))
+
+(define (initialize-g-param-slots inst)
+  (let* ((class (class-of inst))
+         (g-class (!g-class class)))
+    (for-each (lambda (item)
+                (match item
+                  ((g-class g-param-slots)
+                   (for-each
+                       (lambda (slot)
+                         (let* ((name (slot-definition-name slot))
+                                (p-name (symbol->string name))
+                                (p-spec (g-object-class-find-property g-class p-name))
+                                (p-spec-default (g-param-spec-get-default-value p-spec))
+                                (default (g-value-ref p-spec-default))
+                                (name_ (symbol-append name '_)))
+                           (slot-set! inst name_ default)))
+                       g-param-slots))))
+        (g-class-g-param-slots class))))
+
+(define (g-class-g-param-slots class)
+  (filter-map (lambda (c)
+                (let ((g-param-direct-slots
+                       (class-direct-g-param-slots c)))
+                  (if (null? g-param-direct-slots)
+                      #f
+                      (list (!g-class c)
+                            g-param-direct-slots))))
+      (class-precedence-list class)))
 
 (define (initialize-child-id-slots inst)
   (let* ((module (resolve-module '(g-golf hl-api function)))

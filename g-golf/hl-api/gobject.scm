@@ -123,7 +123,7 @@
              #t
              (loop rest)))))))
 
-(define (compute-extra-slots class g-properties slots)
+(define (compute-g-property-slots class g-properties slots)
   (if (null? g-properties)
       '()
       (let* ((module (resolve-module '(g-golf hl-api gobject)))
@@ -136,42 +136,50 @@
              ;; following necessary let variable binding.
              (g-class (and info ;; info is #f for derived class(es)
                            (g-type-class info)))
-             (extra-slots (filter-map
-                              (lambda (g-property)
-                                (let* ((g-name (g-base-info-get-name g-property))
-                                       (name (g-name->name g-name)))
-                                  (if (has-slot? slots name)
-                                      #f
-                                      (let* ((k-name (symbol->keyword name))
-                                             (a-name (symbol-append '! name))
-                                             (a-inst (if (module-variable module a-name)
-                                                         (module-ref module a-name)
-                                                         (let ((a-inst (make-accessor a-name)))
-                                                           (module-g-export! module `(,a-name))
-                                                           (module-set! module a-name a-inst)
-                                                           a-inst)))
-                                             (g-param-spec
-                                              (and g-class
-                                                   (g-object-class-find-property g-class g-name)))
-                                             (g-type (if g-param-spec
-                                                         (g-param-spec-type g-param-spec)
-                                                         (gi-property-g-type g-property)))
-                                             (g-flags (if g-param-spec
-                                                          (g-param-spec-get-flags g-param-spec)
-                                                          (g-property-info-get-flags g-property)))
-                                             (slot (make <slot>
-                                                     #:name name
-                                                     #:g-property g-property
-                                                     #:g-name g-name
-                                                     #:g-param-spec g-param-spec
-                                                     #:g-type g-type
-                                                     #:g-flags g-flags
-                                                     #:allocation #:g-property
-                                                     #:accessor a-inst
-                                                     #:init-keyword k-name)))
-                                        slot))))
-                              g-properties)))
-        extra-slots)))
+             (g-property-slots
+              (filter-map
+                  (lambda (g-property)
+                    (let* ((g-name (g-base-info-get-name g-property))
+                           (name (g-name->name g-name)))
+                      (if (has-slot? slots name)
+                          #f
+                          (let* ((k-name (symbol->keyword name))
+                                 (a-name (symbol-append '! name))
+                                 (a-inst (if (module-variable module a-name)
+                                             (module-ref module a-name)
+                                             (let ((a-inst (make-accessor a-name)))
+                                               (module-g-export! module `(,a-name))
+                                               (module-set! module a-name a-inst)
+                                               a-inst)))
+                                 (g-param-spec
+                                  (and g-class
+                                       (g-object-class-find-property g-class g-name)))
+                                 (g-type (if g-param-spec
+                                             (g-param-spec-type g-param-spec)
+                                             (gi-property-g-type g-property)))
+                                 (g-flags (if g-param-spec
+                                              (g-param-spec-get-flags g-param-spec)
+                                              (g-property-info-get-flags g-property)))
+                                 (slot (make <slot>
+                                         #:name name
+                                         #:g-property g-property
+                                         #:g-name g-name
+                                         #:g-param-spec g-param-spec
+                                         #:g-type g-type
+                                         #:g-flags g-flags
+                                         #:allocation #:g-property
+                                         #:accessor a-inst
+                                         #:init-keyword k-name)))
+                            slot))))
+                  g-properties)))
+        g-property-slots)))
+
+(define (compute-g-param-value-cache-slots g-param-slots)
+  (map (lambda (slot)
+         (make <slot>
+           #:name (symbol-append (slot-ref slot 'name)
+                                 '_)))
+    g-param-slots))
 
 (define (n-prop-prop-accessors class)
   ;; Note that at this point, the g-type slot of the class is still
@@ -205,44 +213,57 @@
                      (cons (get-property info i)
                            result)))))))))
 
+(define (filter-g-param-slots slots)
+  (filter-map (lambda (slot)
+                (and (get-keyword #:g-param
+                                  (slot-definition-options slot)
+                                  #f)
+                     slot))
+      slots))
+
 (define-method (compute-slots (class <gobject-class>))
   (let* ((slots (next-method))
-         (extra (compute-extra-slots class
-                                     (gobject-ginterface-direct-properties class)
-                                     slots)))
+         (direct-slots (slot-ref class 'direct-slots))
+         (g-param-slots (filter-g-param-slots direct-slots))
+         (g-param-value-cache-slots
+          (compute-g-param-value-cache-slots g-param-slots))
+         (g-property-slots
+          (compute-g-property-slots class
+                                    (gobject-ginterface-direct-properties class)
+                                    slots)))
     (slot-set! class 'direct-slots
-               (append (slot-ref class 'direct-slots)
-                       extra))
-    (append slots extra)))
+               (append direct-slots
+                       g-param-value-cache-slots
+                       g-property-slots))
+    (append slots
+            g-param-value-cache-slots
+            g-property-slots)))
 
-(define* (is-readable? slot #:optional (slot-opts #f))
-  (let* ((slot-opts (or slot-opts
-                        (slot-definition-options slot)))
-         (g-flags (get-keyword #:g-flags slot-opts #f)))
-    (and g-flags
-         (memq 'readable g-flags))))
+(define (g-property-slot? slot)
+  (eq? (slot-definition-allocation slot) #:g-property))
 
-(define* (is-writable? slot #:optional (slot-opts #f))
-  (let* ((slot-opts (or slot-opts
-                        (slot-definition-options slot)))
-         (g-flags (get-keyword #:g-flags slot-opts #f)))
-    (and g-flags
-         (memq 'writable g-flags)
-         (not (memq 'construct-only g-flags)))))
+(define (g-param-slot? slot)
+  (get-keyword #:g-param
+               (slot-definition-options slot)
+               #f))
 
-(define-method (compute-get-n-set (class <gobject-class>) slot-def)
-  (case (slot-definition-allocation slot-def)
-    ((#:g-property)
-     (let* ((name (slot-definition-name slot-def))
-            (slot-opts (slot-definition-options slot-def))
-            (g-name (get-keyword #:g-name slot-opts #f))
-            (g-type (get-keyword #:g-type slot-opts #f)))
-       (list (lambda (obj)
-               (g-inst-get-property (!g-inst obj) g-name g-type))
-             (lambda (obj val)
-               (g-inst-set-property (!g-inst obj) g-name g-type val)))))
-    (else
-     (next-method))))
+(define-method (compute-get-n-set (class <gobject-class>) slot)
+  (cond ((g-property-slot? slot)
+         (let* ((slot-opts (slot-definition-options slot))
+                (g-name (get-keyword #:g-name slot-opts #f))
+                (g-type (get-keyword #:g-type slot-opts #f)))
+           (list (lambda (obj)
+                   (g-inst-get-property (!g-inst obj) g-name g-type))
+                 (lambda (obj val)
+                   (g-inst-set-property (!g-inst obj) g-name g-type val)))))
+        ((g-param-slot? slot)
+         (let ((name (symbol->string (slot-definition-name slot))))
+           (list (lambda (obj)
+                   (g-inst-g-param-get-property obj name))
+                 (lambda (obj val)
+                   (g-inst-g-param-set-property obj name val)))))
+        (else
+         (next-method))))
 
 (define-method (initialize (class <gobject-class>) initargs)
   (let ((info (get-keyword #:info initargs #f))
@@ -303,6 +324,10 @@
                 g-bytes))
       (values #f #f #f)))
 
+#!
+;; We used the following to get started, just keeping the message in
+;; case ...
+
 (define %get-set-property-default-func-warning-msg
   "
 WARNING: I can see that you are adding new properties to your
@@ -310,12 +335,18 @@ derived class, but failed to provide a custom [get|set]-property
 vfunc, so those newly added properties won't work as expected.
 
 ")
+!#
 
 (define %get-property-func
   (procedure->pointer void
-                      (lambda (object p-id g-value p-spec)
-                        (displayln %get-set-property-default-func-warning-msg)
-                        (values))
+                      (lambda (g-inst p-id g-value p-spec)
+                        (let* ((inst (g-inst-cache-ref g-inst))
+                               (p-name (g-param-spec-get-name p-spec))
+                               (p-name_ (string-append p-name "_")))
+                          (g-value-set! g-value
+                                        (slot-ref inst
+                                                  (string->symbol p-name_)))
+                          (values)))
                       (list '*
                             unsigned-int
                             '*
@@ -323,9 +354,14 @@ vfunc, so those newly added properties won't work as expected.
 
 (define %set-property-func
   (procedure->pointer void
-                      (lambda (object p-id g-value p-spec)
-                        (displayln %get-set-property-default-func-warning-msg)
-                        (values))
+                      (lambda (g-inst p-id g-value p-spec)
+                        (let* ((inst (g-inst-cache-ref g-inst))
+                               (p-name (g-param-spec-get-name p-spec))
+                               (p-name_ (string-append p-name "_")))
+                          (slot-set! inst
+                                     (string->symbol p-name_)
+                                     (g-value-ref g-value))
+                          (values)))
                       (list '*
                             unsigned-int
                             '*
@@ -486,7 +522,7 @@ vfunc, so those newly added properties won't work as expected.
     (else
      (g-value-ref g-value))))
 
-(define* (g-inst-set-property g-inst g-name g-type value)
+(define (g-inst-set-property g-inst g-name g-type value)
   (let ((g-value (g-value-init g-type)))
     (match (g-type->symbol g-type)
       (#f
@@ -498,6 +534,20 @@ vfunc, so those newly added properties won't work as expected.
     (g-object-set-property g-inst g-name g-value)
     (g-value-unset g-value)
     (values)))
+
+(define (g-inst-g-param-get-property obj name)
+  (let* ((klass (class-of obj))
+         (g-class (!g-class klass))
+         (p-spec (g-object-class-find-property g-class name))
+         (p-spec-type (g-param-spec-type p-spec)))
+    (g-inst-get-property (!g-inst obj) name p-spec-type)))
+
+(define (g-inst-g-param-set-property obj name val)
+  (let* ((klass (class-of obj))
+         (g-class (!g-class klass))
+         (p-spec (g-object-class-find-property g-class name))
+         (p-spec-type (g-param-spec-type p-spec)))
+    (g-inst-set-property (!g-inst obj) name p-spec-type val)))
 
 
 ;;;
@@ -535,6 +585,21 @@ vfunc, so those newly added properties won't work as expected.
 (define-class <gobject> (<gtype-instance>)
   #:info (g-irepository-find-by-name "GObject" "Object")
   #:metaclass <gobject-class>)
+
+(define* (is-readable? slot #:optional (slot-opts #f))
+  (let* ((slot-opts (or slot-opts
+                        (slot-definition-options slot)))
+         (g-flags (get-keyword #:g-flags slot-opts #f)))
+    (and g-flags
+         (memq 'readable g-flags))))
+
+(define* (is-writable? slot #:optional (slot-opts #f))
+  (let* ((slot-opts (or slot-opts
+                        (slot-definition-options slot)))
+         (g-flags (get-keyword #:g-flags slot-opts #f)))
+    (and g-flags
+         (memq 'writable g-flags)
+         (not (memq 'construct-only g-flags)))))
 
 (define safe-class-name
   (@@ (oop goops describe) safe-class-name))
