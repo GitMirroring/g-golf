@@ -343,6 +343,9 @@ vfunc, so those newly added properties won't work as expected.
                         (let* ((inst (g-inst-cache-ref g-inst))
                                (p-name (g-param-spec-get-name p-spec))
                                (p-name_ (string-append p-name "_")))
+                          #;(dimfi '%get-property-func p-name)
+                          #;(dimfi "  " 'g-inst g-inst)
+                          #;(dimfi "  " 'inst inst)
                           (g-value-set! g-value
                                         (slot-ref inst
                                                   (string->symbol p-name_)))
@@ -358,6 +361,9 @@ vfunc, so those newly added properties won't work as expected.
                         (let* ((inst (g-inst-cache-ref g-inst))
                                (p-name (g-param-spec-get-name p-spec))
                                (p-name_ (string-append p-name "_")))
+                          #;(dimfi '%set-property-func p-name)
+                          #;(dimfi "  " 'g-inst g-inst)
+                          #;(dimfi "  " 'inst inst)
                           (slot-set! inst
                                      (string->symbol p-name_)
                                      (g-value-ref g-value))
@@ -391,8 +397,8 @@ vfunc, so those newly added properties won't work as expected.
                                       (%child-ids child-ids)
                                       (%g-bytes g-bytes))
                                   #;(dimfi '%class-init-func %name)
-                                  #;(dimfi "  " 'g-class g-class
-                                         'child-ids %child-ids 'g-bytes %g-bytes)
+                                  #;(dimfi "  " 'g-class g-class)
+                                  #;(dimfi "  " 'child-ids %child-ids)
                                   (unless (null? %properties)
                                     (receive (get-p-vfunc-offset set-p-vfunc-offset)
                                         (lookup-g-class-get-set-p-vfunc-offset)
@@ -423,13 +429,16 @@ vfunc, so those newly added properties won't work as expected.
                             (let* ((%c-name c-name)
                                    (class (g-class-cache-ref g-class))
                                    (g-type (!g-type class)))
+                              #;(dimfi '%instance-init-func (class-name class))
+                              #;(dimfi "  " 'g-inst g-inst)
+                              #;(dimfi "  " 'template-initialization...)
                               (gi-argument-set! gi-argument 'v-pointer g-inst)
                               (apply init-template
                                      (list g-inst 'skip-prepare-gi-arguments))
-                              #;(dimfi '%instance-init-func (class-name class))
-                              #;(dimfi "  " 'closure-name %c-name 'g-type (!g-type class))
                               #;(dimfi "  " 'g-inst-construct-g-type (%g-inst-construct-g-type))
                               (let ((g-inst-construct-g-type (%g-inst-construct-g-type)))
+                                ;; we only creating a goops proxy instance under the following
+                                ;; conditions - mandatory to avoid 'double' instance creation
                                 (unless (and g-inst-construct-g-type
                                              (= g-type g-inst-construct-g-type))
                                   (make class #:g-inst g-inst)))
