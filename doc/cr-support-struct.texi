@@ -165,7 +165,6 @@ field types is @code{void}, @code{interface} or if the total size of the
 Returns an integer.
 
 Obtain and returns the @var{field-name} offset for @var{inst}, It is an
-error to call this method if there is no such @var
-{field-name} defined
+error to call this method if there is no such @var{field-name} defined
 for @var{inst}.
 @end deffn
