@@ -312,18 +312,6 @@
                                          id
                                          (g-param-construct slot)))))
 
-(define (lookup-template-procedures-make-g-bytes template)
-  (if template
-      (let* ((module (resolve-module '(g-golf hl-api function)))
-             (template-bv (call-with-input-file template
-                            (lambda (port) (get-bytevector-all port)) #:binary #t))
-             (g-bytes (g-bytes-new (bytevector->pointer template-bv)
-                                   (bytevector-length template-bv))))
-        (values (module-ref module 'gtk-widget-class-set-template)
-                (module-ref module 'gtk-widget-class-bind-template-child-full)
-                g-bytes))
-      (values #f #f #f)))
-
 #!
 ;; We used the following to get started, just keeping the message in
 ;; case ...
@@ -373,6 +361,18 @@ vfunc, so those newly added properties won't work as expected.
                             '*
                             '*)))
 
+(define (lookup-template-procedures-make-g-bytes template)
+  (if template
+      (let* ((module (resolve-module '(g-golf hl-api function)))
+             (template-bv (call-with-input-file template
+                            (lambda (port) (get-bytevector-all port)) #:binary #t))
+             (g-bytes (g-bytes-new (bytevector->pointer template-bv)
+                                   (bytevector-length template-bv))))
+        (values (module-ref module 'gtk-widget-class-set-template)
+                (module-ref module 'gtk-widget-class-bind-template-child-full)
+                g-bytes))
+      (values #f #f #f)))
+
 (define (lookup-g-class-get-set-p-vfunc-offset)
   (let ((g-object-struct-fields (!g-struct-fields <gobject>)))
     (values
@@ -388,36 +388,36 @@ vfunc, so those newly added properties won't work as expected.
         ;; we return #f, g-type-register-static-simple will then select
         ;; the %class-init-func defined in (g-golf gobject type-info)
         #f
-        (receive (set-template bind-template-child-full g-bytes)
-            (lookup-template-procedures-make-g-bytes template)
-          (procedure->pointer void
-                              (lambda (g-class class-data)
-                                (let ((%name name)
-                                      (%properties properties)
-                                      (%child-ids child-ids)
-                                      (%g-bytes g-bytes))
-                                  #;(dimfi '%class-init-func %name)
-                                  #;(dimfi "  " 'g-class g-class)
-                                  #;(dimfi "  " 'child-ids %child-ids)
-                                  (unless (null? %properties)
-                                    (receive (get-p-vfunc-offset set-p-vfunc-offset)
-                                        (lookup-g-class-get-set-p-vfunc-offset)
-                                      (bv-ptr-set! (gi-pointer-inc g-class
-                                                                   get-p-vfunc-offset)
-                                                   %get-property-func)
-                                      (bv-ptr-set! (gi-pointer-inc g-class
-                                                                   set-p-vfunc-offset)
-                                                   %set-property-func)))
-                                  (when %g-bytes
-                                    (set-template g-class %g-bytes)
+        (procedure->pointer void
+                            (lambda (g-class class-data)
+                              (let ((%name name)
+                                    (%properties properties)
+                                    (%template template)
+                                    (%child-ids child-ids))
+                                #;(dimfi '%class-init-func %name)
+                                #;(dimfi "  " 'g-class g-class)
+                                #;(dimfi "  " 'child-ids %child-ids)
+                                (unless (null? %properties)
+                                  (receive (get-p-vfunc-offset set-p-vfunc-offset)
+                                      (lookup-g-class-get-set-p-vfunc-offset)
+                                    (bv-ptr-set! (gi-pointer-inc g-class
+                                                                 get-p-vfunc-offset)
+                                                 %get-property-func)
+                                    (bv-ptr-set! (gi-pointer-inc g-class
+                                                                 set-p-vfunc-offset)
+                                                 %set-property-func)))
+                                (when %template
+                                  (receive (set-template bind-template-child-full g-bytes)
+                                      (lookup-template-procedures-make-g-bytes %template)
+                                    (set-template g-class g-bytes)
                                     (for-each (lambda (child-id)
                                                 (bind-template-child-full g-class
                                                                           child-id
                                                                           #f
                                                                           0))
-                                        %child-ids))
-                                  (values)))
-                              (list '* '*))))))
+                                        %child-ids)))
+                                (values)))
+                            (list '* '*)))))
 
 (define %instance-init-func
   (lambda (c-name)
