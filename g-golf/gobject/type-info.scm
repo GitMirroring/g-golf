@@ -327,7 +327,7 @@
                             '*			;; class-init (func)
                             unsigned-int	;; instance-size
                             '*			;; instance-init (func)
-                            int)))		;; flags
+                            unsigned-int)))	;; flags
 
 (define g_type_add_interface_static
   (pointer->procedure void
