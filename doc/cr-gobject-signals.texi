@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2019 - 2021 Free Software Foundation, Inc.
+@c Copyright (C) 2019 - 2023 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -17,6 +17,7 @@ purpose notification mechanism
 
 @indentedblock
 @table @code
+@item @ref{g-signal-newv}
 @item @ref{g-signal-query}
 @item @ref{g-signal-lookup}
 @item @ref{g-signal-list-ids}
@@ -47,6 +48,65 @@ the GObject reference manual for a complete description.
 
 
 @subheading Procedures
+
+
+@anchor{g-signal-newv}
+@deffn Procedure g-signal-newv name iface-type flags class-closure @
+         accumulator accu-data c-marshaller return-type @
+         n-param param-types
+
+Returns the signal id.
+
+Creates a new signal. The arguments are:
+
+@indentedblock
+@table @var
+
+@item name
+The name for the signal.
+
+@item iface-type
+The type this signal pertains to. It will also pertain to types which
+are derived from this type.
+
+@item flags
+An (unsigned) integer, corresponding to the combination of
+@ref{%g-signal-flags} specifying detail of when the default handler is
+to be invoked. The caller is reponsible to convert the flags list, by
+calling @code{(flags->integer %g-signal-flags flags)}. It should at
+least specify @code{run-first} or @code{run-last}.
+
+@item class-closure
+The closure to invoke on signal emission, may be #f.
+
+@item accumulator
+The accumulator for this signal; may be #f.
+
+@item accu-data
+User data for the accumulator.
+
+@item c-marshaller
+The function to translate arrays of parameter values to signal emissions
+into C language callback invocations or #f.
+
+@item return-type
+The GType of the signal returned value. The caller may obtain the GType,
+given a scheme object (or @code{'none} for a signal without a return
+value), by calling @ref{scm->g-type}.
+
+@item n-param
+The length of @var{param-types}.
+
+@item param-types
+An list of GTypes, one for each parameter (may be @code{'()} if
+@var{n-param} is zero). The caller may obtain the list of GTypes, given
+a list of scheme objects, by calling @code{(@ref{scm->gi} param-types
+'gtypes)}.
+
+@end table
+@end indentedblock
+
+@end deffn
 
 
 @anchor{g-signal-query}
