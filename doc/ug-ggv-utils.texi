@@ -14,6 +14,7 @@ Utils Arcade. G-Golf utilities.
 
 @indentedblock
 @table @code
+@item @ref{scm->g-type}
 @item @ref{allocate-c-struct}
 @end table
 @end indentedblock
@@ -25,6 +26,18 @@ Welcome to the G-Golf Utils Arcade.
 
 
 @subheading Syntax
+
+
+@anchor{scm->g-type}
+@deffn Procedure scm->g-type value
+
+Returns a GType.
+
+Obtains and returns the GType for @var{value}, which may be a number
+(then assumed to be a valid GType), a string, a symbol (a
+@ref{%g-type-fundamental-types} member) or a <gobject-class>.
+@end deffn
+
 
 @anchor{allocate-c-struct}
 @deffn Syntax allocate-c-struct name . fields

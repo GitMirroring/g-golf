@@ -80,16 +80,16 @@
                    results)))))))
 
 (define (scm->g-type value)
-  (letrec* ((v-class (class-of value))
-            (v-cpl (class-precedence-list v-class))
-            (is-a- (lambda (value class)
-                       (and (memq class v-cpl) #t))))
-    (cond ((is-a- value <string>)
-           (symbol->g-type 'string))
-          ((is-a- value <gobject>)
-           (!g-type v-class))
-          (else
-           (error "Unimplemented scm->g-type for " value)))))
+  (cond ((number? value)
+         value) ;; we assume it is a g-type
+        ((string? value)
+         (symbol->g-type 'string))
+        ((symbol? value)
+         (symbol->g-type value))
+        ((is-a? value <gobject-class>)
+         (!g-type value))
+        (else
+         (error "Unimplemented scm->g-type for " value))))
 
 (define-macro (allocate-c-struct name . fields)
   `(let* ((gi-struct (gi-cache-ref 'boxed ',name))
