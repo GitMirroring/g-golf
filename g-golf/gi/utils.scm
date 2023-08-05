@@ -76,7 +76,8 @@
             scm->gi-pointers
             #;scm->gi-glist
             scm->gi-gslist
-            scm->gi-n-gtype))
+            scm->gi-n-gtype
+            scm->gi-gtypes))
 
 
 (define %gi-pointer-size (sizeof '*))
