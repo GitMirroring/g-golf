@@ -43,6 +43,7 @@
             stow->alist
 
 	    displayln
+            writeln
 	    dimfi
 	    warning
 	    abort
@@ -110,6 +111,15 @@
 	(newline port))
       (begin
 	(display msg)
+	(newline))))
+
+(define* (writeln msg #:optional (port #f))
+  (if port
+      (begin
+	(write msg port)
+	(newline port))
+      (begin
+	(write msg)
 	(newline))))
 
 (define (dimfi . items)
