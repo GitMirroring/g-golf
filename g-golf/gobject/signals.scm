@@ -143,7 +143,7 @@
          (accu-data (scm->gi accu-data 'pointer))
          (c-marshaller (scm->gi c-marshaller 'pointer))
          (return-type (%scm->g-type return-type))
-         (param-types (scm->gi param-types 'gtypes)))
+         (param-types (scm->gi (map %scm->g-type param-types) 'gtypes)))
     (show-g-signal-newv name
                         iface-type
                         flags
