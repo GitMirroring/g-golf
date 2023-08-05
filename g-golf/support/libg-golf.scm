@@ -46,6 +46,7 @@
             g_source_ref_count
 
             ;; GObject
+            g_type_from_class
             g_value_size
             g_object_type
             #;g_object_type_name
@@ -158,6 +159,12 @@
 ;;;
 ;;; GObject
 ;;;
+
+(define g_type_from_class
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_from_class"
+                                    %libg-golf)
+                      (list '*)))
 
 (define g_value_size
   (pointer->procedure size_t

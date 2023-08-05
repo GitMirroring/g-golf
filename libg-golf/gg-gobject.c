@@ -35,8 +35,22 @@
 
 
 /*
+ * Type Information
+*/
+
+GType
+g_type_from_class (GTypeClass *g_class)
+{
+  GType type;
+
+  type = G_TYPE_FROM_CLASS(g_class);
+
+  return (type);
+}
+
+
+/*
  * GObject
- *
 */
 
 size_t

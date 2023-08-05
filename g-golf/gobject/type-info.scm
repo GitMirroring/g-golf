@@ -33,6 +33,8 @@
   #:use-module (system foreign)
   #:use-module (rnrs arithmetic bitwise)
   #:use-module (g-golf init)
+  #:use-module (g-golf support utils)
+  #:use-module (g-golf support libg-golf)
   #:use-module (g-golf support flags)
   #:use-module (g-golf support bytevector)
   #:use-module (g-golf glib mem-alloc)
@@ -49,6 +51,8 @@
 
   #:export (g-type->symbol
             symbol->g-type
+
+            g-type-from-class	;; from libg-golf
 
             g-type-name
             g-type-from-name
@@ -97,6 +101,11 @@
     (and value
          (bitwise-arithmetic-shift value
                                    %g-type-fundamental-shift))))
+
+
+;; from libg-golf
+(define (g-type-from-class g-class)
+  (g_type_from_class g-class))
 
 
 ;;;

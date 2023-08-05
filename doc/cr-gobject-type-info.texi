@@ -17,6 +17,7 @@ Type Information — The GLib Runtime type identification and management system
 @table @code
 @item @ref{g-type->symbol}
 @item @ref{symbol->g-type}
+@item @ref{g-type-from-class}
 @item @ref{g-type-name}
 @item @ref{g-type-from-name}
 @item @ref{g-type-parent}
@@ -88,6 +89,16 @@ Get the type ID for @var{symbol}. Note that this function (like all
 other GType API) cannot cope with invalid type ID symbols. It accepts
 validly registered type ID symbol, but randomized type IDs should not be
 passed in and will most likely lead to a crash.
+@end deffn
+
+
+@anchor{g-type-from-class}
+@deffn Procedure g-type-from-class g-class
+
+Returns a GType.
+
+Obtains and returns the GType for @var{g-class} (a pointer to a valid
+GTypeClass structure).
 @end deffn
 
 
