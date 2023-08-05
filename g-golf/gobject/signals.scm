@@ -135,12 +135,16 @@
                        return-type
                        n-param
                        param-types)
-  (let* ((name (if (symbol? name) (symbol->string name) name))
+  (let* ((%scm->g-type (@ (g-golf hl-api utils) scm->g-type))
+         (name (if (symbol? name) (symbol->string name) name))
+         (flags (flags->integer %g-signal-flags flags))
          (class-closure (scm->gi class-closure 'pointer))
          (accumulator (scm->gi accumulator 'pointer))
          (accu-data (scm->gi accu-data 'pointer))
-         (c-marshaller (scm->gi c-marshaller 'pointer)))
-    #;(show-g-signal-newv name
+         (c-marshaller (scm->gi c-marshaller 'pointer))
+         (return-type (%scm->g-type return-type))
+         (param-types (scm->gi param-types 'gtypes)))
+    (show-g-signal-newv name
                         iface-type
                         flags
                         class-closure

@@ -70,11 +70,9 @@ The type this signal pertains to. It will also pertain to types which
 are derived from this type.
 
 @item flags
-An (unsigned) integer, corresponding to the combination of
-@ref{%g-signal-flags} specifying detail of when the default handler is
-to be invoked. The caller is reponsible to convert the flags list, by
-calling @code{(flags->integer %g-signal-flags flags)}. It should at
-least specify @code{run-first} or @code{run-last}.
+A list of @ref{%g-signal-flags}, specifying detail of when the default
+handler is to be invoked. It should at least specify @code{run-first}
+or @code{run-last}.
 
 @item class-closure
 The closure to invoke on signal emission, may be #f.
@@ -98,11 +96,8 @@ value), by calling @ref{scm->g-type}.
 The length of @var{param-types}.
 
 @item param-types
-An list of GTypes, one for each parameter (may be @code{'()} if
-@var{n-param} is zero). The caller may obtain the list of GTypes, given
-a list of scheme objects, by calling @code{(@ref{scm->gi} param-types
-'gtypes)}.
-
+An list of types, one for each parameter (may be @code{'()} if
+@var{n-param} is zero).
 @end table
 @end indentedblock
 
