@@ -144,7 +144,7 @@
          (c-marshaller (scm->gi c-marshaller 'pointer))
          (return-type (%scm->g-type return-type))
          (param-types (scm->gi (map %scm->g-type param-types) 'gtypes)))
-    (show-g-signal-newv name
+    #;(show-g-signal-newv name
                         iface-type
                         flags
                         class-closure
