@@ -21,6 +21,7 @@ purpose notification mechanism
 @item @ref{g-signal-query}
 @item @ref{g-signal-lookup}
 @item @ref{g-signal-list-ids}
+@item @ref{g-signal-connect-closure-by-id}
 @item @ref{g-signal-parse-name}
 @end table
 @end indentedblock
@@ -163,6 +164,23 @@ Obtains and returns the list of signal's identifying integers for
 @var{g-type} (Note that at least one @var{g-type} instance must have
 been created prior to attempt to list or query signal's identifying
 integers for a given @var{g-type}).
+@end deffn
+
+@anchor{g-signal-connect-closure-by-id}
+@deffn Procedure g-signal-connect-closure-by-id instance id detail closure after
+
+Returns the handler ID (always greater than 0 for successful
+connections).
+
+Connects a closure to a signal for a particular object.
+
+If @var{closure} is a floating reference (see @ref{g-closure-sink}),
+this function takes ownership of closure.
+
+The @var{instance} is the instance to connect to, the @var{id} the id of
+the signal, @var{detail} the detail (a g-quark). @var{closure} the
+closure to connect, @var{after} (a boolean) whether the handler should
+be called before or after the default handler of the signal.
 @end deffn
 
 
