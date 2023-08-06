@@ -178,10 +178,12 @@
 (define-method (describe (self <signal>))
   (next-method)
   (newline)
-  (for-each (lambda (argument)
-              (describe argument)
-              (newline))
-      (!param-args self)))
+  (let ((param-args (!param-args self)))
+    (when param-args ;; #f for user defined signals
+      (for-each (lambda (argument)
+                  (describe argument)
+                  (newline))
+          param-args))))
 
 
 ;;;
