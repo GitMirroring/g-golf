@@ -21,6 +21,7 @@ purpose notification mechanism
 @item @ref{g-signal-query}
 @item @ref{g-signal-lookup}
 @item @ref{g-signal-list-ids}
+@item @ref{g-signal-emitv}
 @item @ref{g-signal-connect-closure-by-id}
 @item @ref{g-signal-parse-name}
 @end table
@@ -165,6 +166,29 @@ Obtains and returns the list of signal's identifying integers for
 been created prior to attempt to list or query signal's identifying
 integers for a given @var{g-type}).
 @end deffn
+
+
+@anchor{g-signal-emitv}
+@deffn Procedure g-signal-emitv params id detail return-value
+
+Returns nothing.
+
+Emits a signal. Signal emission is done synchronously. The method will
+only return control after all handlers are called or signal emission was
+stopped.
+
+Note that @ref{g-signal-emitv} doesn't change @var{return-value} if no
+handlers are connected.
+
+The @var{params} points to the argument list for the signal
+emission. The first element in the array is a GValue for the instance
+the signal is being emitted on. The rest are any arguments to be passed
+to the signal. The @var{id} is the signal id, @var{detail} the detail (a
+g-quark and @var{return-value} the location to store the return value of
+the signal emission (it must be provided if the specified signal returns
+a value, but may be ignored otherwise).
+@end deffn
+
 
 @anchor{g-signal-connect-closure-by-id}
 @deffn Procedure g-signal-connect-closure-by-id instance id detail closure after

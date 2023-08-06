@@ -53,6 +53,7 @@
             g-signal-query
             g-signal-lookup
             g-signal-list-ids
+            g-signal-emitv
             g-signal-connect-closure-by-id
             g-signal-parse-name
 
@@ -179,6 +180,15 @@
              n-param
              (decode-param-types n-param param-types))))))
 
+(define (g-signal-lookup name g-type)
+  (let ((gsl (g_signal_lookup (scm->gi name 'string)
+                              g-type)))
+    (case gsl
+      ((0)
+       #f)
+      (else
+       gsl))))
+
 (define (g-signal-list-ids g-type)
   (let* ((s-uint (sizeof unsigned-int))
          (n-id-bv (make-bytevector s-uint 0))
@@ -191,14 +201,8 @@
     (g-free ids)
     results))
 
-(define (g-signal-lookup name g-type)
-  (let ((gsl (g_signal_lookup (scm->gi name 'string)
-                              g-type)))
-    (case gsl
-      ((0)
-       #f)
-      (else
-       gsl))))
+(define (g-signal-emitv params id detail return-value)
+  (g_signal_emitv params id detail return-value))
 
 (define (g-signal-connect-closure-by-id g-inst
                                         signal-id detail closure after?)
@@ -284,6 +288,15 @@
 				    %libgobject)
                       (list size_t		;; g-type
                             '*)))		;; n-id (pointer to guint)
+
+(define g_signal_emitv
+  (pointer->procedure void
+                      (dynamic-func "g_signal_emitv"
+				    %libgobject)
+                      (list '*			;; params
+                            unsigned-int	;; id
+                            uint32		;; detail
+                            '*)))		;; return-value
 
 (define g_signal_connect_closure_by_id
   (pointer->procedure unsigned-long
