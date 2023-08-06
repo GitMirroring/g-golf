@@ -282,7 +282,8 @@
               (cons* #:derived #t
                      #:info g-type
                      initargs)))))
-    (install-properties class)))
+    (install-properties class)
+    (install-signals class initargs)))
 
 (define (install-properties class)
   ;; To expose slots as gobject properties, <gobject> processes a
@@ -396,6 +397,7 @@ vfunc, so those newly added properties won't work as expected.
                                     (%child-ids child-ids))
                                 #;(dimfi '%class-init-func %name)
                                 #;(dimfi "  " 'g-class g-class)
+                                #;(dimfi "  " 'g-type (g-type-from-class g-class))
                                 #;(dimfi "  " 'child-ids %child-ids)
                                 (unless (null? %properties)
                                   (receive (get-p-vfunc-offset set-p-vfunc-offset)
@@ -563,7 +565,39 @@ vfunc, so those newly added properties won't work as expected.
 ;;; Signals
 ;;;
 
-(define (install-signals! class)
+(define (install-signals class initargs)
+  (for-each (lambda (signal)
+              (install-signal class signal))
+      (find-signals initargs)))
+
+(define (install-signal class signal)
+  (match signal
+    ((name return-type param-types flags)
+     (g-signal-newv name
+                    (!g-type class)
+                    flags
+                    #f             ;; class-closure
+                    #f             ;; accumulator
+                    #f             ;; accu-data
+                    #f             ;; c-marshaller
+                    return-type
+                    (length param-types)
+                    param-types))))
+
+(define (find-signals initargs)
+  (let loop ((args initargs)
+             (signals '()))
+    (match args
+      (() signals)
+      ((kw def . rest)
+       (if (eq? kw #:g-signal)
+           (loop rest
+                 (cons def signals))
+           (loop rest
+                 signals))))))
+
+#!
+(define (install-signals class)
   (let ((signals (gobject-class-signals class)))
     (dimfi class)
     (for-each (lambda (info)
@@ -582,6 +616,7 @@ vfunc, so those newly added properties won't work as expected.
               (loop (+ i 1)
                     (cons (g-object-info-get-signal info i)
                           result)))))))
+!#
 
 
 ;;;
