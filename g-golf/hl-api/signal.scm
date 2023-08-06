@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2020
+;;;; Copyright (C) 2019 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -105,8 +105,11 @@
                             (g-studly-caps-expand iface-name)))
                 (signal (or (gi-signal-cache-ref iface-key s-name)
                             (let* ((iface-info (g-irepository-find-by-gtype iface-type))
-                                   (iface-s-info (g-object-info-find-signal iface-info name))
-                                   (param-args (signal-arguments iface-s-info))
+                                   (iface-s-info
+                                    (and iface-info
+                                         (g-object-info-find-signal iface-info name)))
+                                   (param-args (and iface-s-info
+                                                    (signal-arguments iface-s-info)))
                                    (s-inst (make <signal>
                                              #:id id
                                              #:name name
@@ -163,7 +166,7 @@
 
 (define-method (initialize (self <signal>) initargs)
   (next-method)
-  (let* ((module (resolve-module '(g-golf hl-api gobject)))
+  (let* ((module (current-module) #;(resolve-module '(g-golf hl-api gobject)))
          (iface-type (!iface-type self))
          (iface-name (g-type-name iface-type))
          (iface-c-name (g-name->class-name iface-name))
