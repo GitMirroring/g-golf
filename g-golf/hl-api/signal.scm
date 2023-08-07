@@ -100,10 +100,7 @@
         (g-signal-parse-name s-name i-type)
       (match (g-signal-query s-id)
         ((id name iface-type flags return-type n-param param-types)
-         (let* ((iface-name (g-type-name iface-type))
-                (iface-key (string->symbol
-                            (g-studly-caps-expand iface-name)))
-                (signal (or (gi-signal-cache-ref iface-key s-name)
+         (let* ((signal (or (gi-signal-cache-ref i-class-name s-name)
                             (let* ((iface-info (g-irepository-find-by-gtype iface-type))
                                    (iface-s-info
                                     (and iface-info
@@ -114,13 +111,13 @@
                                              #:id id
                                              #:name name
                                              #:iface-type iface-type
-                                             #:iface-name iface-name
+                                             #:iface-name i-class-name
                                              #:flags flags
                                              #:return-type return-type
                                              #:n-param n-param
                                              #:param-types param-types
                                              #:param-args param-args)))
-                              (gi-signal-cache-set! iface-key s-name s-inst)
+                              (gi-signal-cache-set! i-class-name s-name s-inst)
                               s-inst)))
                 (closure (make <closure>
                            #:function function
