@@ -78,7 +78,8 @@
           !param-args
 
           connect
-          connect-after)
+          connect-after
+          emit)
 
 
 ;;;
@@ -101,24 +102,9 @@
       (match (g-signal-query s-id)
         ((id name iface-type flags return-type n-param param-types)
          (let* ((signal (or (gi-signal-cache-ref i-class-name s-name)
-                            (let* ((iface-info (g-irepository-find-by-gtype iface-type))
-                                   (iface-s-info
-                                    (and iface-info
-                                         (g-object-info-find-signal iface-info name)))
-                                   (param-args (and iface-s-info
-                                                    (signal-arguments iface-s-info)))
-                                   (s-inst (make <signal>
-                                             #:id id
-                                             #:name name
-                                             #:iface-type iface-type
-                                             #:iface-name i-class-name
-                                             #:flags flags
-                                             #:return-type return-type
-                                             #:n-param n-param
-                                             #:param-types param-types
-                                             #:param-args param-args)))
-                              (gi-signal-cache-set! i-class-name s-name s-inst)
-                              s-inst)))
+                            (make-signal s-id s-name
+                                         name i-type i-class-name
+                                         flags return-type n-param param-types)))
                 (closure (make <closure>
                            #:function function
                            #:return-type return-type
@@ -132,6 +118,26 @@
                                            after?)
            (values)))))))
 
+(define (make-signal id s-name name iface-type iface-name
+                     flags return-type n-param param-types)
+  (let* ((iface-info (g-irepository-find-by-gtype iface-type))
+         (iface-s-info (and iface-info
+                            (g-object-info-find-signal iface-info name)))
+         (param-args (and iface-s-info
+                          (signal-arguments iface-s-info)))
+         (s-inst (make <signal>
+                   #:id id
+                   #:name name
+                   #:iface-type iface-type
+                   #:iface-name iface-name
+                   #:flags flags
+                   #:return-type return-type
+                   #:n-param n-param
+                   #:param-types param-types
+                   #:param-args param-args)))
+    (gi-signal-cache-set! iface-name s-name s-inst)
+    s-inst))
+
 (define (signal-arguments info)
   (let loop ((n-arg (g-callable-info-get-n-args info))
              (args '()))
@@ -143,6 +149,57 @@
                                                       (- n-arg 1))
                       #:arg-pos n-arg)
                     args)))))
+
+(define-method (emit (inst <gtype-instance>) name . args)
+  (apply signal-emit inst name args))
+
+(define %g_value_init
+  (@@ (g-golf gobject generic-values) g_value_init))
+
+(define %prepare-g-value-in
+  (@@ (g-golf hl-api closure) prepare-g-value-in))
+
+(define %prepare-return-val
+  (@@ (g-golf hl-api closure) prepare-return-val))
+
+(define (signal-emit inst s-name . args)
+  (let* ((i-class (class-of inst))
+         (i-class-name (class-name i-class))
+         (i-type (!g-type i-class))
+         (s-id (g-signal-lookup (symbol->string s-name) i-type)))
+    (if s-id
+        (match (g-signal-query s-id)
+           ((id name iface-type flags return-type n-param param-types)
+            (let* ((%g-value-size (g-value-size))
+                   (signal (or (gi-signal-cache-ref i-class-name s-name)
+                               (make-signal s-id s-name
+                                            name i-type i-class-name
+                                            flags return-type n-param param-types)))
+                   (params (bytevector->pointer
+                            (make-bytevector (* (+ n-param 1) %g-value-size) 0))))
+              (%g_value_init params iface-type)
+              (g-value-set-object params (!g-inst inst))
+              (let loop ((i 0)
+                         (g-value (gi-pointer-inc params %g-value-size)))
+                (if (= i n-param)
+                    'done
+                    (let ((type (list-ref param-types i))
+                          (val (list-ref args i)))
+                      (%prepare-g-value-in g-value type val)
+                      (loop (+ i 1)
+                            (gi-pointer-inc g-value %g-value-size)))))
+              (case return-type
+                ((none)
+                 (g-signal-emitv params id 0 #f)
+                 (values))
+                (else
+                 (let ((return-val (bytevector->pointer
+                                    (make-bytevector %g-value-size 0))))
+                   (%prepare-return-val return-val (!return-type signal))
+                   (g-signal-emitv params id 0 return-val)
+                   (g-value-ref return-val)))))))
+        (scm-error 'invalid #f  "Unknown signal ~A on object ~A"
+                   (list s-name inst) #f))))
 
 
 ;;;
