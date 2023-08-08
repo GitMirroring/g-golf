@@ -202,7 +202,8 @@
     results))
 
 (define (g-signal-emitv params id detail return-value)
-  (g_signal_emitv params id detail return-value))
+  (g_signal_emitv params id detail
+                  (scm->gi return-value 'pointer)))
 
 (define (g-signal-connect-closure-by-id g-inst
                                         signal-id detail closure after?)
