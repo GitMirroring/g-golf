@@ -71,7 +71,6 @@
           !name
           !flags
           !iface-type
-          !iface-name
           !iface-class
           !return-type
           !param-types
@@ -105,12 +104,13 @@
                             (make-signal s-id s-name
                                          name i-type i-class-name
                                          flags return-type n-param param-types)))
+                (param-args (!param-args signal))
                 (closure (make <closure>
                            #:function function
                            #:return-type return-type
                            #:param-types (cons 'object param-types)
-                           #:param-args (cons #f
-                                              (!param-args signal)))))
+                           #:param-args (and param-args
+                                             (cons #f param-args)))))
            (g-signal-connect-closure-by-id (!g-inst inst)
                                            (!id signal)
                                            detail
@@ -129,7 +129,6 @@
                    #:id id
                    #:name name
                    #:iface-type iface-type
-                   #:iface-name iface-name
                    #:flags flags
                    #:return-type return-type
                    #:n-param n-param
@@ -210,7 +209,6 @@
   (id #:accessor !id #:init-keyword #:id #:init-value #f)
   (name #:accessor !name #:init-keyword #:name)
   (iface-type #:accessor !iface-type #:init-keyword #:iface-type)
-  (iface-name #:accessor !iface-name #:init-keyword #:iface-name)
   (iface-class #:accessor !iface-class #:init-keyword #:iface-class)
   (flags #:accessor !flags #:init-keyword #:flags)
   (return-type #:accessor !return-type #:init-keyword #:return-type)
@@ -220,13 +218,9 @@
 
 (define-method (initialize (self <signal>) initargs)
   (next-method)
-  (let* ((module (current-module) #;(resolve-module '(g-golf hl-api gobject)))
-         (iface-type (!iface-type self))
-         (iface-name (g-type-name iface-type))
-         (iface-c-name (g-name->class-name iface-name))
-         (iface-class (module-ref module iface-c-name)))
+  (let* ((iface-type (!iface-type self))
+         (iface-class (g-type-cache-ref iface-type)))
     (mslot-set! self
-                'iface-name iface-name
                 'iface-class iface-class)))
 
 (define-method (describe (self <signal>))
