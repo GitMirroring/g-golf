@@ -119,6 +119,7 @@ AC_CONFIG_FILES([
   test-suite/Makefile
   examples/Makefile
   examples/gtk-4/Makefile
+  examples/adw-1/Makefile
 ])
 
 AC_OUTPUT

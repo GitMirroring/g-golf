@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2021 - 2023
+#### Copyright (C) 2023
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -21,6 +21,14 @@
 ####
 
 
-SUBDIRS = \
-	gtk-4	\
-	adw-1
+EXTRA_DIST = \
+	$(wildcard *.scm)			\
+	$(wildcard *.png)			\
+	$(wildcard adw1-demo/*.scm)		\
+	$(wildcard adw1-demo/*.css)		\
+	$(wildcard adw1-demo/icons/*)		\
+	$(wildcard adw1-demo/images/*)		\
+	$(wildcard adw1-demo/ui/*.scm)		\
+	$(wildcard adw1-demo/ui/*.ui)		\
+	adw1-demo/ui/sxml-ui.el			\
+	adw1-demo/ui/Makefile
