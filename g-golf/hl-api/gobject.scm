@@ -421,15 +421,19 @@ vfunc, so those newly added properties won't work as expected.
                                 (values)))
                             (list '* '*)))))
 
+(define (lookup-init-template-func)
+  (let* ((init-template-func (gi-cache-ref 'function 'gtk-widget-init-template))
+         (gi-argument (slot-ref init-template-func 'gi-args-in))
+         (init-template (slot-ref init-template-func 'i-func)))
+    (values init-template gi-argument)))
+
 (define %instance-init-func
-  (lambda (c-name)
-    (let* ((init-template-func (gi-cache-ref 'function 'gtk-widget-init-template))
-           (gi-argument (slot-ref init-template-func 'gi-args-in))
-           (init-template (slot-ref init-template-func 'i-func)))
-      (procedure->pointer void
-                          (lambda (g-inst g-class)
-                            (let* ((%c-name c-name)
-                                   (class (g-class-cache-ref g-class))
+  (lambda ()
+    (procedure->pointer void
+                        (lambda (g-inst g-class)
+                          (receive (init-template gi-argument)
+                              (lookup-init-template-func)
+                            (let* ((class (g-class-cache-ref g-class))
                                    (g-type (!g-type class)))
                               #;(dimfi '%instance-init-func (class-name class))
                               #;(dimfi "  " 'g-inst g-inst)
@@ -444,8 +448,8 @@ vfunc, so those newly added properties won't work as expected.
                                 (unless (and g-inst-construct-g-type
                                              (= g-type g-inst-construct-g-type))
                                   (make class #:g-inst g-inst)))
-                              (values)))
-                          (list '* '*)))))
+                              (values))))
+                        (list '* '*))))
 
 (define (is-a-gtk-widget? dsupers)
   (member '<gtk-widget>
@@ -482,7 +486,7 @@ vfunc, so those newly added properties won't work as expected.
            (let* ((class-init-func
                    (%class-init-func name properties template child-ids))
                   (instance-init-func (and template
-                                           (%instance-init-func name)))
+                                           (%instance-init-func)))
                   (g-type (g-type-register-static-simple p-type
                                                         g-name
                                                         class-size
@@ -490,6 +494,11 @@ vfunc, so those newly added properties won't work as expected.
                                                         instance-size
                                                         instance-init-func
                                                         '())))
+             #;(dimfi 'type-register g-name)
+             #;(dimfi "  " 'class-init-func
+                    'pointer-address (pointer-address class-init-func))
+             #;(dimfi "  " 'instance-init-func
+                    'pointer-address (pointer-address instance-init-func))
              (for-each (lambda (iface-class)
                          (g-golf-g-type-add-interface g-type iface-class))
                  (filter-map (lambda (class)
