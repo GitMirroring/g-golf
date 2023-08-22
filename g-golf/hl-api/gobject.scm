@@ -273,12 +273,12 @@
      (cond (info initargs)
            (g-type (cons* #:info g-type initargs))
            (else
-            (receive (g-type class-init-func instance-init-func)
+            (receive (g-type class-init-func-closure class-init-func)
                 (g-golf-g-type-register class initargs)
               (when class-init-func
                 (mslot-set! class
-                            'class-init-func class-init-func
-                            'instance-init-func instance-init-func))
+                            'class-init-func-closure class-init-func-closure
+                            'class-init-func class-init-func))
               (cons* #:derived #t
                      #:info g-type
                      initargs)))))
@@ -382,44 +382,47 @@ vfunc, so those newly added properties won't work as expected.
      (match (assq-ref g-object-struct-fields 'set-property)
        ((type offset flags) offset)))))
 
-(define %class-init-func
-  (lambda (name properties template child-ids)
+(define (%class-init-func name properties template child-ids)
     (if (and (null? properties)
              (not template))
         ;; we return #f, g-type-register-static-simple will then select
         ;; the %class-init-func defined in (g-golf gobject type-info)
-        #f
-        (procedure->pointer void
-                            (lambda (g-class class-data)
-                              (let ((%name name)
-                                    (%properties properties)
-                                    (%template template)
-                                    (%child-ids child-ids))
-                                #;(dimfi '%class-init-func %name)
-                                #;(dimfi "  " 'g-class g-class)
-                                #;(dimfi "  " 'g-type (g-type-from-class g-class))
-                                #;(dimfi "  " 'child-ids %child-ids)
-                                (unless (null? %properties)
-                                  (receive (get-p-vfunc-offset set-p-vfunc-offset)
-                                      (lookup-g-class-get-set-p-vfunc-offset)
-                                    (bv-ptr-set! (gi-pointer-inc g-class
-                                                                 get-p-vfunc-offset)
-                                                 %get-property-func)
-                                    (bv-ptr-set! (gi-pointer-inc g-class
-                                                                 set-p-vfunc-offset)
-                                                 %set-property-func)))
-                                (when %template
-                                  (receive (set-template bind-template-child-full g-bytes)
-                                      (lookup-template-procedures-make-g-bytes %template)
-                                    (set-template g-class g-bytes)
-                                    (for-each (lambda (child-id)
-                                                (bind-template-child-full g-class
-                                                                          child-id
-                                                                          #f
-                                                                          0))
-                                        %child-ids)))
-                                (values)))
-                            (list '* '*)))))
+        (values #f #f)
+        (let ((class-init-func-closure
+               (lambda (g-class class-data)
+                 (let ((%name name)
+                       (%properties properties)
+                       (%template template)
+                       (%child-ids child-ids))
+                   #;(dimfi '%class-init-func %name)
+                   #;(dimfi "  " 'g-class g-class)
+                   #;(dimfi "  " 'g-class g-class)
+                   #;(dimfi "  " 'g-type (g-type-from-class g-class))
+                   #;(dimfi "  " 'child-ids %child-ids)
+                   (unless (null? %properties)
+                     (receive (get-p-vfunc-offset set-p-vfunc-offset)
+                         (lookup-g-class-get-set-p-vfunc-offset)
+                       (bv-ptr-set! (gi-pointer-inc g-class
+                                                    get-p-vfunc-offset)
+                                    %get-property-func)
+                       (bv-ptr-set! (gi-pointer-inc g-class
+                                                    set-p-vfunc-offset)
+                                    %set-property-func)))
+                   (when %template
+                     (receive (set-template bind-template-child-full g-bytes)
+                         (lookup-template-procedures-make-g-bytes %template)
+                       (set-template g-class g-bytes)
+                       (for-each (lambda (child-id)
+                                   (bind-template-child-full g-class
+                                                             child-id
+                                                             #f
+                                                             0))
+                           %child-ids)))
+                   (values)))))
+          (values class-init-func-closure
+                  (procedure->pointer void
+                                      class-init-func-closure
+                                      (list '* '*))))))
 
 (define (lookup-init-template-func)
   (let* ((init-template-func (gi-cache-ref 'function 'gtk-widget-init-template))
@@ -488,30 +491,24 @@ vfunc, so those newly added properties won't work as expected.
                    (list name) #f)
         (match (g-type-query p-type)
           ((p-type p-name class-size instance-size)
-           (let* ((class-init-func
-                   (%class-init-func name properties template child-ids))
-                  (instance-init-func (and template
-                                           %instance-init-func))
-                  (g-type (g-type-register-static-simple p-type
-                                                        g-name
-                                                        class-size
-                                                        class-init-func
-                                                        instance-size
-                                                        instance-init-func
-                                                        '())))
-             #;(dimfi 'type-register g-name)
-             #;(dimfi "  " 'class-init-func
-                    'pointer-address (pointer-address class-init-func))
-             #;(dimfi "  " 'instance-init-func
-                    'pointer-address (pointer-address instance-init-func))
-             (for-each (lambda (iface-class)
-                         (g-golf-g-type-add-interface g-type iface-class))
-                 (filter-map (lambda (class)
-                               (and (ginterface-class? class) class))
-                     dsupers))
-             (values g-type
-                     class-init-func
-                     instance-init-func)))))))
+           (receive (class-init-func-closure class-init-func)
+               (%class-init-func name properties template child-ids)
+             (let ((g-type (g-type-register-static-simple p-type
+                                                          g-name
+                                                          class-size
+                                                          class-init-func
+                                                          instance-size
+                                                          (and template
+                                                               %instance-init-func)
+                                                          '())))
+               (for-each (lambda (iface-class)
+                           (g-golf-g-type-add-interface g-type iface-class))
+                   (filter-map (lambda (class)
+                                 (and (ginterface-class? class) class))
+                       dsupers))
+               (values g-type
+                       class-init-func-closure
+                       class-init-func))))))))
 
 (define (g-golf-g-type-add-interface g-type iface-class)
   (g-type-add-interface-static g-type
