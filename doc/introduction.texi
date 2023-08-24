@@ -152,8 +152,8 @@ test-suite:
 
 @strong{-- Examples Dependencies}
 
-G-Golf currently needs the following additional software to run its
-examples:
+@emph{Gtk-4.0 examples:} G-Golf currently needs the following additional
+software to run its Gtk-4.0 examples:
 
 @itemize @bullet
 @item
@@ -165,6 +165,14 @@ examples:
 G-Golf actually requires a patched version of guile-cairo that contains
 the following new interface (which is not in guile-cairo 1.11.2):
 @code{cairo-pointer->context}.
+@end itemize
+
+@emph{Adwaita examples:} G-Golf currently needs the following additional
+software to run its Adw-1 examples:
+
+@itemize @bullet
+@item
+@uref{@value{UADW1}, Adw-1} @geq{} 1.2.2
 @end itemize
 
 
