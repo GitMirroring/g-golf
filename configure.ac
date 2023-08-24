@@ -39,7 +39,7 @@ AC_CONFIG_MACRO_DIR([m4])
 dnl Use `serial-tests' so the output `check-guile' is not hidden
 dnl (`parallel-tests' is the default in Automake 1.13.)
 dnl `serial-tests' was introduced in Automake 1.12.
-AM_INIT_AUTOMAKE([1.14 gnu -Wall -Werror -Wno-portability -Wno-syntax \
+AM_INIT_AUTOMAKE([1.14 gnu tar-ustar -Wall -Werror -Wno-portability -Wno-syntax \
   color-tests serial-tests foreign])
 AM_MAINTAINER_MODE([enable])
 AM_SILENT_RULES([yes])
