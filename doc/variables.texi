@@ -124,13 +124,17 @@
 @set UGTK-MIGRATING-3-TO-4 https://developer.gnome.org/gtk4/stable/gtk-migrating-3-to-4.html
 
 @set UGTK-WEB https://gtk.org/
-@set UGTK4 https://developer.gnome.org/gtk4/stable/
-@set UGTK4-APPLICATION https://developer.gnome.org/gtk4/stable/GtkApplication.html
+@set UGTK4 https://docs.gtk.org/gtk4/index.html
+@set UGTK4-APPLICATION https://docs.gtk.org/gtk4/class.Application.html
+@set UGDK4 https://docs.gtk.org/gdk4/index.html
+@set UGSK4 https://docs.gtk.org/gsk4/index.html
 
-@set UGDK4 https://developer.gnome.org/gdk4/stable/
 
-@set UGSK4 https://developer.gnome.org/gsk4/stable/
+@c
+@c Adw-1
+@c
 
+@set UADW1 https://gnome.pages.gitlab.gnome.org/libadwaita/doc/1-latest/
 
 @c
 @c Gio
