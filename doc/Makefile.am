@@ -43,6 +43,7 @@ g_golf_TEXINFOS = \
   ug-bys-goops-notes-and-conventions.texi	\
   ug-bys-configuring-guile-for-g-golf.texi	\
   ug-bys-customizing-g-golf.texi		\
+  ug-bys-sxml-supprt-emacs-users.texi		\
   ug-gswg.texi			\
   ug-gswg-hello-world.texi	\
   ug-gswg-selective-import.texi	\
