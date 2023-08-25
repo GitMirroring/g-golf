@@ -95,8 +95,8 @@
   (g-struct-fields #:accessor !g-struct-fields
                    #:init-keyword #:g-struct-fields #:init-value #f)
   (derived #:accessor !derived #:init-keyword #:derived #:init-value #f)
-  (class-init-func-closure #:init-value #f) ;; we need to cache ...
-  (class-init-func #:init-value #f) ;; we need to cache ...
+  (class-init-func-closure #:init-keyword #:class-init-func-closure #:init-value #f)
+  (class-init-func #:init-keyword #:class-init-func #:init-value #f)
   (set-value-func #:accessor !set-value-func
                   #:init-keyword #:set-value-func #:init-value #f)
   (set-value-func-ptr #:accessor !set-value-func-ptr

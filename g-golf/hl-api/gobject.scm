@@ -275,12 +275,10 @@
            (else
             (receive (g-type class-init-func-closure class-init-func)
                 (g-golf-g-type-register class initargs)
-              (when class-init-func
-                (mslot-set! class
-                            'class-init-func-closure class-init-func-closure
-                            'class-init-func class-init-func))
               (cons* #:derived #t
                      #:info g-type
+                     #:class-init-func-closure class-init-func-closure
+                     #:class-init-func class-init-func
                      initargs)))))
     (install-properties class)
     (install-signals class initargs)))
