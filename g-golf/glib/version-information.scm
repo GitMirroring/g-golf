@@ -63,16 +63,13 @@
 ;;;
 
 (define (glib_major_version_ptr)
-  (eval-when (expand load eval)         
-    (dynamic-pointer "glib_major_version"
-                     (dynamic-link "libglib-2.0"))))
+  (dynamic-pointer "glib_major_version"
+                   (dynamic-link "libglib-2.0")))
 
 (define (glib_minor_version_ptr)
-  (eval-when (expand load eval)         
-    (dynamic-pointer "glib_minor_version"
-                     (dynamic-link "libglib-2.0"))))
+  (dynamic-pointer "glib_minor_version"
+                   (dynamic-link "libglib-2.0")))
 
 (define (glib_micro_version_ptr)
-  (eval-when (expand load eval)         
-    (dynamic-pointer "glib_micro_version"
-                     (dynamic-link "libglib-2.0"))))
+  (dynamic-pointer "glib_micro_version"
+                   (dynamic-link "libglib-2.0")))
