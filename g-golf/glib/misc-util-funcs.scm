@@ -34,7 +34,8 @@
   #:export (g-get-prgname
 	    g-set-prgname
             g-get-system-data-dirs
-            g-get-system-config-dirs))
+            g-get-system-config-dirs
+            g-get-os-info))
 
 
 ;;;
@@ -52,6 +53,10 @@
 
 (define (g-get-system-config-dirs)
   (gi->scm (g_get_system_config_dirs) 'strings))
+
+(define (g-get-os-info key-name)
+  (gi->scm (g_get_os_info (string->pointer key-name))
+           'string))
 
 
 ;;;
@@ -81,3 +86,9 @@
                       (dynamic-func "g_get_system_config_dirs"
 				    %libglib)
                       (list )))		;; void
+
+(define g_get_os_info
+  (pointer->procedure '*
+                      (dynamic-func "g_get_os_info"
+				    %libglib)
+                      (list '*)))	;; key-name
