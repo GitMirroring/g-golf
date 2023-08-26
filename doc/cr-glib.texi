@@ -22,6 +22,7 @@ though they might be some exception in the future.
 
 @menu
 
+* Version Information (1):: Version Information.
 * Memory Allocation:: General memory handling.
 * The Main Event Loop:: Manages all available sources of events.
 * IO Channels::  Portable support for using files, pipes and sockets.
@@ -33,7 +34,7 @@ though they might be some exception in the future.
 * Quarks:: a2-way association between a string and a unique integer identifier
 @end menu
 
-
+@include cr-glib-version-information.texi
 @include cr-glib-mem-alloc.texi
 @include cr-glib-main-event-loop.texi
 @include cr-glib-io-channels.texi

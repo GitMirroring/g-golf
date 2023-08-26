@@ -61,6 +61,7 @@ g_golf_TEXINFOS = \
   cr-overview.texi		\
   cr-ov-structure-and-naming-conventions.texi	\
   cr-glib.texi			\
+  cr-glib-version-information.texi		\
   cr-glib-mem-alloc.texi	\
   cr-glib-main-event-loop.texi	\
   cr-glib-io-channels.texi	\

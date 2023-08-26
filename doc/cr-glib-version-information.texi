@@ -1,0 +1,47 @@
+@c -*-texinfo-*-
+@c This is part of the GNU G-Golf Reference Manual.
+@c Copyright (C) 2023 Free Software Foundation, Inc.
+@c See the file g-golf.texi for copying conditions.
+
+
+@c @defindex tl
+
+
+@node Version Information (1)
+@subsection Version Information (1)
+
+G-Golf Glib Version Information low level API.@*
+Version Information — variables and functions to check the GLib version.
+
+
+@subheading Procedures
+
+@indentedblock
+@table @code
+@item @ref{glib-get-major-version}
+@item @ref{glib-get-minor-version}
+@item @ref{glib-get-micro-version}
+@end table
+@end indentedblock
+
+
+@subheading Description
+
+GLib version information variables and functions.
+
+
+@subheading Procedures
+
+
+@anchor{glib-get-major-version}
+@anchor{glib-get-minor-version}
+@anchor{glib-get-micro-version}
+@deffn Procedure glib-get-major-version
+@deffnx Procedure glib-get-minor-version
+@deffnx Procedure glib-get-micro-version
+
+Returns an integer.
+
+Obtains and returns the GLib runtime library @var{major}, @var{minor}
+and @var{micro} version number.
+@end deffn

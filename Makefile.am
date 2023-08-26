@@ -45,6 +45,7 @@ SOURCES = \
 	g-golf/support/sxml.scm			\
 	g-golf/support.scm			\
 	g-golf/init.scm				\
+	g-golf/glib/version-information.scm	\
 	g-golf/glib/mem-alloc.scm		\
 	g-golf/glib/main-event-loop.scm		\
 	g-golf/glib/io-channels.scm		\
