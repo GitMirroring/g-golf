@@ -63,7 +63,6 @@
 
             g-value->scm
 
-            g-object-find-class-by-g-type
             g-object-find-class
             g-object-make-class
             g-interface-make-class
@@ -704,7 +703,7 @@ vfunc, so those newly added properties won't work as expected.
 
 (define-class <ginterface> (<gtype-instance>)
   #:info #t
-  #:g-type -1	;; g-object-find-class-by-g-type
+  #:g-type -1	;; so we do not break g-type-cahe-ref ...
   #:g-name "GInterface" ;; fake name - specializer-vfunc-lookup needs one
   #:metaclass <gobject-class>)
 
@@ -738,7 +737,8 @@ vfunc, so those newly added properties won't work as expected.
 ;; Another example of a runtime class is the GdkWaylandClipboard, which
 ;; subclass GdkClipboard.
 
-(define (g-object-find-class-by-g-type g-type)
+;; this definition preceeds the existance of a g-type-cache
+#;(define (g-object-find-class-by-g-type g-type)
   (let loop ((classes (class-subclasses <gtype-instance>)))
     (match classes
       (() #f)
@@ -749,36 +749,56 @@ vfunc, so those newly added properties won't work as expected.
 
 (define (g-object-find-class foreign)
   (let* ((g-type (g-object-type foreign))
-         (class (g-object-find-class-by-g-type g-type)))
+         (class (g-type-cache-ref g-type)))
     (if class
         (values class (class-name class) g-type)
         (g-object-make-class foreign g-type))))
 
+(define (g-object-class-precedence-list g-type)
+  (let loop ((g-type g-type)
+             (class #f)
+             (results `((,g-type ,(g-type-name g-type) #f))))
+    (if class
+        results
+        (let* ((p-type (g-type-parent g-type))
+               (p-class (g-type-cache-ref p-type)))
+          (loop p-type
+                p-class
+                (cons (list p-type (g-type-name p-type) p-class)
+                      results))))))
+
 (define* (g-object-make-class foreign #:optional g-type)
   (let* ((module (resolve-module '(g-golf hl-api gobject)))
-         (g-type (or g-type (g-object-type foreign)))
-         (g-name (g-object-type-name foreign))
-         (c-name (g-name->class-name g-name))
-         (parent (g-type-parent g-type))
-         (p-g-name (g-type-name parent))
-         (p-name (g-name->class-name p-g-name))
-         (p-class-var (module-variable module p-name))
-         (p-class (and p-class-var (module-ref module p-name))))
-    (when (%debug)
-      (dimfi 'g-object-make-class)
-      (dimfi "  " g-type g-name c-name 'p-name p-name))
-    (if p-class
-        (let* ((public-i (module-public-interface module))
-               (ifaces (g-object-class-interfaces g-type))
-               (c-inst (make-class (cons p-class ifaces)
-                                   '()
-                                   #:name c-name
-                                   #:g-type g-type)))
-          (module-define! module c-name c-inst)
-          (module-add! public-i c-name
-                       (module-variable module c-name))
-          (values c-inst c-name g-type))
-        (error "Undefined (parent) class: " p-name))))
+         (public-i (module-public-interface module))
+         (g-type (or g-type (g-object-type foreign))))
+    (let loop ((cpl (g-object-class-precedence-list g-type)))
+      (match cpl
+        ((child) ;; instanciated in the previous step
+         (match child
+           ((g-type g-name _)
+            (let ((c-inst (g-type-cache-ref g-type)))
+              (values c-inst (class-name c-inst) g-type)))))
+        ((parent child . rest)
+         (match parent
+           ((p-type p-name p-class)
+            (let ((p-class (or p-class
+                               ;; instanciated in the previous step
+                               (g-type-cache-ref p-type))))
+              (match child
+                ((g-type g-name _)
+                 (let* ((ifaces (g-object-class-interfaces g-type))
+                        (c-name (g-name->class-name g-name))
+                        (c-inst (make-class (cons p-class ifaces)
+                                            '()
+                                            #:name c-name
+                                            #:g-type g-type)))
+                   #;(dimfi 'g-object-make-class)
+                   #;(dimfi "  " c-inst)
+                   #;(dimfi "  " 'ifaces ifaces)
+                   (module-define! module c-name c-inst)
+                   (module-add! public-i c-name
+                                (module-variable module c-name))
+                   (loop (cons child rest)))))))))))))
 
 (define (g-object-class-interfaces g-type)
   (let ((module (resolve-module '(g-golf hl-api gobject)))
@@ -789,7 +809,7 @@ vfunc, so those newly added properties won't work as expected.
                   (m-var (module-variable module name)))
              (or (and m-var
                       (variable-ref m-var))
-                 (g-interface-make-class g-type))))
+                 (g-interface-make-class iface))))
       ifaces)))
 
 (define (g-interface-make-class g-type)
