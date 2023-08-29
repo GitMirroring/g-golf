@@ -49,7 +49,8 @@
           !subpage-go-previous)
 
 
-(use-modules (adw1-demo preferences)
+(use-modules (adw1-demo debug-info)
+             (adw1-demo preferences)
              (adw1-demo welcome)
              (adw1-demo leaflet))
 
@@ -76,10 +77,7 @@
         "StyleManager"
         "ColorScheme"
         "Leaflet"
-        "NavigationDirection"
-        "get_major_version"
-        "get_minor_version"
-        "get_micro_version")))
+        "NavigationDirection")))
 
 
 (define-class <adw-demo-window> (<adw-application-window>)
@@ -129,12 +127,6 @@
                (show-about app)))
     ))
 
-(define (adw-version)
-  (format #f "~A.~A.~A"
-          (adw-get-major-version)
-          (adw-get-minor-version)
-          (adw-get-micro-version)))
-
 (define %developers
   '("Adrien Plazas"
     "Alexander Mikhaylenko"
@@ -145,33 +137,6 @@
     "Manuel Genovés"
     "Zander Brown"))
 
-(define %debug-info
-  ;; FIXME - this a copy/paste, need to generate
-  "Libadwaita demo: 1.3.4 (1.3.4)
-
-Compiled against:
-- GLib: 2.77.1
-- GTK: 4.10.5
-
-Running against:
-- GLib: 2.77.2
-- GTK: 4.10.5
-
-System:
-- Name: Debian GNU/Linux
-- Version: (null)
-
-GTK:
-- GDK backend: Wayland
-- GSK renderer: GL
-
-Environment:
-- Desktop: GNOME
-- Session: gnome (wayland)
-- Language: en_US.UTF-8
-- Running inside Builder: no")
-
-
 (define (show-about app)
   (let ((about (make <adw-about-window>
                  #:transient-for (get-active-window app)
@@ -181,7 +146,7 @@ Environment:
                  #:version (adw-version)
                  #:website "https://gitlab.gnome.org/GNOME/libadwaita"
                  #:issue-url "https://gitlab.gnome.org/GNOME/libadwaita/-/issues/new"
-                 #:debug-info %debug-info
+                 #:debug-info (debug-info)
                  #:copyright "© 2017–2022 Purism SPC"
                  #:license-type 'lgpl-2-1
                  #:developers %developers
