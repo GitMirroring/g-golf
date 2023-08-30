@@ -71,14 +71,14 @@
                     #:return-type 'boolean
                     #:param-types '()))
          (g-closure (!g-closure closure))
-         (source (g-idle-source-new))
-         (dummy (g-source-set-priority source
-                                       (ensure-priority priority)))
-         (dummy (g-source-set-closure source g-closure))
-         (id (g-source-attach source #f)))
-    (g-source-unref source)
-    (g-closure-unref g-closure)
-    id))
+         (source (g-idle-source-new)))
+    (g-source-set-priority source
+                           (ensure-priority priority))
+    (g-source-set-closure source g-closure)
+    (let ((id (g-source-attach source #f)))
+      (g-source-unref source)
+      (g-closure-unref g-closure)
+      id)))
 
 (define* (g-timeout-add interval proc #:optional (priority 'default))
   (let* ((closure (make <closure>
@@ -86,14 +86,14 @@
                     #:return-type 'boolean
                     #:param-types '()))
          (g-closure (!g-closure closure))
-         (source (g-timeout-source-new interval))
-         (dummy (g-source-set-priority source
-                                       (ensure-priority priority)))
-         (dummy (g-source-set-closure source g-closure))
-         (id (g-source-attach source #f)))
-    (g-source-unref source)
-    (g-closure-unref g-closure)
-    id))
+         (source (g-timeout-source-new interval)))
+    (g-source-set-priority source
+                           (ensure-priority priority))
+    (g-source-set-closure source g-closure)
+    (let ((id (g-source-attach source #f)))
+      (g-source-unref source)
+      (g-closure-unref g-closure)
+      id)))
 
 (define* (g-timeout-add-seconds interval proc
                                 #:optional (priority 'default))
@@ -102,14 +102,14 @@
                     #:return-type 'boolean
                     #:param-types '()))
          (g-closure (!g-closure closure))
-         (source (g-timeout-source-new-seconds interval))
-         (dummy (g-source-set-priority source
-                                       (ensure-priority priority)))
-         (dummy (g-source-set-closure source g-closure))
-         (id (g-source-attach source #f)))
-    (g-source-unref source)
-    (g-closure-unref g-closure)
-    id))
+         (source (g-timeout-source-new-seconds interval)))
+    (g-source-set-priority source
+                           (ensure-priority priority))
+    (g-source-set-closure source g-closure)
+    (let ((id (g-source-attach source #f)))
+      (g-source-unref source)
+      (g-closure-unref g-closure)
+      id)))
 
 
 ;;;

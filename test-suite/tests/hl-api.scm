@@ -273,6 +273,38 @@
 (define-method (test-g-idle-add (self <g-golf-test-hl-api>))
   (let* ((loop (g-main-loop-new #f #f))
          (idle (assert (g-idle-add (lambda ()
+                                     (g-main-loop-quit loop)
+                                     #f)))))
+    (g-main-loop-run loop)))
+
+
+(define-method (test-g-timeout-add (self <g-golf-test-hl-api>))
+  (let* ((loop (g-main-loop-new #f #f))
+         (idle (assert (g-timeout-add 1000
+                                      (lambda ()
+                                        (g-main-loop-quit loop)
+                                        #f)))))
+    (g-main-loop-run loop)))
+
+
+(define-method (test-g-timeout-add-seconds (self <g-golf-test-hl-api>))
+  (let* ((loop (g-main-loop-new #f #f))
+         (idle (assert (g-timeout-add-seconds 1
+                                              (lambda ()
+                                                (g-main-loop-quit loop)
+                                                #f)))))
+    (g-main-loop-run loop)))
+
+
+#!
+
+;; as discussed in #gtk, calling make-thread is the route for problems
+;; with the main context ... or it cancels the thread before the timeout
+;; triggers or some other problem  related to threads
+
+(define-method (test-g-idle-add (self <g-golf-test-hl-api>))
+  (let* ((loop (g-main-loop-new #f #f))
+         (idle (assert (g-idle-add (lambda ()
                                      'ok
                                      #f))))
          (thread (make-thread g-main-loop-run loop)))
@@ -297,6 +329,8 @@
                                                 #f))))
          (thread (make-thread g-main-loop-run loop)))
     (cancel-thread thread)))
+
+!#
 
 
 ;;;

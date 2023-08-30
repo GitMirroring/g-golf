@@ -81,6 +81,11 @@
     (assert (g-memdup mem 10))
     (assert (g-memdup mem 20))))
 
+#!
+
+;; as discussed in #gtk, calling make-thread is the route for problems
+;; with the main context ... see (tests hl-api) for other none threaded
+;; tests of g-main-loop and related procedures,
 
 (define-method (test-main-loop (self <g-golf-test-glib>))
   (let* ((loop (assert (g-main-loop-new #f #f)))
@@ -90,6 +95,7 @@
     (assert (g-main-loop-quit loop))
     (cancel-thread thread)))
 
+!#
 
 (define-method (test-main-context (self <g-golf-test-glib>))
   (assert (g-main-context-new))
