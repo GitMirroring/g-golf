@@ -126,10 +126,10 @@ Makeinfo @geq{} 6.6
 @uref{@value{UGUILE-LIB}, Guile-Lib} @geq{} 0.2.5
 
 @item
-@uref{@value{UGLIB}, Glib-2.0} @geq{} 2.48.0
+@uref{@value{UGLIB}, Glib-2.0} @geq{} 2.73.0
 
 @item
-@uref{@value{UGOBJECT}, Gobject-2.0} @geq{} 2.48.0
+@uref{@value{UGOBJECT}, Gobject-2.0} @geq{} 2.73.0
 
 @item 
 @uref{@value{UGI}, GObject-Introspection-1.0} @geq{} 1.72.0
