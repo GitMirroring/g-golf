@@ -27,8 +27,10 @@ EXTRA_DIST = \
 	$(wildcard adw1-demo/*.scm)		\
 	$(wildcard adw1-demo/*.css)		\
 	$(wildcard adw1-demo/icons/*)		\
-	$(wildcard adw1-demo/images/*)		\
 	$(wildcard adw1-demo/ui/*.scm)		\
 	$(wildcard adw1-demo/ui/*.ui)		\
 	adw1-demo/ui/sxml-ui.el			\
 	adw1-demo/ui/Makefile
+
+# currently empty
+#	$(wildcard adw1-demo/images/*)		\
