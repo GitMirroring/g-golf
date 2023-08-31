@@ -33,4 +33,4 @@ EXTRA_DIST = \
 	adw1-demo/ui/Makefile
 
 # currently empty
-#	$(wildcard adw1-demo/images/*)		\
+#	$(wildcard adw1-demo/images/*)
