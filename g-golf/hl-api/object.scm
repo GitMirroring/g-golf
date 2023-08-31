@@ -127,11 +127,31 @@
                   (class-struct (g-object-info-get-class-struct info))
                   (g-struct-fields (and class-struct
                                         (gi-struct-field-desc class-struct)))
+                  (set-value-func-ptr
+                   (g-object-info-get-set-value-function-pointer info))
+                  (get-value-func-ptr
+                   (g-object-info-get-get-value-function-pointer info))
                   (c-inst (make-class supers
                                       '()
                                       #:name c-name
                                       #:info info
                                       #:g-struct-fields g-struct-fields
+                                      #:set-value-func
+                                      (g-object-info-get-set-value-function info)
+                                      #:set-value-func-ptr set-value-func-ptr
+                                      #:g-value-set-proc
+                                      (and set-value-func-ptr
+                                           (pointer->procedure void
+                                                               set-value-func-ptr
+                                                               (list '* '*)))
+                                      #:get-value-func
+                                      (g-object-info-get-get-value-function info)
+                                      #:get-value-func-ptr get-value-func-ptr
+                                      #:g-value-get-proc
+                                      (and get-value-func-ptr
+                                           (pointer->procedure '*
+                                                               get-value-func-ptr
+                                                               (list '*)))
                                       #:metaclass metaclass)))
              (module-define! module c-name c-inst)
              (module-add! public-i c-name

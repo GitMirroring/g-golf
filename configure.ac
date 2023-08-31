@@ -31,7 +31,7 @@ AC_PREREQ(2.69)
 
 AC_INIT(
   [g-golf],
-  [0.8.0-a.4],
+  [0.8.0-a.5],
   [bug-g-golf@gnu.org])
 
 AC_CONFIG_AUX_DIR([build-aux])
@@ -39,7 +39,7 @@ AC_CONFIG_MACRO_DIR([m4])
 dnl Use `serial-tests' so the output `check-guile' is not hidden
 dnl (`parallel-tests' is the default in Automake 1.13.)
 dnl `serial-tests' was introduced in Automake 1.12.
-AM_INIT_AUTOMAKE([1.14 gnu -Wall -Werror -Wno-portability -Wno-syntax \
+AM_INIT_AUTOMAKE([1.14 gnu tar-ustar -Wall -Werror -Wno-portability -Wno-syntax \
   color-tests serial-tests foreign])
 AM_MAINTAINER_MODE([enable])
 AM_SILENT_RULES([yes])
@@ -91,11 +91,13 @@ PKG_CHECK_MODULES(GOBJECT_INTROSPECTION, gobject-introspection-1.0 >= 1.72.0)
 AC_SUBST(GOBJECT_INTROSPECTION_CFLAGS)
 AC_SUBST(GOBJECT_INTROSPECTION_LIBS)
 
-PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.48.0)
+# imposed by the gobject-introspection dependency
+PKG_CHECK_MODULES(GLIB, glib-2.0 >= 2.73.0)
 AC_SUBST(GLIB_CFLAGS)
 AC_SUBST(GLIB_LIBS)
 
-PKG_CHECK_MODULES(GOBJECT, gobject-2.0 >= 2.48.0)
+# imposed by the glib dependency
+PKG_CHECK_MODULES(GOBJECT, gobject-2.0 >= 2.73.0)
 AC_SUBST(GOBJECT_CFLAGS)
 AC_SUBST(GOBJECT_LIBS)
 
@@ -104,6 +106,7 @@ AC_SUBST(GOBJECT_LIBS)
 # AC_SUBST(GTK_LIBS)
 
 PKG_CHECK_MODULES(GUILE_LIB, guile-lib-1.0 >= 0.2.5)
+PKG_CHECK_MODULES(FFI, libffi >= 3.3.0)
 
 
 AC_CONFIG_FILES(
@@ -118,6 +121,7 @@ AC_CONFIG_FILES([
   test-suite/Makefile
   examples/Makefile
   examples/gtk-4/Makefile
+  examples/adw-1/Makefile
 ])
 
 AC_OUTPUT

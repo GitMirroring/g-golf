@@ -126,10 +126,10 @@ Makeinfo @geq{} 6.6
 @uref{@value{UGUILE-LIB}, Guile-Lib} @geq{} 0.2.5
 
 @item
-@uref{@value{UGLIB}, Glib-2.0} @geq{} 2.48.0
+@uref{@value{UGLIB}, Glib-2.0} @geq{} 2.73.0
 
 @item
-@uref{@value{UGOBJECT}, Gobject-2.0} @geq{} 2.48.0
+@uref{@value{UGOBJECT}, Gobject-2.0} @geq{} 2.73.0
 
 @item 
 @uref{@value{UGI}, GObject-Introspection-1.0} @geq{} 1.72.0
@@ -152,8 +152,8 @@ test-suite:
 
 @strong{-- Examples Dependencies}
 
-G-Golf currently needs the following additional software to run its
-examples:
+@emph{Gtk-4.0 examples:} G-Golf currently needs the following additional
+software to run its Gtk-4.0 examples:
 
 @itemize @bullet
 @item
@@ -161,6 +161,18 @@ examples:
 
 @item
 @uref{@value{UGUILE-CAIRO}, Guile-Cairo} > 1.11.2
+
+G-Golf actually requires a patched version of guile-cairo that contains
+the following new interface (which is not in guile-cairo 1.11.2):
+@code{cairo-pointer->context}.
+@end itemize
+
+@emph{Adwaita examples:} G-Golf currently needs the following additional
+software to run its Adw-1 examples:
+
+@itemize @bullet
+@item
+@uref{@value{UADW1}, Adw-1} @geq{} 1.2.2
 @end itemize
 
 

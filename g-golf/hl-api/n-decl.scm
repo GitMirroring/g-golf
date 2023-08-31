@@ -77,7 +77,7 @@
 ;;;
 
 (define %gi-import-namespace-exceptions
-  '("Glib"
+  '("GLib"
     "GObject"))
 
 (define (gi-namespace-import-exception? namespace)

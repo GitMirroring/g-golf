@@ -80,7 +80,7 @@ exec guile -e main -s "$0" "$@"
                   #:application app))
         (drawing-widget (make <drawing-widget>)))
     (set-child window drawing-widget)
-    (show window)))
+    (present window)))
 
 
 (define (main args)

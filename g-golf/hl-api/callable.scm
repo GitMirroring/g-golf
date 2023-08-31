@@ -723,7 +723,10 @@
                       #:args-out args-out)))
 
 (define* (gi-argument->scm type-tag type-desc gi-argument clb/arg
-                           #:key (forced-type #f) (is-pointer? #f) (args-out #f))
+                           #:key (forced-type #f)
+                           (is-pointer? #f)
+                           (args-out #f)
+                           (g-value-ptr? #f))
   ;; forced-type is only used for 'inout and 'out arguments, in which
   ;; case it is 'pointer - see 'simple' types below.
 
@@ -762,7 +765,9 @@
                                gi-arg-val)))
              (case name
                ((g-value)
-                (g-value-ref foreign))
+                (if g-value-ptr?
+                    foreign
+                    (g-value-ref foreign)))
                (else
                 (if (or (!is-opaque? gi-type)
                         (!is-semi-opaque? gi-type))

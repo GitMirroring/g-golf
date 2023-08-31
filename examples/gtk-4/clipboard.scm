@@ -154,7 +154,7 @@ exec guile -e main -s "$0" "$@"
     (append box-2 copy-2)
     (append box-2 image-to)
     (append box-2 paste-2)
-    (show window)))
+    (present window)))
 
 
 (define (main args)

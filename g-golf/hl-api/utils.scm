@@ -80,13 +80,16 @@
                    results)))))))
 
 (define (scm->g-type value)
-  (letrec* ((v-class (class-of value))
-            (v-cpl (class-precedence-list v-class))
-            (is-a- (lambda (value class)
-                       (and (memq class v-cpl) #t))))
-    (cond ((is-a- value <string>)
+  (let ((v-class (class-of value)))
+    (cond ((number? value)
+           value) ;; we assume it is a g-type
+          ((string? value)
            (symbol->g-type 'string))
-          ((is-a- value <gobject>)
+          ((symbol? value)
+           (symbol->g-type value))
+          ((gobject-class? value)
+           (!g-type value))
+          ((gobject-class? v-class)
            (!g-type v-class))
           (else
            (error "Unimplemented scm->g-type for " value)))))

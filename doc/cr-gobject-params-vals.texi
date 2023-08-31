@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2022 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2023 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -11,7 +11,7 @@ G-Golf GObject Parameters and Values low level API.@*
 Parameters and Values — Standard Parameter and Value Types
 
 
-@subheading Procedures
+@subheading Procedures and Methods
 
 @indentedblock
 @table @code
@@ -22,6 +22,7 @@ Parameters and Values — Standard Parameter and Value Types
 @item @ref{g-value-set!}
 @item @ref{g-value-get-boolean}
 @item @ref{g-value-set-boolean}
+@item @ref{g-param-spec-int}
 @item @ref{g-value-get-int}
 @item @ref{g-value-set-int}
 @item @ref{g-value-get-uint}
@@ -30,6 +31,7 @@ Parameters and Values — Standard Parameter and Value Types
 @item @ref{g-value-set-float}
 @item @ref{g-value-get-double}
 @item @ref{g-value-set-double}
+@item @ref{g-param-spec-enum}
 @item @ref{g-value-get-enum}
 @item @ref{g-value-set-enum}
 @item @ref{g-value-get-flags}
@@ -49,13 +51,34 @@ Parameters and Values — Standard Parameter and Value Types
 @end indentedblock
 
 
-@c @subheading Types and Values
+@subheading Types and Values
 
-@c @indentedblock
-@c @table @code
-@c @item @ref{%g-type-fundamental-flags}
-@c @end table
-@c @end indentedblock
+@indentedblock
+@table @code
+@item @ref{g-type-param-boolean}
+@item @ref{g-type-param-char}
+@item @ref{g-type-param-uchar}
+@item @ref{g-type-param-int}
+@item @ref{g-type-param-uint}
+@item @ref{g-type-param-long}
+@item @ref{g-type-param-ulong}
+@item @ref{g-type-param-int64}
+@item @ref{g-type-param-uint64}
+@item @ref{g-type-param-float}
+@item @ref{g-type-param-double}
+@item @ref{g-type-param-enum}
+@item @ref{g-type-param-flags}
+@item @ref{g-type-param-string}
+@item @ref{g-type-param-param}
+@item @ref{g-type-param-boxed}
+@item @ref{g-type-param-pointer}
+@item @ref{g-type-param-object}
+@item @ref{g-type-param-unichar}
+@item @ref{g-type-param-override}
+@item @ref{g-type-param-gtype}
+@item @ref{g-type-param-variant}
+@end table
+@end indentedblock
 
 
 @subheading Description
@@ -143,6 +166,22 @@ Sets the content of @var{g-value} to @code{0} if @var{val} is
 @end deffn
 
 
+@anchor{g-param-spec-int}
+@deffn Procedure g-param-spec-int name nick blurb @
+         minimum maximum default flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecEnum} instance
+specifying a @code{G_TYPE_INT} property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{minimum} the
+minimum value, @var{maximum} the maximum value, @var{default} the
+default value and @var{flags} the flags - for the property specified.
+@end deffn
+
+
 @anchor{g-value-get-int}
 @deffn Procedure g-value-get-int g-value
 
@@ -212,6 +251,22 @@ Obtains and returns the content of @var{g-value}.
 Returns nothing.
 
 Sets the content of @var{g-value} to @var{double}.
+@end deffn
+
+
+@anchor{g-param-spec-enum}
+@deffn Procedure g-param-spec-enum name nick blurb type @
+         default flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecEnum} instance
+specifying a @code{G_TYPE_ENUM} property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{type} a
+@code{<gi-enum>} instance, @var{default} the default value and
+@var{flags} the flags  - for the property specified.
 @end deffn
 
 
@@ -373,5 +428,63 @@ NULL).
 @end deffn
 
 
-@c @subheading Types and Values
+@subheading Types and Values
+
+Note: in GObject, G_TYPE_PARAM_BOOLEAN, G_TYPE_PARAM_CHAR, etc., are
+defined as macros. In G-Golf, we define a procedure for each of those
+types, which binds a libg-golf function which merely invoques the macro,
+the expansion of which returns the corresponding (dynamic - runtime)
+GType value.
+
+
+@anchor{g-type-param-boolean}
+@anchor{g-type-param-char}
+@anchor{g-type-param-uchar}
+@anchor{g-type-param-int}
+@anchor{g-type-param-uint}
+@anchor{g-type-param-long}
+@anchor{g-type-param-ulong}
+@anchor{g-type-param-int64}
+@anchor{g-type-param-uint64}
+@anchor{g-type-param-float}
+@anchor{g-type-param-double}
+@anchor{g-type-param-enum}
+@anchor{g-type-param-flags}
+@anchor{g-type-param-string}
+@anchor{g-type-param-param}
+@anchor{g-type-param-boxed}
+@anchor{g-type-param-pointer}
+@anchor{g-type-param-object}
+@anchor{g-type-param-unichar}
+@anchor{g-type-param-override}
+@anchor{g-type-param-gtype}
+@anchor{g-type-param-variant}
+@deffn Procedure g-type-param-boolean
+@deffnx Procedure g-type-param-char
+@deffnx Procedure g-type-param-uchar
+@deffnx Procedure g-type-param-int
+@deffnx Procedure g-type-param-uint
+@deffnx Procedure g-type-param-long
+@deffnx Procedure g-type-param-ulong
+@deffnx Procedure g-type-param-int64
+@deffnx Procedure g-type-param-uint64
+@deffnx Procedure g-type-param-float
+@deffnx Procedure g-type-param-double
+@deffnx Procedure g-type-param-enum
+@deffnx Procedure g-type-param-flags
+@deffnx Procedure g-type-param-string
+@deffnx Procedure g-type-param-param
+@deffnx Procedure g-type-param-boxed
+@deffnx Procedure g-type-param-pointer
+@deffnx Procedure g-type-param-object
+@deffnx Procedure g-type-param-unichar
+@deffnx Procedure g-type-param-override
+@deffnx Procedure g-type-param-gtype
+@deffnx Procedure g-type-param-variant
+
+Returns a GType.
+
+Obtains and returns the GType of @code{GParamSpecBoolean},
+@code{GParamSpecChar}, etc.
+@end deffn
 

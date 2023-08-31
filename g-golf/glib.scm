@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2020
+;;;; Copyright (C) 2016 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -45,6 +45,7 @@
   #:use-module (g-golf support utils)
   #:use-module (g-golf support enum)
   #:use-module (g-golf init)
+  #:use-module (g-golf glib version-information)
   #:use-module (g-golf glib mem-alloc)
   #:use-module (g-golf glib main-event-loop)
   #:use-module (g-golf glib io-channels)
@@ -52,6 +53,7 @@
   #:use-module (g-golf glib unix-utils)
   #:use-module (g-golf glib glist)
   #:use-module (g-golf glib gslist)
+  #:use-module (g-golf glib byte-arrays)
   #:use-module (g-golf glib quarks)
 
 
@@ -72,6 +74,7 @@
 			      (g-golf support utils)
 			      (g-golf support enum)
 			      (g-golf init)
+                              (g-golf glib version-information)
 			      (g-golf glib mem-alloc)
                               (g-golf glib main-event-loop)
                               (g-golf glib io-channels)
@@ -79,4 +82,5 @@
                               (g-golf glib unix-utils)
                               (g-golf glib glist)
                               (g-golf glib gslist)
+                              (g-golf glib byte-arrays)
                               (g-golf glib quarks)))

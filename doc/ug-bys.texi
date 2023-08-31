@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2021 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2023 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -13,6 +13,7 @@
 * GOOPS Notes and Conventions::
 * Configuring Guile for G-Golf::
 * Customizing G-Golf::
+* SXML Support - Emacs users::
 @end menu
 
 
@@ -20,3 +21,4 @@
 @include ug-bys-goops-notes-and-conventions.texi
 @include ug-bys-configuring-guile-for-g-golf.texi
 @include ug-bys-customizing-g-golf.texi
+@include ug-bys-sxml-supprt-emacs-users.texi

@@ -7,8 +7,8 @@
 @c @defindex tl
 
 
-@node Version Information
-@subsection Version Information
+@node Version Information (2)
+@subsection Version Information (2)
 
 G-Golf GIRepository Version Informatrion low level API.@*
 Version Information - Procedures to check the GIRepository version.

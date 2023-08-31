@@ -25,7 +25,7 @@ Intropection (manual) section, but there are some exceptions, such as
 @menu
 * Repository::		  GObject Introspection repository manager.
 * Typelib::		  Layout and accessors for typelib.
-* Version Information::	  Procedures to check the GIRepository version.
+* Version Information (2)::	  Procedures to check the GIRepository version.
 * Common Types::          GObject Introspection common types. 
 * Base Info::             Base struct for all GITypelib structs.
 * Callable Info::	  Struct representing a callable.

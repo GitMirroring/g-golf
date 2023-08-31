@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2022
+;;;; Copyright (C) 2016 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -38,6 +38,7 @@
   #:use-module (g-golf support struct)
   #:use-module (g-golf support union)
   #:use-module (g-golf support utils)
+  #:use-module (g-golf support libg-golf)
   #:use-module (g-golf gi cache-gi)
   #:use-module (g-golf gi utils)
   #:use-module (g-golf gobject type-info)
@@ -55,6 +56,7 @@
             g-value-type-name
             g-value-ref
             g-value-set!
+            g-param-spec-int
             g-value-get-int
             g-value-set-int
             g-value-get-uint
@@ -65,6 +67,7 @@
             g-value-set-float
             g-value-get-double
             g-value-set-double
+            g-param-spec-enum
             g-value-get-enum
             g-value-get-flags
             g-value-get-string
@@ -77,7 +80,31 @@
             g-value-set-pointer
             g-value-get-object
             g-value-set-object
-            g-value-get-variant))
+            g-value-get-variant
+
+            ;; Type and Values
+            g-type-param-boolean
+            g-type-param-char
+            g-type-param-uchar
+            g-type-param-int
+            g-type-param-uint
+            g-type-param-long
+            g-type-param-ulong
+            g-type-param-int64
+            g-type-param-uint64
+            g-type-param-float
+            g-type-param-double
+            g-type-param-enum
+            g-type-param-flags
+            g-type-param-string
+            g-type-param-param
+            g-type-param-boxed
+            g-type-param-pointer
+            g-type-param-object
+            g-type-param-unichar
+            g-type-param-override
+            g-type-param-gtype
+            g-type-param-variant))
 
 
 (g-export g-value-set-enum
@@ -181,6 +208,24 @@
   (g_value_set_boolean g-value
                        (if bool 1 0)))
 
+(define (g-param-spec-int name nick blurb minimum maximum default flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (minimum (or minimum -2147483648)) ;; FIXME import G_MININT
+         (maximum (or maximum 2147483647)) ;; FIXME import G_MAXINT
+         (default (or default 0))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_int (string->pointer name)
+                               (string->pointer nick)
+                               (string->pointer blurb)
+                               minimum
+                               maximum
+                               default
+                               (flags->integer g-param-flags flags))
+             'pointer)))
+
 (define (g-value-get-int g-value)
   (g_value_get_int g-value))
 
@@ -204,6 +249,24 @@
 
 (define (g-value-set-double g-value double)
   (g_value_set_double g-value double))
+
+(define (g-param-spec-enum name nick blurb type default flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (g-type (!g-type type))
+         (default (if default
+                      (enum->value type default)
+                      0))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_enum (string->pointer name)
+                                (string->pointer nick)
+                                (string->pointer blurb)
+                                g-type
+                                default
+                                (flags->integer g-param-flags flags))
+             'pointer)))
 
 (define (g-value-get-gi-enum g-value)
   (let* ((g-name (g-value-type-name g-value))
@@ -368,18 +431,17 @@
                       (list '*
                             int)))
 
-(define g_value_get_uint
-  (pointer->procedure unsigned-int
-                      (dynamic-func "g_value_get_uint"
+(define g_param_spec_int
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_int"
 				    %libgobject)
-                      (list '*)))
-
-(define g_value_set_uint
-  (pointer->procedure void
-                      (dynamic-func "g_value_set_uint"
-				    %libgobject)
-                      (list '*
-                            unsigned-int)))
+                      (list '*		;; name
+                            '*		;; nick
+                            '*		;; blurb
+                            int		;; minimum
+                            int		;; maximum
+                            int		;; default-value
+                            unsigned-int))) ;; flags
 
 (define g_value_get_int
   (pointer->procedure int
@@ -393,6 +455,19 @@
 				    %libgobject)
                       (list '*
                             int)))
+
+(define g_value_get_uint
+  (pointer->procedure unsigned-int
+                      (dynamic-func "g_value_get_uint"
+				    %libgobject)
+                      (list '*)))
+
+(define g_value_set_uint
+  (pointer->procedure void
+                      (dynamic-func "g_value_set_uint"
+				    %libgobject)
+                      (list '*
+                            unsigned-int)))
 
 (define g_value_get_float
   (pointer->procedure float
@@ -419,6 +494,17 @@
 				    %libgobject)
                       (list '*
                             double)))
+
+(define g_param_spec_enum
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_enum"
+				    %libgobject)
+                      (list '*		;; name
+                            '*		;; nick
+                            '*		;; blurb
+                            size_t	;; g-type
+                            int		;; default-value
+                            unsigned-int))) ;; flags
 
 (define g_value_get_enum
   (pointer->procedure int
@@ -516,3 +602,31 @@
                       (dynamic-func "g_value_get_variant"
 				    %libgobject)
                       (list '*)))
+
+
+;;;
+;;; From libg-golf
+;;;
+
+(define g-type-param-boolean g_type_param_boolean)
+(define g-type-param-char g_type_param_char)
+(define g-type-param-uchar g_type_param_uchar)
+(define g-type-param-int g_type_param_int)
+(define g-type-param-uint g_type_param_uint)
+(define g-type-param-long g_type_param_long)
+(define g-type-param-ulong g_type_param_ulong)
+(define g-type-param-int64 g_type_param_int64)
+(define g-type-param-uint64 g_type_param_uint64)
+(define g-type-param-float g_type_param_float)
+(define g-type-param-double g_type_param_double)
+(define g-type-param-enum g_type_param_enum)
+(define g-type-param-flags g_type_param_flags)
+(define g-type-param-string g_type_param_string)
+(define g-type-param-param g_type_param_param)
+(define g-type-param-boxed g_type_param_boxed)
+(define g-type-param-pointer g_type_param_pointer)
+(define g-type-param-object g_type_param_object)
+(define g-type-param-unichar g_type_param_unichar)
+(define g-type-param-override g_type_param_override)
+(define g-type-param-gtype g_type_param_gtype)
+(define g-type-param-variant g_type_param_variant)

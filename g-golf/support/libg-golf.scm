@@ -46,6 +46,7 @@
             g_source_ref_count
 
             ;; GObject
+            g_type_from_class
             g_value_size
             g_object_type
             #;g_object_type_name
@@ -53,6 +54,29 @@
             g_closure_size
             g_closure_ref_count
             g_param_spec_get_flags
+
+            g_type_param_boolean
+            g_type_param_char
+            g_type_param_uchar
+            g_type_param_int
+            g_type_param_uint
+            g_type_param_long
+            g_type_param_ulong
+            g_type_param_int64
+            g_type_param_uint64
+            g_type_param_float
+            g_type_param_double
+            g_type_param_enum
+            g_type_param_flags
+            g_type_param_string
+            g_type_param_param
+            g_type_param_boxed
+            g_type_param_pointer
+            g_type_param_object
+            g_type_param_unichar
+            g_type_param_override
+            g_type_param_gtype
+            g_type_param_variant
 
             ;; Callback
             g_golf_callback_closure
@@ -136,6 +160,12 @@
 ;;; GObject
 ;;;
 
+(define g_type_from_class
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_from_class"
+                                    %libg-golf)
+                      (list '*)))
+
 (define g_value_size
   (pointer->procedure size_t
                       (dynamic-func "g_value_size"
@@ -193,6 +223,138 @@ later.
                       (dynamic-func "g_param_spec_get_flags"
                                     %libg-golf)
                       (list '*)))
+
+(define g_type_param_boolean
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_boolean"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_char
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_char"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_uchar
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_uchar"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_int
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_int"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_uint
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_uint"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_long
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_long"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_ulong
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_ulong"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_int64
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_int64"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_uint64
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_uint64"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_float
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_float"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_double
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_double"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_enum
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_enum"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_flags
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_flags"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_string
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_string"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_param
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_param"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_boxed
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_boxed"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_pointer
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_pointer"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_object
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_object"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_unichar
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_unichar"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_override
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_override"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_gtype
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_gtype"
+                                    %libg-golf)
+                      (list)))
+
+(define g_type_param_variant
+  (pointer->procedure size_t
+                      (dynamic-func "g_type_param_variant"
+                                    %libg-golf)
+                      (list)))
 
 
 ;;;

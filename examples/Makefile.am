@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2021
+#### Copyright (C) 2021 - 2023
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -22,4 +22,5 @@
 
 
 SUBDIRS = \
-	gtk-4
+	gtk-4	\
+	adw-1

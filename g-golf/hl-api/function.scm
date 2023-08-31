@@ -81,7 +81,8 @@
           (n-gi-arg-out (!n-gi-arg-out f-inst))
           (gi-args-out (!gi-args-out f-inst))
           (gi-arg-result (!gi-arg-result f-inst)))
-      (callable-prepare-gi-arguments f-inst args)
+      (unless (memq 'skip-prepare-gi-arguments args)
+        (callable-prepare-gi-arguments f-inst args))
       (with-gerror g-error
                    (g-function-info-invoke info
                                            gi-args-in

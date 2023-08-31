@@ -57,7 +57,10 @@ exec guile -e main -s "$0" "$@"
         "DragSource"
         "DropTarget"
         "MediaStream"
-        "MediaFile")))
+        "MediaFile"
+        "get_major_version"
+        "get_minor_version"
+        "get_micro_version")))
 
 
 (define-class <solitaire-peg> (<gobject> <gdk-paintable>)
@@ -234,6 +237,21 @@ exec guile -e main -s "$0" "$@"
              (lambda (g-object property)
                (unref g-object)))))
 
+;;;
+;;; Check version
+;;;
+
+(define (gtk-check-version major minor micro)
+  (let ((gtk-major (gtk-get-major-version))
+        (gtk-minor (gtk-get-minor-version))
+        (gtk-micro (gtk-get-micro-version)))
+    (or (> gtk-major major)
+        (and (= gtk-major major)
+             (> gtk-minor minor))
+        (and (= gtk-major major)
+             (= gtk-minor minor)
+             (>= gtk-micro micro)))))
+
 
 ;;;
 ;;; The game board
@@ -261,7 +279,12 @@ exec guile -e main -s "$0" "$@"
                  #:row-spacing 6
                  #:row-homogeneous #t))
          (css-provider (let ((provider (make <gtk-css-provider>)))
-                         (gtk-css-provider-load-from-data provider %css-data)
+                         (cond ((gtk-check-version 4 10 0)
+                                (gtk-css-provider-load-from-data provider
+                                                                 %css-data
+                                                                 (string-length %css-data)))
+                               (else
+                                (gtk-css-provider-load-from-data provider %css-data)))
                          provider)))
     (set-child window grid)
     (do ((i 0
@@ -315,7 +338,7 @@ exec guile -e main -s "$0" "$@"
     (set-titlebar window header-bar)
     (pack-start header-bar restart)
     (create-board window)
-    (show window)))
+    (present window)))
 
 
 (define (main args)

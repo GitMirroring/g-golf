@@ -77,9 +77,9 @@ exec guile -e main -s "$0" "$@"
       ((0)
        (error "<gtk-builder> - add-from-file failed: " ui))
       (else
-       (letrec* ((window (get-object builder "window"))
-                 (revealers (get-revealers builder))
-                 (count 0))
+       (let ((window (get-object builder "window"))
+             (revealers (get-revealers builder))
+             (count 0))
          (g-timeout-add 690
                         (lambda ()
                           (let ((revealer (list-ref revealers count)))
@@ -93,7 +93,7 @@ exec guile -e main -s "$0" "$@"
                                 #f
                                 #t))))
          (add-window app window)
-         (show window))))))
+         (present window))))))
 
 (define (main args)
   (let ((app (make <gtk-application>

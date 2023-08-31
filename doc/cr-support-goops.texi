@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2019 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2023 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -16,6 +16,10 @@
 @item @ref{class-virtual-slots}
 @item @ref{class-direct-g-property-slots}
 @item @ref{class-g-property-slots}
+@item @ref{class-direct-child-id-slots}
+@item @ref{class-child-id-slots}
+@item @ref{class-direct-g-param-slots}
+@item @ref{class-g-param-slots}
 @item @ref{mslot-set!}
 @item @ref{generic?}
 @end table
@@ -63,6 +67,46 @@ Returns a list.
 Obtains and returns the list of the class slots for @var{self} that
 satisfy the @code{(eq? (slot-definition-allocation slot) #:g-property)}
 predicate.
+@end deffn
+
+
+@anchor{class-direct-child-id-slots}
+@deffn Method class-direct-child-id-slots (self <class>)
+
+Returns a list.
+
+Obtains and returns the list of the class direct slots for @var{self}
+that contain a @code{#:child-id} slot definition option.
+@end deffn
+
+
+@anchor{class-child-id-slots}
+@deffn Method class-child-id-slots (self <class>)
+
+Returns a list.
+
+Obtains and returns the list of the class slots for @var{self} that
+contain a @code{#:child-id} slot definition option.
+@end deffn
+
+
+@anchor{class-direct-g-param-slots}
+@deffn Method class-direct-g-param-slots (self <class>)
+
+Returns a list.
+
+Obtains and returns the list of the class direct slots for @var{self}
+that contain a @code{#:g-param} slot definition option.
+@end deffn
+
+
+@anchor{class-g-param-slots}
+@deffn Method class-g-param-slots (self <class>)
+
+Returns a list.
+
+Obtains and returns the list of the class slots for @var{self} that
+contain a @code{#:g-param} slot definition option.
 @end deffn
 
 

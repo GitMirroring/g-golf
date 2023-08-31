@@ -241,43 +241,51 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
                      (specializer-vfunc-lookup specializer g-name)))))))
 
 (define (specializer-vfunc-lookup specializer g-name)
-  (let loop ((supers (class-direct-supers specializer))
+  (let loop ((cpl (class-precedence-list specializer))
              (results '()))
-    (match supers
+    (match cpl
       (() (reverse results))
       ((super . rest)
-       (let* ((g-long-name-prefix
-               (name->g-name (g-name->name (!g-name super) 'as-string) 'as-string))
-              (gf-long-name?
-               (and (string-contains g-name g-long-name-prefix) #t))
-              (g-name (if gf-long-name?
-                          (string-drop g-name
-                                       (+ (string-length g-long-name-prefix) 1))
-                          g-name))
-              (g-vfunc-lookup (cond ((gobject-class? super)
-                                     g-object-vfunc-lookup)
-                                    ((ginterface-class? super)
-                                     g-interface-vfunc-lookup)
-                                    (else
-                                     #f))))
-         (if g-vfunc-lookup
-             (let ((info (g-vfunc-lookup super g-name)))
-               (if info
-                   (loop rest
-                         (cons (list super
-                                     g-name
-                                     g-long-name-prefix
-                                     gf-long-name?
-                                     info)
-                               results))
-                   (loop rest results)))
+       (let ((vf-info (vfunc-info-lookup super g-name)))
+         (if vf-info
+             (receive (g-name g-long-name-prefix gf-long-name?)
+                 (vfunc-names super g-name)
+               (loop rest
+                     (cons (list super
+                                 g-name
+                                 g-long-name-prefix
+                                 gf-long-name?
+                                 vf-info)
+                           results)))
              (loop rest results)))))))
 
-(define (g-object-vfunc-lookup c-lass g-name)
-  (g-object-info-find-vfunc (!info c-lass) g-name))
+(define (vfunc-names class g-name)
+  (let* ((name (g-name->name (!g-name class) 'as-string))
+         (g-long-name-prefix (name->g-name name 'as-string))
+         (gf-long-name? (and (string-contains g-name
+                                              g-long-name-prefix)
+                             #t))
+         (g-name (if gf-long-name?
+                     (string-drop g-name
+                                  (+ (string-length g-long-name-prefix) 1))
+                     g-name)))
+    (values g-name g-long-name-prefix gf-long-name?)))
 
-(define (g-interface-vfunc-lookup c-lass g-name)
-  (g-interface-info-find-vfunc (!info c-lass) g-name))
+(define (vfunc-info-lookup class g-name)
+  (let ((find-vfunc-proc (cond ((gobject-class? class)
+                                g-object-info-find-vfunc)
+                               ((ginterface-class? class)
+                                g-interface-info-find-vfunc)
+                               (else
+                                #f))))
+    (and find-vfunc-proc
+         ;; derived class info slot value is #f
+         (let ((info (!info class)))
+           (match info
+             ((? pointer?)
+              (find-vfunc-proc info g-name))
+             (else
+              #f))))))
 
 
 ;; Below is a modified version of the (define-syntax method ...) code in

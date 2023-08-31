@@ -1,0 +1,28 @@
+@c -*-texinfo-*-
+@c This is part of the GNU G-Golf Reference Manual.
+@c Copyright (C) 2023 Free Software Foundation, Inc.
+@c See the file g-golf.texi for copying conditions.
+
+
+@node SXML Support - Emacs users
+@subsection SXML Support - Emacs users
+
+G-Golf offers two files to support editing and maintaining GtkWidget
+template and GtkBuilder ui (xml) files as sxml files instead. Currently,
+these files are in the @file{examples/adw-1/adw1-demo/ui} directory.
+
+@file{sxml-ui.el}
+
+Emacs users should import this file in their @file{.emacs} file.
+
+This is an attempt to provide both indentation and font-lock support, so
+ui files editing becomes a more pleasant experience. It is a first draft
+and definitely an experimental attempt. Better then nothing (much better
+imo), but suggestions to improve this first and quite 'naive' draft
+would be welcome.
+    
+@file{Makefile}
+
+Offered as an example of the simplest possible way to convert all
+@file{*.scm} files of a directory to their corresponding @file{*.ui}
+files.

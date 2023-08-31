@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2021 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2023 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -45,6 +45,10 @@ GIObjectInfo — Structs representing a GObject.
 @item @ref{g-object-info-get-n-vfuncs}
 @item @ref{g-object-info-get-vfunc}
 @item @ref{g-object-info-get-class-struct}
+@item @ref{g-object-info-get-set-value-function}
+@item @ref{g-object-info-get-set-value-function-pointer}
+@item @ref{g-object-info-get-get-value-function}
+@item @ref{g-object-info-get-get-value-function-pointer}
 @end table
 @end indentedblock
 
@@ -69,12 +73,15 @@ GIBaseInfo           	       		@*
 
 @subheading Description
 
-@code{GIObjectInfo} represents a @uref{@value{UGOBJECT-GObject-struct},
-GObject}. This doesn't represent a specific instance of a GObject,
-instead this represent the object type (eg class).
+@code{GIObjectInfo} represents a classed type.
 
-A GObject has methods, fields, properties, signals, interfaces,
-constants and virtual functions.
+Classed types in GType inherit from
+@uref{@value{UGOBJECT-Class-Hierarchy}, GTypeInstance}. The most common
+type is GObject. This doesn't represent a specific instance of a
+GObject, instead this represent the object type (eg class).
+
+A @code{GIObjectInfo} has methods, fields, properties, signals,
+interfaces, constants and virtual functions.
 
 
 @subheading Procedures
@@ -379,6 +386,53 @@ structure.
 
 It must be freed by calling @ref{g-base-info-unref} when done accessing
 the data.
+@end deffn
+
+
+@anchor{g-object-info-get-set-value-function}
+@deffn Procedure g-object-info-get-set-value-function info
+
+Returns a string.
+
+Obtain the symbol name (within the GI context, a symbol name is a
+string) of the function that should be called to set a GValue giving an
+object instance pointer of this object type.
+@end deffn
+
+
+@anchor{g-object-info-get-set-value-function-pointer}
+@deffn Procedure g-object-info-get-set-value-function-pointer info
+
+Returns a pointer.
+
+Obtain a pointer to a function which can be used to set a GValue giving
+an object instance pointer of this object type. This takes derivation
+into account and will reversely traverse the base classes of this type,
+starting at the top type.
+@end deffn
+
+
+@anchor{g-object-info-get-get-value-function}
+@deffn Procedure g-object-info-get-get-value-function info
+
+Returns a string.
+
+Obtain the symbol name (within the GI context, a symbol name is a
+string) of the function that should be called to get a GValue instance
+pointer of this object type giving an object instance pointer of this
+object type.
+@end deffn
+
+
+@anchor{g-object-info-get-get-value-function-pointer}
+@deffn Procedure g-object-info-get-get-value-function-pointer info
+
+Returns a pointer.
+
+Obtain a pointer to a function which can be used to get a GValue
+instance pointer giving an object instance pointer of this object
+type. This takes derivation into account and will reversely traverse the
+base classes of this type, starting at the top type.
 @end deffn
 
 

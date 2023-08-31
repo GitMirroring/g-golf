@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2016 - 2022
+#### Copyright (C) 2016 - 2023
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -43,6 +43,7 @@ g_golf_TEXINFOS = \
   ug-bys-goops-notes-and-conventions.texi	\
   ug-bys-configuring-guile-for-g-golf.texi	\
   ug-bys-customizing-g-golf.texi		\
+  ug-bys-sxml-supprt-emacs-users.texi		\
   ug-gswg.texi			\
   ug-gswg-hello-world.texi	\
   ug-gswg-selective-import.texi	\
@@ -60,6 +61,7 @@ g_golf_TEXINFOS = \
   cr-overview.texi		\
   cr-ov-structure-and-naming-conventions.texi	\
   cr-glib.texi			\
+  cr-glib-version-information.texi		\
   cr-glib-mem-alloc.texi	\
   cr-glib-main-event-loop.texi	\
   cr-glib-io-channels.texi	\
@@ -67,6 +69,7 @@ g_golf_TEXINFOS = \
   cr-glib-unix-utils.texi	\
   cr-glib-glist.texi		\
   cr-glib-gslist.texi		\
+  cr-glib-byte-arrays.texi	\
   cr-glib-quarks.texi		\
   cr-gobject.texi		\
   cr-gobject-type-info.texi	\

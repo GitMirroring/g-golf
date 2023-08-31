@@ -137,7 +137,7 @@ exec guile -e main -s "$0" "$@"
         (image (make <gtk-image>)))
     (set-from-paintable image nuclear)
     (set-child window image)
-    (show window)))
+    (present window)))
 
 
 (define (main args)

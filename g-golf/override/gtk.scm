@@ -43,9 +43,8 @@
    #f
    `(lambda (container child name)
       (let* ((i-func ,proc)
-             (g-value-get-value
-              ,(@@ (g-golf hl-api gobject) %g-inst-get-property-value))
-             (g-class (!g-class (class-of container)))
+             (class (class-of container))
+             (g-class (!g-class class))
              (p-spec
               (gtk-container-class-find-child-property g-class name)))
         (if p-spec
@@ -55,7 +54,7 @@
                    (dum (begin
                           (i-func container child name g-value)
                           #t))
-                   (value (g-value-get-value g-value)))
+                   (value (g-value->scm g-value g-type)))
               (g-value-unset g-value)
               value)
             (error "No child property" container name))))
@@ -66,8 +65,6 @@
    #f
    `(lambda (container child name value)
       (let* ((i-func ,proc)
-             (g-value-set-value
-              ,(@@ (g-golf hl-api gobject) %g-inst-set-property-value))
              (g-class (!g-class (class-of container)))
              (p-spec
               (gtk-container-class-find-child-property g-class name)))
@@ -76,7 +73,7 @@
                    (g-type (g-value-type default-value))
                    (g-value (g-value-init g-type)))
               (g-value-set! g-value
-                            (g-value-set-value g-type value))
+                            (scm->g-property g-type value))
               (i-func container child name g-value)
               (g-value-unset g-value)
               (values))
@@ -97,12 +94,10 @@
    '(("Gtk" "TreeModel"))
    `(lambda (store iter column value)
       (let* ((i-func ,proc)
-             (g-value-set-value
-              ,(@@ (g-golf hl-api gobject) %g-inst-set-property-value))
              (g-type (gtk-tree-model-get-column-type store column))
              (g-value (g-value-init g-type)))
         (g-value-set! g-value
-                      (g-value-set-value g-type value))
+                      (scm->g-property g-type value))
         (i-func store iter column g-value)
         (g-value-unset g-value)
         (values)))
@@ -113,12 +108,10 @@
    '(("Gtk" "TreeModel"))
    `(lambda (store iter column value)
       (let* ((i-func ,proc)
-             (g-value-set-value
-              ,(@@ (g-golf hl-api gobject) %g-inst-set-property-value))
              (g-type (gtk-tree-model-get-column-type store column))
              (g-value (g-value-init g-type)))
         (g-value-set! g-value
-                      (g-value-set-value g-type value))
+                      (scm->g-property g-type value))
         (i-func store iter column g-value)
         (g-value-unset g-value)
         (values)))
@@ -129,14 +122,13 @@
    #f
    `(lambda (model iter column)
       (let* ((i-func ,proc)
-             (g-value-get-value
-              ,(@@ (g-golf hl-api gobject) %g-inst-get-property-value))
-             (g-value (g-value-new))
-             (dum (i-func model iter column g-value))
-             (value (g-value-get-value g-value)))
-        (g-value-unset g-value)
-        value))
-      '(0 1 2)))
+             (g-value (g-value-new)))
+        (i-func model iter column g-value)
+        (let* ((g-type (g-value-type g-value))
+               (value (g-value->scm g-value g-type)))
+          (g-value-unset g-value)
+          value)))
+   '(0 1 2)))
 
 
 (define (gtk-text-buffer-insert-ov proc)

@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2016 - 2022
+#### Copyright (C) 2016 - 2023
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -42,8 +42,10 @@ SOURCES = \
 	g-golf/support/union.scm		\
 	g-golf/support/bytevector.scm		\
 	g-golf/support/ffi.scm			\
+	g-golf/support/sxml.scm			\
 	g-golf/support.scm			\
 	g-golf/init.scm				\
+	g-golf/glib/version-information.scm	\
 	g-golf/glib/mem-alloc.scm		\
 	g-golf/glib/main-event-loop.scm		\
 	g-golf/glib/io-channels.scm		\
@@ -51,6 +53,7 @@ SOURCES = \
 	g-golf/glib/unix-utils.scm		\
 	g-golf/glib/glist.scm			\
 	g-golf/glib/gslist.scm			\
+	g-golf/glib/byte-arrays.scm		\
 	g-golf/glib/quarks.scm			\
 	g-golf/glib.scm				\
 	g-golf/gobject/type-info.scm		\
@@ -92,6 +95,7 @@ SOURCES = \
 	g-golf/gdk.scm				\
 	g-golf/hl-api/n-decl.scm		\
 	g-golf/hl-api/gtype.scm			\
+	g-golf/hl-api/gparam.scm		\
 	g-golf/hl-api/iface.scm			\
 	g-golf/hl-api/gobject.scm		\
 	g-golf/hl-api/events.scm		\

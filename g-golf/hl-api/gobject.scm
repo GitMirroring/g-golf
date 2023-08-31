@@ -44,6 +44,7 @@
   #:use-module (g-golf gobject)
   #:use-module (g-golf gi)
   #:use-module (g-golf hl-api gtype)
+  #:use-module (g-golf hl-api gparam)
   #:use-module (g-golf hl-api iface)
 
   #:replace (connect)
@@ -60,7 +61,8 @@
             <ginterface>
             ginterface-class?
 
-            g-object-find-class-by-g-type
+            g-value->scm
+
             g-object-find-class
             g-object-make-class
             g-interface-make-class
@@ -120,7 +122,7 @@
              #t
              (loop rest)))))))
 
-(define (compute-extra-slots class g-properties slots)
+(define (compute-g-property-slots class g-properties slots)
   (if (null? g-properties)
       '()
       (let* ((module (resolve-module '(g-golf hl-api gobject)))
@@ -133,42 +135,50 @@
              ;; following necessary let variable binding.
              (g-class (and info ;; info is #f for derived class(es)
                            (g-type-class info)))
-             (extra-slots (filter-map
-                              (lambda (g-property)
-                                (let* ((g-name (g-base-info-get-name g-property))
-                                       (name (g-name->name g-name)))
-                                  (if (has-slot? slots name)
-                                      #f
-                                      (let* ((k-name (symbol->keyword name))
-                                             (a-name (symbol-append '! name))
-                                             (a-inst (if (module-variable module a-name)
-                                                         (module-ref module a-name)
-                                                         (let ((a-inst (make-accessor a-name)))
-                                                           (module-g-export! module `(,a-name))
-                                                           (module-set! module a-name a-inst)
-                                                           a-inst)))
-                                             (g-param-spec
-                                              (and g-class
-                                                   (g-object-class-find-property g-class g-name)))
-                                             (g-type (if g-param-spec
-                                                         (g-param-spec-type g-param-spec)
-                                                         (gi-property-g-type g-property)))
-                                             (g-flags (if g-param-spec
-                                                          (g-param-spec-get-flags g-param-spec)
-                                                          (g-property-info-get-flags g-property)))
-                                             (slot (make <slot>
-                                                     #:name name
-                                                     #:g-property g-property
-                                                     #:g-name g-name
-                                                     #:g-param-spec g-param-spec
-                                                     #:g-type g-type
-                                                     #:g-flags g-flags
-                                                     #:allocation #:g-property
-                                                     #:accessor a-inst
-                                                     #:init-keyword k-name)))
-                                        slot))))
-                              g-properties)))
-        extra-slots)))
+             (g-property-slots
+              (filter-map
+                  (lambda (g-property)
+                    (let* ((g-name (g-base-info-get-name g-property))
+                           (name (g-name->name g-name)))
+                      (if (has-slot? slots name)
+                          #f
+                          (let* ((k-name (symbol->keyword name))
+                                 (a-name (symbol-append '! name))
+                                 (a-inst (if (module-variable module a-name)
+                                             (module-ref module a-name)
+                                             (let ((a-inst (make-accessor a-name)))
+                                               (module-g-export! module `(,a-name))
+                                               (module-set! module a-name a-inst)
+                                               a-inst)))
+                                 (g-param-spec
+                                  (and g-class
+                                       (g-object-class-find-property g-class g-name)))
+                                 (g-type (if g-param-spec
+                                             (g-param-spec-type g-param-spec)
+                                             (gi-property-g-type g-property)))
+                                 (g-flags (if g-param-spec
+                                              (g-param-spec-get-flags g-param-spec)
+                                              (g-property-info-get-flags g-property)))
+                                 (slot (make <slot>
+                                         #:name name
+                                         #:g-property g-property
+                                         #:g-name g-name
+                                         #:g-param-spec g-param-spec
+                                         #:g-type g-type
+                                         #:g-flags g-flags
+                                         #:allocation #:g-property
+                                         #:accessor a-inst
+                                         #:init-keyword k-name)))
+                            slot))))
+                  g-properties)))
+        g-property-slots)))
+
+(define (compute-g-param-value-cache-slots g-param-slots)
+  (map (lambda (slot)
+         (make <slot>
+           #:name (symbol-append (slot-ref slot 'name)
+                                 '_)))
+    g-param-slots))
 
 (define (n-prop-prop-accessors class)
   ;; Note that at this point, the g-type slot of the class is still
@@ -202,50 +212,57 @@
                      (cons (get-property info i)
                            result)))))))))
 
+(define (filter-g-param-slots slots)
+  (filter-map (lambda (slot)
+                (and (get-keyword #:g-param
+                                  (slot-definition-options slot)
+                                  #f)
+                     slot))
+      slots))
+
 (define-method (compute-slots (class <gobject-class>))
   (let* ((slots (next-method))
-         (extra (compute-extra-slots class
-                                     (gobject-ginterface-direct-properties class)
-                                     slots)))
+         (direct-slots (slot-ref class 'direct-slots))
+         (g-param-slots (filter-g-param-slots direct-slots))
+         (g-param-value-cache-slots
+          (compute-g-param-value-cache-slots g-param-slots))
+         (g-property-slots
+          (compute-g-property-slots class
+                                    (gobject-ginterface-direct-properties class)
+                                    slots)))
     (slot-set! class 'direct-slots
-               (append (slot-ref class 'direct-slots)
-                       extra))
-    (append slots extra)))
+               (append direct-slots
+                       g-param-value-cache-slots
+                       g-property-slots))
+    (append slots
+            g-param-value-cache-slots
+            g-property-slots)))
 
-(define* (is-readable? slot #:optional (slot-opts #f))
-  (let* ((slot-opts (or slot-opts
-                        (slot-definition-options slot)))
-         (g-flags (get-keyword #:g-flags slot-opts #f)))
-    (and g-flags
-         (memq 'readable g-flags))))
+(define (g-property-slot? slot)
+  (eq? (slot-definition-allocation slot) #:g-property))
 
-(define* (is-writable? slot #:optional (slot-opts #f))
-  (let* ((slot-opts (or slot-opts
-                        (slot-definition-options slot)))
-         (g-flags (get-keyword #:g-flags slot-opts #f)))
-    (and g-flags
-         (memq 'writable g-flags)
-         (not (memq 'construct-only g-flags)))))
+(define (g-param-slot? slot)
+  (get-keyword #:g-param
+               (slot-definition-options slot)
+               #f))
 
-(define-method (compute-get-n-set (class <gobject-class>) slot-def)
-  (case (slot-definition-allocation slot-def)
-    ((#:g-property)
-     (let* ((name (slot-definition-name slot-def))
-            (slot-opts (slot-definition-options slot-def))
-            (g-name (get-keyword #:g-name slot-opts #f))
-            (g-type (get-keyword #:g-type slot-opts #f)))
-       (list (lambda (obj)
-               #;(if (is-readable? slot-def slot-opts)
-                   (g-inst-get-property (!g-inst obj) g-name g-type)
-                   (error "Unreadable slot:" name))
-               (g-inst-get-property (!g-inst obj) g-name g-type))
-             (lambda (obj val)
-               #;(if (is-writable? slot-def slot-opts)
-                   (g-inst-set-property (!g-inst obj) g-name g-type val)
-                   (error "Unwritable slot:" name))
-               (g-inst-set-property (!g-inst obj) g-name g-type val)))))
-    (else
-     (next-method))))
+(define-method (compute-get-n-set (class <gobject-class>) slot)
+  (cond ((g-property-slot? slot)
+         (let* ((slot-opts (slot-definition-options slot))
+                (g-name (get-keyword #:g-name slot-opts #f))
+                (g-type (get-keyword #:g-type slot-opts #f)))
+           (list (lambda (obj)
+                   (g-inst-get-property (!g-inst obj) g-name g-type))
+                 (lambda (obj val)
+                   (g-inst-set-property (!g-inst obj) g-name g-type val)))))
+        ((g-param-slot? slot)
+         (let ((name (symbol->string (slot-definition-name slot))))
+           (list (lambda (obj)
+                   (g-inst-g-param-get-property obj name))
+                 (lambda (obj val)
+                   (g-inst-g-param-set-property obj name val)))))
+        (else
+         (next-method))))
 
 (define-method (initialize (class <gobject-class>) initargs)
   (let ((info (get-keyword #:info initargs #f))
@@ -255,92 +272,340 @@
      (cond (info initargs)
            (g-type (cons* #:info g-type initargs))
            (else
-            (cons* #:derived #t
-                   #:info (g-golf-type-register class initargs)
-                   initargs))))))
+            (receive (g-type class-init-func-closure class-init-func)
+                (g-golf-g-type-register class initargs)
+              (cons* #:derived #t
+                     #:info g-type
+                     #:class-init-func-closure class-init-func-closure
+                     #:class-init-func class-init-func
+                     initargs)))))
+    (install-properties class)
+    (install-signals class initargs)))
 
-(define (g-golf-type-register class initargs)
+(define (install-properties class)
+  ;; To expose slots as gobject properties, <gobject> processes a
+  ;; #:g-param slot option and creates a new gobject property.
+  (let loop ((id 1)
+             (slots (class-direct-g-param-slots class)))
+    (match slots
+      (() 'done)
+      ((slot . rest)
+       (install-property class slot id)
+       (loop (+ id 1)
+             rest)))))
+
+(define (install-property class slot id)
+  (unless (!derived class)
+    (scm-error 'invalid-class #f
+               "Can't add properties to non-derived type: ~S"
+               (list class) #f))
+  (let ((g-class (!g-class class))
+        (name (slot-definition-name slot)))
+    (if (g-object-class-find-property g-class
+                                      (symbol->string name))
+        (scm-error 'invalid-property #f
+                   "There is already a property named ~A in ~S"
+                   (list name class) #f)
+        (g-object-class-install-property g-class
+                                         id
+                                         (g-param-construct slot)))))
+
+#!
+;; We used the following to get started, just keeping the message in
+;; case ...
+
+(define %get-set-property-default-func-warning-msg
+  "
+WARNING: I can see that you are adding new properties to your
+derived class, but failed to provide a custom [get|set]-property
+vfunc, so those newly added properties won't work as expected.
+
+")
+!#
+
+(define %get-property-func
+  (procedure->pointer void
+                      (lambda (g-inst p-id g-value p-spec)
+                        (let* ((inst (g-inst-cache-ref g-inst))
+                               (p-name (g-param-spec-get-name p-spec))
+                               (p-name_ (string-append p-name "_")))
+                          #;(dimfi '%get-property-func p-name)
+                          #;(dimfi "  " 'g-inst g-inst)
+                          #;(dimfi "  " 'inst inst)
+                          (g-value-set! g-value
+                                        (slot-ref inst
+                                                  (string->symbol p-name_)))
+                          (values)))
+                      (list '*
+                            unsigned-int
+                            '*
+                            '*)))
+
+(define %set-property-func
+  (procedure->pointer void
+                      (lambda (g-inst p-id g-value p-spec)
+                        (let* ((inst (g-inst-cache-ref g-inst))
+                               (p-name (g-param-spec-get-name p-spec))
+                               (p-name_ (string-append p-name "_")))
+                          #;(dimfi '%set-property-func p-name)
+                          #;(dimfi "  " 'g-inst g-inst)
+                          #;(dimfi "  " 'inst inst)
+                          (slot-set! inst
+                                     (string->symbol p-name_)
+                                     (g-value-ref g-value))
+                          (values)))
+                      (list '*
+                            unsigned-int
+                            '*
+                            '*)))
+
+(define (lookup-template-procedures-make-g-bytes template)
+  (if template
+      (let* ((module (resolve-module '(g-golf hl-api function)))
+             (template-bv (call-with-input-file template
+                            (lambda (port) (get-bytevector-all port)) #:binary #t))
+             (g-bytes (g-bytes-new (bytevector->pointer template-bv)
+                                   (bytevector-length template-bv))))
+        (values (module-ref module 'gtk-widget-class-set-template)
+                (module-ref module 'gtk-widget-class-bind-template-child-full)
+                g-bytes))
+      (values #f #f #f)))
+
+(define (lookup-g-class-get-set-p-vfunc-offset)
+  (let ((g-object-struct-fields (!g-struct-fields <gobject>)))
+    (values
+     (match (assq-ref g-object-struct-fields 'get-property)
+       ((type offset flags) offset))
+     (match (assq-ref g-object-struct-fields 'set-property)
+       ((type offset flags) offset)))))
+
+(define (%class-init-func name properties template child-ids)
+    (if (and (null? properties)
+             (not template))
+        ;; we return #f, g-type-register-static-simple will then select
+        ;; the %class-init-func defined in (g-golf gobject type-info)
+        (values #f #f)
+        (let ((class-init-func-closure
+               (lambda (g-class class-data)
+                 (let ((%name name)
+                       (%properties properties)
+                       (%template template)
+                       (%child-ids child-ids))
+                   #;(dimfi '%class-init-func %name)
+                   #;(dimfi "  " 'g-class g-class)
+                   #;(dimfi "  " 'g-class g-class)
+                   #;(dimfi "  " 'g-type (g-type-from-class g-class))
+                   #;(dimfi "  " 'child-ids %child-ids)
+                   (unless (null? %properties)
+                     (receive (get-p-vfunc-offset set-p-vfunc-offset)
+                         (lookup-g-class-get-set-p-vfunc-offset)
+                       (bv-ptr-set! (gi-pointer-inc g-class
+                                                    get-p-vfunc-offset)
+                                    %get-property-func)
+                       (bv-ptr-set! (gi-pointer-inc g-class
+                                                    set-p-vfunc-offset)
+                                    %set-property-func)))
+                   (when %template
+                     (receive (set-template bind-template-child-full g-bytes)
+                         (lookup-template-procedures-make-g-bytes %template)
+                       (set-template g-class g-bytes)
+                       (for-each (lambda (child-id)
+                                   (bind-template-child-full g-class
+                                                             child-id
+                                                             #f
+                                                             0))
+                           %child-ids)))
+                   (values)))))
+          (values class-init-func-closure
+                  (procedure->pointer void
+                                      class-init-func-closure
+                                      (list '* '*))))))
+
+(define (lookup-init-template-func)
+  (let* ((init-template-func (gi-cache-ref 'function 'gtk-widget-init-template))
+         (gi-argument (slot-ref init-template-func 'gi-args-in))
+         (init-template (slot-ref init-template-func 'i-func)))
+    (values init-template gi-argument)))
+
+(define (instance-init-proc g-inst g-class)
+  (receive (init-template gi-argument)
+      (lookup-init-template-func)
+    (let* ((class (g-class-cache-ref g-class))
+           (g-type (!g-type class)))
+      #;(dimfi '%instance-init-func (class-name class))
+      #;(dimfi "  " 'g-type g-type)
+      #;(dimfi "  " 'g-inst g-inst)
+      #;(dimfi "  " 'inst (g-inst-cache-ref g-inst))
+      #;(dimfi "  " 'template-initialization...)
+      (gi-argument-set! gi-argument 'v-pointer g-inst)
+      (apply init-template
+             (list g-inst 'skip-prepare-gi-arguments))
+      (let ((g-inst-construct-g-type (%g-inst-construct-g-type)))
+        ;; we only creating a goops proxy instance under the following
+        ;; conditions - mandatory to avoid 'double' instance creation
+        #;(dimfi "  " 'g-inst-construct-g-type g-inst-construct-g-type)
+        (unless (and g-inst-construct-g-type
+                     (= g-type g-inst-construct-g-type))
+          #;(dimfi "  " 'inst
+                 (make class #:g-inst g-inst))
+          (make class #:g-inst g-inst)))
+      (values))))
+
+(define %instance-init-func
+  (procedure->pointer void
+                      instance-init-proc
+                      (list '* '*)))
+
+(define (is-a-gtk-widget? dsupers)
+  (member '<gtk-widget>
+          (map class-name
+            (apply append (map class-precedence-list dsupers)))))
+
+(define (find-parent-g-type dsupers)
+  (!g-type (find gobject-class?
+                 (apply append
+                        (map class-precedence-list dsupers)))))
+
+(define (find-g-param-slots slots)
+  (filter-map (lambda (slot-description)
+                (and (get-keyword #:g-param (cdr slot-description) #f)
+                     slot-description))
+      slots))
+
+(define (g-golf-g-type-register class initargs)
   (let* ((name (get-keyword #:name initargs #f))
          (g-name (class-name->g-name name))
          (dsupers (get-keyword #:dsupers initargs '()))
-         (p-type (!g-type (find gobject-class?
-                                (apply append
-                                       (map class-precedence-list dsupers))))))
-    (match (g-type-query p-type)
-      ((p-type p-name class-size instance-size)
-       (let ((g-type (g-type-register-static-simple p-type
-                                                    g-name
-                                                    class-size
-                                                    #f ;; class-init-func
-                                                    instance-size
-                                                    #f ;; instance-init-func
-                                                    '())))
-         (for-each (lambda (iface-class)
-                     (g-golf-type-add-interface g-type iface-class))
-             (filter-map (lambda (class)
-                           (and (ginterface-class? class) class))
-                 dsupers))
-         g-type)))))
+         (p-type (find-parent-g-type dsupers))
+         (slots (get-keyword #:slots initargs '()))
+         (properties (find-g-param-slots slots))
+         (template (get-keyword #:template initargs #f))
+         (child-ids (get-keyword #:child-ids initargs '())))
+    (if (and template
+             (not (is-a-gtk-widget? dsupers)))
+        (scm-error 'invalid-class #f
+                   "Invalid (template) class: ~A"
+                   (list name) #f)
+        (match (g-type-query p-type)
+          ((p-type p-name class-size instance-size)
+           (receive (class-init-func-closure class-init-func)
+               (%class-init-func name properties template child-ids)
+             (let ((g-type (g-type-register-static-simple p-type
+                                                          g-name
+                                                          class-size
+                                                          class-init-func
+                                                          instance-size
+                                                          (and template
+                                                               %instance-init-func)
+                                                          '())))
+               (for-each (lambda (iface-class)
+                           (g-golf-g-type-add-interface g-type iface-class))
+                   (filter-map (lambda (class)
+                                 (and (ginterface-class? class) class))
+                       dsupers))
+               (values g-type
+                       class-init-func-closure
+                       class-init-func))))))))
 
-(define (g-golf-type-add-interface g-type iface-class)
+(define (g-golf-g-type-add-interface g-type iface-class)
   (g-type-add-interface-static g-type
                                (!g-type iface-class)
                                (gi-iface-info-struct iface-class)))
 
-(define (g-inst-get-property inst g-name g-type)
-  (let* ((g-value (g-value-init g-type))
-         (dummy (g-object-get-property inst g-name g-value))
-         (result (%g-inst-get-property-value g-value)))
-    (g-value-unset g-value)
-    result))
-
-(define (%g-inst-get-property-value g-value)
-  (let ((value (g-value-ref g-value)))
-    (case (g-value-type-tag g-value)
-      ((object)
-       (if (or (not value)
-               (null-pointer? value))
-           #f
-           (or (g-inst-cache-ref value)
-               (let* ((module (resolve-module '(g-golf hl-api gobject)))
-                      (r-type (g-value-type g-value))
-                      (info (g-irepository-find-by-gtype r-type))
-                      (g-name (g-registered-type-info-get-type-name info))
-                      (c-name (g-name->class-name g-name))
-                      (type (module-ref module c-name)))
-                 (make type #:g-inst value)))))
-      ((interface)
-       (if (or (not value)
-               (null-pointer? value))
-           #f
-           (or (g-inst-cache-ref value)
-               (let* ((module (resolve-module '(g-golf hl-api gobject)))
-                      (r-type (g-value-type g-value))
-                      (info (g-irepository-find-by-gtype r-type))
-                      (g-name (g-registered-type-info-get-type-name info))
-                      (c-name (g-name->class-name g-name))
-                      (type (module-ref module c-name)))
-                 (make type #:g-inst value)))))
-      (else
-       value))))
-
-(define* (g-inst-set-property inst g-name g-type value)
+(define (g-inst-get-property g-inst g-name g-type)
   (let ((g-value (g-value-init g-type)))
-    (g-value-set! g-value
-                  (%g-inst-set-property-value g-type value))
-    (g-object-set-property inst g-name g-value)
+    (g-object-get-property g-inst g-name g-value)
+    (let ((result (g-value->scm g-value g-type)))
+      (g-value-unset g-value)
+      result)))
+
+(define (g-value->scm g-value g-type)
+  (case (g-type->symbol g-type)
+    ((#f)
+     ;; Most likely a fundamental type that is not in GObject.
+     (receive (value class)
+         (g-value-func-ref g-value g-type)
+       (if (or (not value)
+               (null-pointer? value))
+           #f
+           (make class #:g-inst value))))
+    ((object
+      interface)
+     (let ((value (g-value-ref g-value)))
+       (if (or (not value)
+               (null-pointer? value))
+           #f
+           (or (g-inst-cache-ref value)
+               (let ((class (g-type-cache-ref g-type)))
+                 (make class #:g-inst value))))))
+    (else
+     (g-value-ref g-value))))
+
+(define (g-inst-set-property g-inst g-name g-type value)
+  (let ((g-value (g-value-init g-type)))
+    (match (g-type->symbol g-type)
+      (#f
+       ;; Most likely a fundamental type that is not in GObject.
+       (g-value-func-set g-value g-type value))
+      (else
+       (g-value-set! g-value
+                     (scm->g-property g-type value))))
+    (g-object-set-property g-inst g-name g-value)
     (g-value-unset g-value)
     (values)))
 
-(define %g-inst-set-property-value
-  (@@ (g-golf hl-api gtype) %g-inst-set-property-value))
+(define (g-inst-g-param-get-property obj name)
+  (let* ((klass (class-of obj))
+         (g-class (!g-class klass))
+         (p-spec (g-object-class-find-property g-class name))
+         (p-spec-type (g-param-spec-type p-spec)))
+    (g-inst-get-property (!g-inst obj) name p-spec-type)))
+
+(define (g-inst-g-param-set-property obj name val)
+  (let* ((klass (class-of obj))
+         (g-class (!g-class klass))
+         (p-spec (g-object-class-find-property g-class name))
+         (p-spec-type (g-param-spec-type p-spec)))
+    (g-inst-set-property (!g-inst obj) name p-spec-type val)))
 
 
 ;;;
 ;;; Signals
 ;;;
 
-(define (install-signals! class)
+(define (install-signals class initargs)
+  (for-each (lambda (signal)
+              (install-signal class signal))
+      (find-signals initargs)))
+
+(define (install-signal class signal)
+  (match signal
+    ((name return-type param-types flags)
+     (g-signal-newv name
+                    (!g-type class)
+                    flags
+                    #f             ;; class-closure
+                    #f             ;; accumulator
+                    #f             ;; accu-data
+                    #f             ;; c-marshaller
+                    return-type
+                    (length param-types)
+                    param-types))))
+
+(define (find-signals initargs)
+  (let loop ((args initargs)
+             (signals '()))
+    (match args
+      (() signals)
+      ((kw def . rest)
+       (if (eq? kw #:g-signal)
+           (loop rest
+                 (cons def signals))
+           (loop rest
+                 signals))))))
+
+#!
+(define (install-signals class)
   (let ((signals (gobject-class-signals class)))
     (dimfi class)
     (for-each (lambda (info)
@@ -359,6 +624,7 @@
               (loop (+ i 1)
                     (cons (g-object-info-get-signal info i)
                           result)))))))
+!#
 
 
 ;;;
@@ -371,6 +637,21 @@
 (define-class <gobject> (<gtype-instance>)
   #:info (g-irepository-find-by-name "GObject" "Object")
   #:metaclass <gobject-class>)
+
+(define* (is-readable? slot #:optional (slot-opts #f))
+  (let* ((slot-opts (or slot-opts
+                        (slot-definition-options slot)))
+         (g-flags (get-keyword #:g-flags slot-opts #f)))
+    (and g-flags
+         (memq 'readable g-flags))))
+
+(define* (is-writable? slot #:optional (slot-opts #f))
+  (let* ((slot-opts (or slot-opts
+                        (slot-definition-options slot)))
+         (g-flags (get-keyword #:g-flags slot-opts #f)))
+    (and g-flags
+         (memq 'writable g-flags)
+         (not (memq 'construct-only g-flags)))))
 
 (define safe-class-name
   (@@ (oop goops describe) safe-class-name))
@@ -422,7 +703,8 @@
 
 (define-class <ginterface> (<gtype-instance>)
   #:info #t
-  #:g-type -1	;; g-object-find-class-by-g-type
+  #:g-type -1	;; so we do not break g-type-cahe-ref ...
+  #:g-name "GInterface" ;; fake name - specializer-vfunc-lookup needs one
   #:metaclass <gobject-class>)
 
 (define (ginterface-class? class)
@@ -455,7 +737,8 @@
 ;; Another example of a runtime class is the GdkWaylandClipboard, which
 ;; subclass GdkClipboard.
 
-(define (g-object-find-class-by-g-type g-type)
+;; this definition preceeds the existance of a g-type-cache
+#;(define (g-object-find-class-by-g-type g-type)
   (let loop ((classes (class-subclasses <gtype-instance>)))
     (match classes
       (() #f)
@@ -466,36 +749,56 @@
 
 (define (g-object-find-class foreign)
   (let* ((g-type (g-object-type foreign))
-         (class (g-object-find-class-by-g-type g-type)))
+         (class (g-type-cache-ref g-type)))
     (if class
         (values class (class-name class) g-type)
         (g-object-make-class foreign g-type))))
 
+(define (g-object-class-precedence-list g-type)
+  (let loop ((g-type g-type)
+             (class #f)
+             (results `((,g-type ,(g-type-name g-type) #f))))
+    (if class
+        results
+        (let* ((p-type (g-type-parent g-type))
+               (p-class (g-type-cache-ref p-type)))
+          (loop p-type
+                p-class
+                (cons (list p-type (g-type-name p-type) p-class)
+                      results))))))
+
 (define* (g-object-make-class foreign #:optional g-type)
   (let* ((module (resolve-module '(g-golf hl-api gobject)))
-         (g-type (or g-type (g-object-type foreign)))
-         (g-name (g-object-type-name foreign))
-         (c-name (g-name->class-name g-name))
-         (parent (g-type-parent g-type))
-         (p-g-name (g-type-name parent))
-         (p-name (g-name->class-name p-g-name))
-         (p-class-var (module-variable module p-name))
-         (p-class (and p-class-var (module-ref module p-name))))
-    (when (%debug)
-      (dimfi 'g-object-make-class)
-      (dimfi "  " g-type g-name c-name 'p-name p-name))
-    (if p-class
-        (let* ((public-i (module-public-interface module))
-               (ifaces (g-object-class-interfaces g-type))
-               (c-inst (make-class (cons p-class ifaces)
-                                   '()
-                                   #:name c-name
-                                   #:g-type g-type)))
-          (module-define! module c-name c-inst)
-          (module-add! public-i c-name
-                       (module-variable module c-name))
-          (values c-inst c-name g-type))
-        (error "Undefined (parent) class: " p-name))))
+         (public-i (module-public-interface module))
+         (g-type (or g-type (g-object-type foreign))))
+    (let loop ((cpl (g-object-class-precedence-list g-type)))
+      (match cpl
+        ((child) ;; instanciated in the previous step
+         (match child
+           ((g-type g-name _)
+            (let ((c-inst (g-type-cache-ref g-type)))
+              (values c-inst (class-name c-inst) g-type)))))
+        ((parent child . rest)
+         (match parent
+           ((p-type p-name p-class)
+            (let ((p-class (or p-class
+                               ;; instanciated in the previous step
+                               (g-type-cache-ref p-type))))
+              (match child
+                ((g-type g-name _)
+                 (let* ((ifaces (g-object-class-interfaces g-type))
+                        (c-name (g-name->class-name g-name))
+                        (c-inst (make-class (cons p-class ifaces)
+                                            '()
+                                            #:name c-name
+                                            #:g-type g-type)))
+                   #;(dimfi 'g-object-make-class)
+                   #;(dimfi "  " c-inst)
+                   #;(dimfi "  " 'ifaces ifaces)
+                   (module-define! module c-name c-inst)
+                   (module-add! public-i c-name
+                                (module-variable module c-name))
+                   (loop (cons child rest)))))))))))))
 
 (define (g-object-class-interfaces g-type)
   (let ((module (resolve-module '(g-golf hl-api gobject)))
@@ -506,7 +809,7 @@
                   (m-var (module-variable module name)))
              (or (and m-var
                       (variable-ref m-var))
-                 (g-interface-make-class g-type))))
+                 (g-interface-make-class iface))))
       ifaces)))
 
 (define (g-interface-make-class g-type)

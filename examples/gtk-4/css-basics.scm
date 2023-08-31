@@ -89,7 +89,7 @@ exec guile -e main -s "$0" "$@"
     (append box label)
     (append box button)
     (apply-css window css-provider)
-    (show window)))
+    (present window)))
 
 
 (define (main args)

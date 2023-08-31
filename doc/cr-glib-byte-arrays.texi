@@ -1,0 +1,45 @@
+@c -*-texinfo-*-
+@c This is part of the GNU G-Golf Reference Manual.
+@c Copyright (C) 2023 Free Software Foundation, Inc.
+@c See the file g-golf.texi for copying conditions.
+
+
+@c @defindex tl
+
+
+@node Byte Arrays
+@subsection Byte Arrays
+
+G-Golf Glib Byte Arrays low level API.@*
+Byte Arrays — Arrays of bytes.
+
+
+@subheading Procedures
+
+@indentedblock
+@table @code
+@item @ref{g-bytes-new}
+@end table
+@end indentedblock
+
+
+@subheading Description
+
+FIXME
+
+
+@subheading Procedures
+
+
+@anchor{g-bytes-new}
+@deffn Procedure g-bytes-new data size
+
+Returns a pointer.
+
+Create a new @code{GBytes}@footnote{A simple refcounted data type
+representing an immutable sequence of zero or more bytes from an
+unspecified origin.} from @code{data}.
+
+@code{data} is copied. If @code{size} is 0, @code{data} may be NULL.
+
+@end deffn

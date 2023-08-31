@@ -26,6 +26,90 @@ warranty.
 
 * Latest News
 
+** August 2023
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-a.5 is released.
+
+This is the fifth release of the upcoming 0.8.0 release, now available
+for testing.
+
+*** Changes since 0.8.0-a.4
+
+Here is a summary of the noteworthy changes since version 0.8.0-a.4. See
+G-Golf [[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** Dependencies
+
+  Glib-2.0     >= 2.73.0
+  Gobject-2.0  >= 2.73.0
+
+G-Golf requires GObject-Introspection >= 1.72.0. This actually imposes
+Glib-2.0 >= 2.73.0, which itself imposes Gobject-2.0 >= 2.73.0
+
+**** New features
+
+Derived class
+GObject properties and signals
+
+  Derived classes now support a mechanism that allow users to expose
+  slots as gobject properties and define new signals.
+
+Templates
+
+  This release adds support for templates, a mechanism and facilities
+  exposed by GtkWidget to automate the procedure of creating composite
+  widgets with GtkBuilder XML.
+
+Template and GtkBuilder ui files
+SXML support
+
+	[ currently in the examples/adw-1/adw1-demo/ui directory ]
+
+  sxml-ui.el
+
+  Emacs users should import this file in their .emacs file.
+
+  This is an attempt to provide both indentation and font-lock support,
+  so ui files editing becomes a more pleasant exprerience. It is a first
+  draft, better then nothing (much better imo), but suggestions to
+  improve would be welcome.
+
+  Makefile
+
+  Offered as an example of the simplest possible way to convert all
+  *.scm files of a directory to their corresponding *.ui files.
+
+**** Examples
+
+Adwaita Demo
+
+A G-Golf port of the Adwaita 1 demo. This is a work in progress,
+currently implementing the Adwaita 1 demo window, header bars,
+primary-menu (the inspector, preferences and about actions and windows)
+as well as the Welcome and Leaflet pages:
+
+Note: Adwaita 1.4 (unavailable in distros at the time of this release)
+deprecates the AdwLeaflet* classes, in favor of the AdwNavigationView
+and AdwNavigationPage classes. We'll move the demo to use those when
+Adwaita 1.4 becomes available in dostros.
+
+**** Bug fixing
+
+A few G-Golf core bugs have been fixed, but none that we could expose
+here as 'user visible'. If you're nonetheless interested to find out
+what progress we made on that front, search the git logs for 'Fixing'
+or 'Bug fixing'.
+
+The peg-solitaire example
+
+An ABI change was made, by the Gtk team, in Gtk 4.10.0, to the
+gtk-css-provider-load-from-data function second argument, wHich is no
+longer defined as an array, but a utf8, and hence g-golf would fail,
+when using Gtk 4.10.0, to detect, compute and supply the third argument,
+which is the css string length - fixed.
+
+* Older News
+
 ** April 2023
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-a.4 is released.
@@ -65,9 +149,6 @@ Missing <gobject> g-struct-fields
   At (load eval) time, the (g-golf defined) <gobject> class must be
   completed: retreive the class-struct and fill the <gobject>
   g-struct-fields slot - used by the vfunc mechanism.
-
-
-* Older News
 
 ** February 2023
 

@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2021
+;;;; Copyright (C) 2019 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -29,6 +29,7 @@
 (define-module (g-golf gobject signals)
   #:use-module (rnrs bytevectors)
   #:use-module (ice-9 match)
+  #:use-module (ice-9 format)
   #:use-module (oop goops)
   #:use-module (system foreign)
   #:use-module (srfi srfi-4)
@@ -48,9 +49,11 @@
 		warn
 		last)
 
-  #:export (g-signal-query
+  #:export (g-signal-newv
+            g-signal-query
             g-signal-lookup
             g-signal-list-ids
+            g-signal-emitv
             g-signal-connect-closure-by-id
             g-signal-parse-name
 
@@ -84,6 +87,85 @@
                        0
                        %null-pointer)))
 
+(define %g-signal-newv-args-fmt
+  "
+   g_signal_newv
+           name: ~S
+     iface-type: ~A
+          flags: ~A
+  class-closure: ~A
+    accumulator: ~A
+      accu-data: ~A
+   c-marshaller: ~A
+    return-type: ~A
+        n-param: ~A
+    param-types: ~A
+
+")
+
+(define* (show-g-signal-newv name
+                             iface-type
+                             flags
+                             class-closure
+                             accumulator
+                             accu-data
+                             c-marshaller
+                             return-type
+                             n-param
+                             param-types
+                             #:optional (port (current-output-port)))
+  (format port "~?" %g-signal-newv-args-fmt
+          (list name
+                iface-type
+                flags
+                class-closure
+                accumulator
+                accu-data
+                c-marshaller
+                return-type
+                n-param
+                param-types)))
+
+(define (g-signal-newv name
+                       iface-type
+                       flags
+                       class-closure
+                       accumulator
+                       accu-data
+                       c-marshaller
+                       return-type
+                       n-param
+                       param-types)
+  (let* ((%scm->g-type (@ (g-golf hl-api utils) scm->g-type))
+         (name (if (symbol? name) (symbol->string name) name))
+         (flags (flags->integer %g-signal-flags flags))
+         (class-closure (scm->gi class-closure 'pointer))
+         (accumulator (scm->gi accumulator 'pointer))
+         (accu-data (scm->gi accu-data 'pointer))
+         (c-marshaller (scm->gi c-marshaller 'pointer))
+         (return-type (%scm->g-type return-type))
+         (param-types (scm->gi (map %scm->g-type param-types) 'gtypes)))
+    #;(show-g-signal-newv name
+                        iface-type
+                        flags
+                        class-closure
+                        accumulator
+                        accu-data
+                        c-marshaller
+                        return-type
+                        n-param
+                        param-types)
+    (g_signal_newv (scm->gi name 'string)
+                   iface-type
+                   flags
+                   class-closure
+                   accumulator
+                   accu-data
+                   c-marshaller
+                   return-type
+                   n-param
+                   param-types)))
+
 (define (g-signal-query id)
   (let ((gsq (g-signal-query-new)))
     (g_signal_query id gsq)
@@ -98,6 +180,15 @@
              n-param
              (decode-param-types n-param param-types))))))
 
+(define (g-signal-lookup name g-type)
+  (let ((gsl (g_signal_lookup (scm->gi name 'string)
+                              g-type)))
+    (case gsl
+      ((0)
+       #f)
+      (else
+       gsl))))
+
 (define (g-signal-list-ids g-type)
   (let* ((s-uint (sizeof unsigned-int))
          (n-id-bv (make-bytevector s-uint 0))
@@ -110,14 +201,9 @@
     (g-free ids)
     results))
 
-(define (g-signal-lookup name g-type)
-  (let ((gsl (g_signal_lookup (scm->gi name 'string)
-                              g-type)))
-    (case gsl
-      ((0)
-       #f)
-      (else
-       gsl))))
+(define (g-signal-emitv params id detail return-value)
+  (g_signal_emitv params id detail
+                  (scm->gi return-value 'pointer)))
 
 (define (g-signal-connect-closure-by-id g-inst
                                         signal-id detail closure after?)
@@ -168,6 +254,21 @@
 ;;; Signals Bindings
 ;;;
 
+(define g_signal_newv
+  (pointer->procedure unsigned-int
+                      (dynamic-func "g_signal_newv"
+				    %libgobject)
+                      (list '*			;; name
+                            size_t		;; iface-type
+                            unsigned-int	;; flags
+                            '*			;; class-closure
+                            '*			;; accumulator
+                            '*			;; accu-data
+                            '*			;; c-marshaller
+                            size_t		;; return-type
+                            unsigned-int	;; n-param
+                            '*)))		;; param-types
+
 (define g_signal_query
   (pointer->procedure void
                       (dynamic-func "g_signal_query"
@@ -188,6 +289,15 @@
 				    %libgobject)
                       (list size_t		;; g-type
                             '*)))		;; n-id (pointer to guint)
+
+(define g_signal_emitv
+  (pointer->procedure void
+                      (dynamic-func "g_signal_emitv"
+				    %libgobject)
+                      (list '*			;; params
+                            unsigned-int	;; id
+                            uint32		;; detail
+                            '*)))		;; return-value
 
 (define g_signal_connect_closure_by_id
   (pointer->procedure unsigned-long

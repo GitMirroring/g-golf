@@ -22,6 +22,7 @@ Miscellaneous Utility Functions - a selection of portable utility functions
 @item @ref{g-set-prgname}
 @item @ref{g-get-system-data-dirs}
 @item @ref{g-get-system-config-dirs}
+@item @ref{g-get-os-info}
 @end table
 @end indentedblock
 
@@ -145,6 +146,22 @@ not user specific. For example, an application can store a spell-check
 dictionary, a database of clip art, or a log file in the
 CSIDL_COMMON_APPDATA folder. This information will not roam and is
 available to anyone using the computer.
+@end deffn
+
+
+@anchor{g-get-os-info}
+@deffn Procedure g-get-os-info key-name
+
+Returns a string or #f.
+
+Obtains and returns information about the operating system.
+
+On Linux this comes from the @file{/etc/os-release} file. On other
+systems, it may come from a variety of sources. You can pass any UTF-8
+string key name.
+
+The associated value for the requested @var{key-name} is returned or
+@code{#f} if this information is not provided.
 @end deffn
 
 
