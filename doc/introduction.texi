@@ -103,7 +103,7 @@ file you should grab is:
 
 @subheading Dependencies
 
-@strong{-- Main Dependencies}
+@strong{* Main Dependencies}
 
 G-Golf needs the following software to run:
 
@@ -120,7 +120,7 @@ Makeinfo @geq{} 6.6
 @item
 @uref{@value{UGUILE}, Guile} @geq{} 2.0.14
 
-[allows 2.2 and 3.0 (@geq{} 3.0.7)]
+[ allows 2.2 and 3.0 (@geq{} 3.0.7) ]
 
 @item
 @uref{@value{UGUILE-LIB}, Guile-Lib} @geq{} 0.2.5
@@ -136,24 +136,26 @@ Makeinfo @geq{} 6.6
 @end itemize
 
 
-@strong{-- Test-Suite Dependencies}
+@strong{* Test-Suite Dependencies}
 
 G-Golf currently needs the following additional software to run its
 test-suite:
 
 @itemize @bullet
-@item
-@uref{@value{UCLUTTER}, Clutter-1.0} @geq{} 1.24.0
+@c @item
+@c @uref{@value{UCLUTTER}, Clutter-1.0} @geq{} 1.24.0
 
 @item
 @uref{@value{UGTK3}, Gtk-3.0} @geq{} 3.10.0
 @end itemize
 
 
-@strong{-- Examples Dependencies}
+@strong{* Examples Dependencies}
 
-@emph{Gtk-4.0 examples:} G-Golf currently needs the following additional
-software to run its Gtk-4.0 examples:
+@emph{ -- Gtk-4.0 examples -- }
+
+G-Golf currently needs the following additional software to run its
+Gtk-4.0 examples:
 
 @itemize @bullet
 @item
@@ -167,8 +169,10 @@ the following new interface (which is not in guile-cairo 1.11.2):
 @code{cairo-pointer->context}.
 @end itemize
 
-@emph{Adwaita examples:} G-Golf currently needs the following additional
-software to run its Adw-1 examples:
+@emph{ -- Adwaita examples -- }
+
+G-Golf currently needs the following additional software to run its
+Adw-1 examples:
 
 @itemize @bullet
 @item

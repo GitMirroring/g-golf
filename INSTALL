@@ -42,7 +42,6 @@ G-Golf needs the following software to run:
 G-Golf currently needs the following additional
 software to run its test-suite:
 
-	Clutter-1.0			>= 1.24.0
 	Gtk-3.0				>= 3.10.0
 
 *** Examples Dependencies
