@@ -118,12 +118,7 @@ Automake @geq{} 1.14
 Makeinfo @geq{} 6.6
 
 @item
-@uref{@value{UGUILE}, Guile} @geq{} 2.0.14
-
-[ allows 2.2 and 3.0 (@geq{} 3.0.7) ]
-
-@item
-@uref{@value{UGUILE-LIB}, Guile-Lib} @geq{} 0.2.5
+@uref{@value{UGUILE}, Guile} 2.0 (@geq{} 2.0.14), 2.2 or 3.0 (@geq{} 3.0.7)
 
 @item
 @uref{@value{UGLIB}, Glib-2.0} @geq{} 2.73.0
@@ -144,6 +139,9 @@ test-suite:
 @itemize @bullet
 @c @item
 @c @uref{@value{UCLUTTER}, Clutter-1.0} @geq{} 1.24.0
+
+@item
+@uref{@value{UGUILE-LIB}, Guile-Lib} @geq{} 0.2.5
 
 @item
 @uref{@value{UGTK3}, Gtk-3.0} @geq{} 3.10.0

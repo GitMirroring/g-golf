@@ -32,7 +32,6 @@ G-Golf needs the following software to run:
 	Makeinfo			>= 6.6
 	[[http://www.gnu.org/software/guile][Guile]]  				>= 2.0.14
 	  [allows 2.2, 3.0 (>= 3.0.7)]
-	[[http://www.nongnu.org/guile-lib/][Guile-Lib]]			>= 0.2.5
 	Glib-2.0			>= 2.73.0
 	Gobject-2.0			>= 2.73.0
 	GObject-Introspection-1.0	>= 1.72.0
@@ -42,6 +41,7 @@ G-Golf needs the following software to run:
 G-Golf currently needs the following additional
 software to run its test-suite:
 
+	[[http://www.nongnu.org/guile-lib/][Guile-Lib]]			>= 0.2.5
 	Gtk-3.0				>= 3.10.0
 
 *** Examples Dependencies
