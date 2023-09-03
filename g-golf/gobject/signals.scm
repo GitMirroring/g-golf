@@ -55,6 +55,7 @@
             g-signal-list-ids
             g-signal-emitv
             g-signal-connect-closure-by-id
+            g-signal-handler-disconnect
             g-signal-parse-name
 
             %g-signal-flags))
@@ -217,6 +218,9 @@
                                   closure
                                   (scm->gi after? 'boolean)))
 
+(define (g-signal-handler-disconnect g-inst handler-id)
+  (g_signal_handler_disconnect g-inst handler-id))
+
 (define* (g-signal-parse-name detailed-signal g-type
                               #:optional (force-detail-quark #t))
   (let* ((d-signal (if (symbol? detailed-signal)
@@ -308,6 +312,13 @@
                             uint32		;; detail (g-quark)
                             '*			;; closure
                             int)))		;; after (boolean)
+
+(define g_signal_handler_disconnect
+  (pointer->procedure void
+                      (dynamic-func "g_signal_handler_disconnect"
+				    %libgobject)
+                      (list '*			;; g-inst
+                            unsigned-long)))	;; handler-id
 
 (define g_signal_parse_name
   (pointer->procedure int
