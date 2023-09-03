@@ -115,8 +115,7 @@
                                            (!id signal)
                                            detail
                                            (!g-closure closure)
-                                           after?)
-           (values)))))))
+                                           after?)))))))
 
 (define (make-signal id s-name name iface-type iface-name
                      flags return-type n-param param-types)
