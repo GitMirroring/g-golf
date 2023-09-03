@@ -78,6 +78,7 @@
             g-value-set-boxed
             g-value-get-pointer
             g-value-set-pointer
+            g-param-spec-object
             g-value-get-object
             g-value-set-object
             g-value-get-variant
@@ -397,6 +398,20 @@
   (g_value_set_pointer g-value
                        (if pointer pointer %null-pointer)))
 
+(define (g-param-spec-object name nick blurb type flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (g-type (!g-type type))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_object (string->pointer name)
+                                  (string->pointer nick)
+                                  (string->pointer blurb)
+                                  g-type
+                                  (flags->integer g-param-flags flags))
+             'pointer)))
+
 (define (g-value-get-object g-value)
   (let ((object (g_value_get_object g-value)))
     (if (null-pointer? object)
@@ -583,6 +598,16 @@
 				    %libgobject)
                       (list '*
                             '*)))
+
+(define g_param_spec_object
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_object"
+				    %libgobject)
+                      (list '*		;; name
+                            '*		;; nick
+                            '*		;; blurb
+                            size_t	;; g-type
+                            unsigned-int))) ;; flags
 
 (define g_value_get_object
   (pointer->procedure '*
