@@ -56,6 +56,13 @@
 
 
 (eval-when (expand load eval)
+  (for-each (lambda (name)
+              (gi-import-by-name "Gio" name))
+      '("Action"
+	"SimpleAction"
+	"ActionMap"
+	"Settings"
+	"SettingsSchemaSource"))
   (g-irepository-require "Gtk" #:version "4.0")
   (for-each (lambda (name)
               (gi-import-by-name "Gdk" name))

@@ -38,14 +38,6 @@ exec guile -e main -s "$0" "$@"
 
   (use-modules (g-golf))
 
-  (for-each (lambda (name)
-              (gi-import-by-name "Gio" name))
-      '("Action"
-	"SimpleAction"
-	"ActionMap"
-	"Settings"
-	"SettingsSchemaSource"))
-
   (g-irepository-require "Adw" #:version "1")
   (for-each (lambda (name)
               (gi-import-by-name "Adw" name))
@@ -63,4 +55,5 @@ exec guile -e main -s "$0" "$@"
                #:application-id "org.gnu.g-golf.adw1.demo")))
     (connect app 'activate show-window)
     (let ((status (g-application-run app args)))
-      (exit status))))
+      #;(exit status)
+      'done)))
