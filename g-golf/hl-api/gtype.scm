@@ -287,20 +287,24 @@
                             initargs)
       (let* ((g-inst? (get-keyword #:g-inst initargs #f))
              (g-inst (or g-inst?
-                        (g-inst-construct self split-kw))))
-        (next-method self split-rest)
-        (set! (!g-inst self) g-inst)
-        (g-inst-cache-set! g-inst self)
-        (case g-type-name
-          ((object) ;; [not when interface]
-           (when (g-object-is-floating g-inst)
-             (g-object-ref-sink g-inst))
-           (g-object-add-toggle-ref g-inst %g-toggle-notify #f)))
-        (initialize-g-param-slots self)
-        (unless (null? (class-child-id-slots class))
-          (initialize-child-id-slots self))))))
+                         (g-inst-construct self split-kw))))
+        (receive (split-g-param-kw split-next-method-kw)
+            (split-keyword-args (map slot-definition-init-keyword
+                                  (class-g-param-slots class))
+                                split-rest)
+          (next-method self split-next-method-kw)
+          (set! (!g-inst self) g-inst)
+          (g-inst-cache-set! g-inst self)
+          (case g-type-name
+            ((object) ;; [not when interface]
+             (when (g-object-is-floating g-inst)
+               (g-object-ref-sink g-inst))
+             (g-object-add-toggle-ref g-inst %g-toggle-notify #f)))
+          (initialize-g-param-slots self split-g-param-kw)
+          (unless (null? (class-child-id-slots class))
+            (initialize-child-id-slots self)))))))
 
-(define (initialize-g-param-slots inst)
+(define (initialize-g-param-slots inst g-param-kw)
   (let* ((class (class-of inst))
          (g-class (!g-class class)))
     (for-each (lambda (item)
@@ -309,12 +313,17 @@
                    (for-each
                        (lambda (slot)
                          (let* ((name (slot-definition-name slot))
-                                (p-name (symbol->string name))
-                                (p-spec (g-object-class-find-property g-class p-name))
-                                (p-spec-default (g-param-spec-get-default-value p-spec))
-                                (default (g-value-ref p-spec-default))
-                                (name_ (symbol-append name '_)))
-                           (slot-set! inst name_ default)))
+                                (name_ (symbol-append name '_))
+                                (init-kw? (slot-definition-init-keyword slot))
+                                (init-value? (and init-kw?
+                                                  (get-keyword init-kw? g-param-kw #f))))
+                           (if init-value?
+                               (slot-set! inst name_ init-value?)
+                               (let* ((p-name (symbol->string name))
+                                      (p-spec (g-object-class-find-property g-class p-name))
+                                      (p-spec-default (g-param-spec-get-default-value p-spec))
+                                      (default (g-value-ref p-spec-default)))
+                                 (slot-set! inst name_ default)))))
                        g-param-slots))))
         (g-class-g-param-slots class))))
 
