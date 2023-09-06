@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2022
+;;;; Copyright (C) 2016 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -227,20 +227,32 @@ add as a comment)."
      (error "No such GI type tag: " type-tag))))
 
 (define (gi-type-tag->bv-acc type-tag)
-  "Returns the srfi-4 bytevector accessor for type-tag."
+  "Returns the srfi-4 bytevector constructor, getter and setter for
+type-tag."
   (case type-tag
-    ((int8) s8vector-ref)
-    ((uint8) u8vector-ref)
-    ((int16) s16vector-ref)
-    ((uint16) u16vector-ref)
+    ((int8)
+     (values make-s8vector s8vector-ref s8vector-set!))
+    ((uint8)
+     (values make-u8vector u8vector-ref u8vector-set!))
+    ((int16)
+     (values make-s16vector s16vector-ref s16vector-set!))
+    ((uint16)
+     (values make-u16vector u16vector-ref u16vector-set!))
     ((boolean
-      int32) s32vector-ref)
-    ((uint32) u32vector-ref)
-    ((int64) s64vector-ref)
-    ((uint64) u64vector-ref)
-    ((gtype) gtypevector-ref)
-    ((float) f32vector-ref)
-    ((double) f64vector-ref)
+      int32)
+     (values make-s32vector s32vector-ref s32vector-set!))
+    ((uint32)
+     (values make-u32vector u32vector-ref u32vector-set!))
+    ((int64)
+     (values make-s64vector s64vector-ref s64vector-set!))
+    ((uint64)
+     (values make-u64vector u64vector-ref u64vector-set!))
+    ((float)
+     (values make-f32vector f32vector-ref f32vector-set!))
+    ((double)
+     (values make-f64vector f64vector-ref f64vector-set!))
+    ((gtype)
+     (values make-gtypevector gtypevector-ref gtypevector-set!))
     (else
      (error "No such GI type tag: " type-tag))))
 
