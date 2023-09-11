@@ -26,53 +26,31 @@
 ;;; Code:
 
 
-(define-module (adw1-demo navigation-view)
+(define-module (adw1-demo navigation-view-demo-window)
   #:use-module (oop goops)
   #:use-module (g-golf)
-  #:use-module (adw1-demo navigation-view-demo-window)
-  
+
   #:duplicates (merge-generics
 		replace
 		warn-override-core
 		warn
 		last)
 
-  #:export (<adw-demo-page-navigation-view>))
+  #:export (<adw-navigation-view-demo-window>))
 
 
 #;(g-export )
 
 
 (eval-when (expand load eval)
-  (g-irepository-require "Gtk" #:version "4.0")
-  (for-each (lambda (name)
-              (gi-import-by-name "Gtk" name))
-      '("Root"
-        "Button"))
   (g-irepository-require "Adw" #:version "1")
   (for-each (lambda (name)
               (gi-import-by-name "Adw" name))
-      '("Bin")))
+      '("Window")))
 
 
-(define-class <adw-demo-page-navigation-view> (<adw-bin>)
+(define-class <adw-navigation-view-demo-window> (<adw-window>)
   ;; slots
-  (navigation-view-button #:child-id "navigation-view-button"
-                          #:accessor !navigation-view-button)
   ;; class options
   #:template (string-append (dirname (current-filename))
-                            "/ui/navigation-view.ui")
-  #:child-ids '("navigation-view-button"))
-
-
-(define-method (initialize (self <adw-demo-page-navigation-view>) initargs)
-  (next-method)
-
-  (connect (!navigation-view-button self)
-           "clicked"
-           (lambda (b)
-             (let ((adw-navigation-view-demo-window
-                    (make <adw-navigation-view-demo-window>)))
-               (set-transient-for adw-navigation-view-demo-window
-                                  (get-root self))
-               (present adw-navigation-view-demo-window)))))
+                            "/ui/navigation-view-demo-window.ui"))

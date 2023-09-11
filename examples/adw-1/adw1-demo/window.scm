@@ -33,7 +33,7 @@
   #:use-module (adw1-demo preferences)
   #:use-module (adw1-demo welcome)
   #:use-module (adw1-demo navigation-view)
-  
+
   #:duplicates (merge-generics
 		replace
 		warn-override-core

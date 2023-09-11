@@ -53,5 +53,3 @@
 
 (define (make-ui)
   (sxml->ui %navigation-view))
-
-
