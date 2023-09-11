@@ -29,6 +29,10 @@
 (define-module (adw1-demo window)
   #:use-module (oop goops)
   #:use-module (g-golf)
+  #:use-module (adw1-demo debug-info)
+  #:use-module (adw1-demo preferences)
+  #:use-module (adw1-demo welcome)
+  #:use-module (adw1-demo navigation-view)
   
   #:duplicates (merge-generics
 		replace
@@ -45,20 +49,10 @@
           !stack)
 
 
-(use-modules (adw1-demo debug-info)
-             (adw1-demo preferences)
-             (adw1-demo welcome)
-             (adw1-demo navigation-view))
-
-
 (eval-when (expand load eval)
   (for-each (lambda (name)
               (gi-import-by-name "Gio" name))
-      '("Action"
-	"SimpleAction"
-	"ActionMap"
-	"Settings"
-	"SettingsSchemaSource"))
+      '("SimpleAction"))
   (g-irepository-require "Gtk" #:version "4.0")
   (for-each (lambda (name)
               (gi-import-by-name "Gdk" name))
@@ -79,9 +73,7 @@
         "AboutWindow"
         "StyleManager"
         "ColorScheme"
-        "NavigationSplitView"
-        "NavigationPage"
-        "NavigationDirection")))
+        "NavigationSplitView")))
 
 
 (define-class <adw-demo-window> (<adw-application-window>)
