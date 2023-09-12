@@ -46,8 +46,10 @@ software to run its test-suite:
 
 *** Examples Dependencies
 
-Gtk-4.0 examples: G-Golf currently needs the following additional
-software to run its Gtk-4.0 examples:
+- Gtk-4.0 examples - 
+
+G-Golf currently needs the following additional software to run its
+Gtk-4.0 examples:
 
 	Gtk-4.0				>= 4.10.0
 	Guile-Cairo			> 1.11.2
@@ -56,10 +58,12 @@ software to run its Gtk-4.0 examples:
     contains the following new interface (which is not in guile-cairo
     1.11.2):	 cairo-pointer->context
 
-Adwaita examples: G-Golf currently needs the following additional
-software to run its Adw-1 examples:
+- Adwaita examples -
 
-  Adw-1 >= 1.2.2
+G-Golf currently needs the following additional software to run its
+Adw-1 examples:
+
+  Adw-1 >= 1.4.0
 
 ** Install from the tarball
 

@@ -174,7 +174,7 @@ Adw-1 examples:
 
 @itemize @bullet
 @item
-@uref{@value{UADW1}, Adw-1} @geq{} 1.2.2
+@uref{@value{UADW1}, Adw-1} @geq{} 1.4.0
 @end itemize
 
 
