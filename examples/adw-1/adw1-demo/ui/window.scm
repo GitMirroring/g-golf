@@ -89,6 +89,9 @@
 
 (define %content
   `(object (@ (class "AdwNavigationPage"))
+     ;; libadwaita-1-0:amd64 1.4~rc-1 complains if none, despite
+     ;; its AdwHeaderBar show-title property set to false ...
+     (property (@ (name "title")) "Bluefox") ;; fake title
      (property (@ (name "child"))
        (object (@ (class "AdwToolbarView"))
          (child (@ (type "top"))
