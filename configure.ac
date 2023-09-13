@@ -31,7 +31,7 @@ AC_PREREQ(2.69)
 
 AC_INIT(
   [g-golf],
-  [0.8.0-a.5],
+  [0.8.0-alpha-6],
   [bug-g-golf@gnu.org])
 
 AC_CONFIG_AUX_DIR([build-aux])
@@ -101,11 +101,16 @@ PKG_CHECK_MODULES(GOBJECT, gobject-2.0 >= 2.73.0)
 AC_SUBST(GOBJECT_CFLAGS)
 AC_SUBST(GOBJECT_LIBS)
 
+# Only needed to run the test-suite
 # PKG_CHECK_MODULES(GTK, gtk+-3.0 >= 3.24.0)
 # AC_SUBST(GTK_CFLAGS)
 # AC_SUBST(GTK_LIBS)
 
-PKG_CHECK_MODULES(GUILE_LIB, guile-lib-1.0 >= 0.2.5)
+# Only needed to run the test-suite
+# PKG_CHECK_MODULES(GUILE_LIB, guile-lib-1.0 >= 0.2.5)
+
+# Although guile itself depends on libffi, we make this call to get
+# FFI_CFLAGS and FFI_LIBS to be defined, used by libg-golf.
 PKG_CHECK_MODULES(FFI, libffi >= 3.3.0)
 
 

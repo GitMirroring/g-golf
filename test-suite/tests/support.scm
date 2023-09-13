@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2022
+;;;; Copyright (C) 2016 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -154,10 +154,10 @@
                 (g-name->name "webkit_network_proxy_settings_new"))
   (assert-equal "gobject"
                 (g-name->name "GObject" 'as-string))
-  (assert-equal "clutter-actor"
-		(g-name->name "ClutterActor" 'as-string))
-  (assert-equal '<clutter-actor>
-		(g-name->class-name "ClutterActor"))
+  (assert-equal "adw-application-window"
+		(g-name->name "AdwApplicationWindow" 'as-string))
+  (assert-equal '<adw-application-window>
+		(g-name->class-name "AdwApplicationWindow"))
   (assert-equal 'g-variant-type-checked-
                 (g-name->name "g_variant_type_checked_"))
   (assert-equal 'get-event-type

@@ -1,8 +1,4 @@
-#! /bin/sh
-# -*- mode: scheme; coding: utf-8 -*-
-exec guile -e main -s "$0" "$@"
-!#
-
+;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
 ;;;; Copyright (C) 2023
@@ -30,30 +26,31 @@ exec guile -e main -s "$0" "$@"
 ;;; Code:
 
 
+(define-module (adw1-demo navigation-view-demo-window)
+  #:use-module (oop goops)
+  #:use-module (g-golf)
+
+  #:duplicates (merge-generics
+		replace
+		warn-override-core
+		warn
+		last)
+
+  #:export (<adw-navigation-view-demo-window>))
+
+
+#;(g-export )
+
+
 (eval-when (expand load eval)
-  (use-modules (oop goops))
-
-  (default-duplicate-binding-handler
-    '(merge-generics replace warn-override-core warn last))
-
-  (use-modules (g-golf))
-
   (g-irepository-require "Adw" #:version "1")
   (for-each (lambda (name)
               (gi-import-by-name "Adw" name))
-      '("Application")))
+      '("Window")))
 
 
-(add-to-load-path
- (dirname (current-filename)))
-
-(use-modules (adw1-demo window))
-
-
-(define (main args)
-  (let ((app (make <adw-application>
-               #:application-id "org.gnu.g-golf.adw1.demo")))
-    (connect app 'activate show-window)
-    (let ((status (g-application-run app args)))
-      #;(exit status)
-      'done)))
+(define-class <adw-navigation-view-demo-window> (<adw-window>)
+  ;; slots
+  ;; class options
+  #:template (string-append (dirname (current-filename))
+                            "/ui/navigation-view-demo-window.ui"))

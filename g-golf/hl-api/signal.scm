@@ -78,6 +78,7 @@
 
           connect
           connect-after
+          disconnect
           emit)
 
 
@@ -115,8 +116,10 @@
                                            (!id signal)
                                            detail
                                            (!g-closure closure)
-                                           after?)
-           (values)))))))
+                                           after?)))))))
+
+(define-method (disconnect (inst <gtype-instance>) handler-id)
+  (g-signal-handler-disconnect (!g-inst inst) handler-id))
 
 (define (make-signal id s-name name iface-type iface-name
                      flags return-type n-param param-types)

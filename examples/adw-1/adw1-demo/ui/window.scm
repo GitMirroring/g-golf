@@ -46,46 +46,18 @@
                        (translatable "yes")) _"About Adwaita Demo")
          (attribute (@ (name "action")) app.about)))))
 
-(define %header-bar-1
+(define %sidebar-headerbar
   '(object (@ (class "AdwHeaderBar"))
-     (property (@ (name "show-end-title-buttons")
-                  (bind-source "main-leaflet")
-                  (bind-property "folded")
-                  (bind-flags "sync-create")))
      (child (@ (type "start"))
        (object (@ (class "GtkButton")
                   (id "color-scheme-button"))))
      (child (@ (type "end"))
        (object (@ (class "GtkMenuButton"))
+         (property (@ (name "tooltip-text")
+                      (translatable "yes")) "Main Menu")
          (property (@ (name "menu-model")) primary-menu)
          (property (@ (name "icon-name")) open-menu-symbolic)
          (property (@ (name "primary")) True)))))
-
-(define %stack-sidebar
-  '(object (@ (class "GtkStackSidebar"))
-     (property (@ (name "width-request")) 270)
-     (property (@ (name "vexpand")) True)
-     (property (@ (name "stack")) stack)))
-
-(define %header-bar-2
-  '(object (@ (class "AdwHeaderBar"))
-     (property (@ (name "show-start-title-buttons")
-                  (bind-source "main-leaflet")
-                  (bind-property "folded")
-                  (bind-flags "sync-create")))
-     (property (@ (name "title-widget"))
-       (object (@ (class "GtkBox"))))
-     (child (@ (type "start"))
-       (object (@ (class "GtkButton")
-                  (id "main-go-previous"))
-         (property (@ (name "valign")) center)
-         (property (@ (name "tooltip-text")
-                      (translatable "yes")) Back)
-         (property (@ (name "icon-name")) go-previous-symbolic)
-         (property (@ (name "visible")
-                      (bind-source "main-leaflet")
-                      (bind-property "folded")
-                      (bind-flags "sync-create")))))))
 
 (define %welcome-page
   '(object (@ (class "GtkStackPage"))
@@ -94,88 +66,44 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageWelcome"))))))
 
-(define %leaflet-page
+(define %navigation-view
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
-                  (translatable "yes")) Leaflet)
+                  (translatable "yes")) "Navigation View")
      (property (@ (name "child"))
-       (object (@ (class "AdwDemoPageLeaflet")
-                  (id "leaflet-page"))
-         ;; signal - next-page ...
-         ))))
+       (object (@ (class "AdwDemoPageNavigationView"))))))
 
-(define %stack
-  `(object (@ (class "GtkStack")
-              (id "stack"))
-     (property (@ (name "vexpand")) True)
-     (property (@ (name "vhomogeneous")) False)
-     ;; signal - notify::visible-child ... 
-     (child ,%welcome-page)
-     (child ,%leaflet-page)))
-
-(define %main-leaflet
-  `(object (@ (class "AdwLeaflet")
-              (id "main-leaflet"))
-     (property (@ (name "can-navigate-back")) True)
-     (property (@ (name "transition-type")
-                  (bind-source "leaflet-page")
-                  (bind-property "transition-type")
-                  (bind-flags "sync-create|bidirectional")))
-     (child
-         (object (@ (class "GtkBox"))
-           (property (@ (name "orientation")) vertical)
-           (child ,%header-bar-1)
-           (child ,%stack-sidebar)))
-     (child
-         (object (@ (class "AdwLeafletPage"))
-           (property (@ (name "navigatable")) False)
-           (property (@ (name "child"))
-             (object (@ (class "GtkSeparator"))))))
-     (child
-         (object (@ (class "GtkBox"))
-           (property (@ (name "orientation")) vertical)
-           (property (@ (name "hexpand")) True)
-           (child ,%header-bar-2)
-           (child ,%stack)))))
-
-(define %header-bar-3
-  '(object (@ (class "AdwHeaderBar"))
-     (property (@ (name "title-widget"))
-       (object (@ (class "GtkBox"))))
-     (child (@ (type "start"))
-       (object (@ (class "GtkButton")
-                  (id "subpage-go-previous"))
-         (property (@ (name "valign")) center)
-         (property (@ (name "tooltip-text")
-                      (translatable "yes")) Back)
-         (property (@ (name "icon-name")) go-previous-symbolic)
-         #;(property (@ (name "visible")
-                      (bind-source "main-leaflet")
-                      (bind-property "folded")
-                      (bind-flags "sync-create")))))))
-
-(define %status-page
-  '(object (@ (class "AdwStatusPage"))
-     (property (@ (name "vexpand")) True)
+(define %sidebar
+  `(object (@ (class "AdwNavigationPage"))
      (property (@ (name "title")
-                  (translatable "yes")) Go Back)
+                  (bind-source "AdwDemoWindow")
+                  (bind-property "title")
+                  (bind-flags "sync-create")))
      (property (@ (name "child"))
-       (object (@ (class "GtkBox"))
-         (property (@ (name "orientation")) vertical)
-         (property (@ (name "halign")) center)
-         (property (@ (name "spacing")) 12)
-         (child
-             (object (@ (class "GtkImage"))
-               (property (@ (name "icon-name"))
-                 gesture-touchscreen-swipe-back-symbolic)
-               (property (@ (name "pixel-size")) 128)
-               (style (class (@ (name "dim-label"))))))
-         (child
-             (object (@ (class "GtkImage"))
-               (property (@ (name "icon-name"))
-                 gesture-touchpad-swipe-back-symbolic)
-               (property (@ (name "pixel-size")) 128)
-               (style (class (@ (name "dim-label"))))))))))
+       (object (@ (class "AdwToolbarView"))
+         (child (@ (type "top"))
+           ,%sidebar-headerbar)
+         (property (@ (name "content"))
+           (object (@ (class "GtkStackSidebar"))
+             (property (@ (name "stack")) stack)))))))
+
+(define %content
+  `(object (@ (class "AdwNavigationPage"))
+     ;; libadwaita-1-0:amd64 1.4~rc-1 complains if none, despite
+     ;; its AdwHeaderBar show-title property set to false ...
+     (property (@ (name "title")) "Bluefox") ;; fake title
+     (property (@ (name "child"))
+       (object (@ (class "AdwToolbarView"))
+         (child (@ (type "top"))
+           (object (@ (class "AdwHeaderBar"))
+             (property (@ (name "show-title")) False)))
+         (property (@ (name "content"))
+           (object (@ (class "GtkStack")
+                      (id "stack"))
+             (property (@ (name "vhomogeneous")) False)
+             ;; signal - notify::visible-child ...
+             (child ,%welcome-page)
+             (child ,%navigation-view)))))))
 
 (define %window
   `(interface
@@ -188,25 +116,24 @@
                    (translatable "yes")) "Adwaita Demo")
       (property (@ (name "default-width")) 800)
       (property (@ (name "default-height")) 576)
+      (property (@ (name "width-request")) 360)
+      (property (@ (name "height-request")) 200)
+      (child
+          (object (@ (class "AdwBreakpoint"))
+            (condition "max-width: 500sp")
+            (setter (@ (object "split-view")
+                       (property "collapsed")) True)))
       (property (@ (name "content"))
         (object (@ (class "AdwToastOverlay")
                    (id "toast-overlay"))
           (property (@ (name "child"))
-            (object (@ (class "AdwLeaflet")
-                       (id "subpage-leaflet"))
-              (property (@ (name "can-navigate-back")) True)
-              (property (@ (name "width-request")) 360)
-              (property (@ (name "can-unfold")) False)
-              (property (@ (name "transition-type")
-                           (bind-source "leaflet-page")
-                           (bind-property "transition-type")
-                           (bind-flags "sync-create|bidirectional")))
-              (child ,%main-leaflet)
-              (child
-                  (object (@ (class "GtkBox"))
-                    (property (@ (name "orientation")) vertical)
-                    (child ,%header-bar-3)
-                    (child ,%status-page))))))))))
+            (object (@ (class "AdwNavigationSplitView")
+                       (id "split-view"))
+              (property (@ (name "min-sidebar-width")) 240)
+              (property (@ (name "sidebar"))
+                ,%sidebar)
+              (property (@ (name "content"))
+                ,%content))))))))
 
 
 (define (make-ui)

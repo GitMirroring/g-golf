@@ -44,6 +44,7 @@ Parameters and Values — Standard Parameter and Value Types
 @item @ref{g-value-set-boxed}
 @item @ref{g-value-get-pointer}
 @item @ref{g-value-set-pointer}
+@item @ref{g-param-spec-object}
 @item @ref{g-value-get-object}
 @item @ref{g-value-set-object}
 @item @ref{g-value-get-variant}
@@ -396,6 +397,21 @@ Obtains and returns the content of @var{g-value}.
 Returns nothing.
 
 Sets the content of @var{g-value} to @var{pointer}.
+@end deffn
+
+
+@anchor{g-param-spec-object}
+@deffn Procedure g-param-spec-object name nick blurb type flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecBoxed} instance
+specifying a @code{G_TYPE_OBJECT} derived property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{type} a
+@code{<gobject>} derived type of this property and @var{flags} the flags
+- for the property specified.
 @end deffn
 
 

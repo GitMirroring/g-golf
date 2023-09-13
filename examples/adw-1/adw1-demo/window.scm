@@ -29,7 +29,11 @@
 (define-module (adw1-demo window)
   #:use-module (oop goops)
   #:use-module (g-golf)
-  
+  #:use-module (adw1-demo debug-info)
+  #:use-module (adw1-demo preferences)
+  #:use-module (adw1-demo welcome)
+  #:use-module (adw1-demo navigation-view)
+
   #:duplicates (merge-generics
 		replace
 		warn-override-core
@@ -40,22 +44,15 @@
             show-window))
 
 
-(g-export !main-leaflet
-          !main-go-previous
+(g-export !split-view
           !color-scheme-button
-          !stack
-          !leaflet-page
-          !subpage-leaflet
-          !subpage-go-previous)
-
-
-(use-modules (adw1-demo debug-info)
-             (adw1-demo preferences)
-             (adw1-demo welcome)
-             (adw1-demo leaflet))
+          !stack)
 
 
 (eval-when (expand load eval)
+  (for-each (lambda (name)
+              (gi-import-by-name "Gio" name))
+      '("SimpleAction"))
   (g-irepository-require "Gtk" #:version "4.0")
   (for-each (lambda (name)
               (gi-import-by-name "Gdk" name))
@@ -76,29 +73,20 @@
         "AboutWindow"
         "StyleManager"
         "ColorScheme"
-        "Leaflet"
-        "NavigationDirection")))
+        "NavigationSplitView")))
 
 
 (define-class <adw-demo-window> (<adw-application-window>)
   ;; slots
-  (main-leaflet #:accessor !main-leaflet #:child-id "main-leaflet")
-  (main-go-previous #:accessor !main-go-previous #:child-id "main-go-previous")
+  (split-view #:accessor !split-view #:child-id "split-view")
   (color-scheme-button #:accessor !color-scheme-button #:child-id "color-scheme-button")
   (stack #:accessor !stack #:child-id "stack")
-  (leaflet-page #:accessor !leaflet-page #:child-id "leaflet-page")
-  (subpage-leaflet #:accessor !subpage-leaflet #:child-id "subpage-leaflet")
-  (subpage-go-previous #:accessor !subpage-go-previous #:child-id "subpage-go-previous")
   ;; class options
   #:template (string-append (dirname (current-filename))
                             "/ui/window.ui")
-  #:child-ids '("main-leaflet"
-                "main-go-previous"
+  #:child-ids '("split-view"
                 "color-scheme-button"
-                "stack"
-                "leaflet-page"
-                "subpage-leaflet"
-                "subpage-go-previous"))
+                "stack"))
 
 (define (install-actions app)
   (let ((a-inspector (make <g-simple-action> #:name "inspector"))
@@ -124,8 +112,7 @@
     (connect a-about
              'activate
              (lambda (s-action g-variant)
-               (show-about app)))
-    ))
+               (show-about app)))))
 
 (define %developers
   '("Adrien Plazas"
@@ -202,21 +189,6 @@
                        ;; (dimfi s c (g-object-type-name c)
                        (notify-visible-child-cb window)))
 
-      (connect (!main-go-previous window)
-               'clicked
-               (lambda (b)
-                 (main-go-previous-cb window)))
-
-      (connect (!subpage-go-previous window)
-               'clicked
-               (lambda (b)
-                 (subpage-go-previous-cb window)))
-
-      (connect (!leaflet-page window)
-               'next-page
-               (lambda (l)
-                 (navigate (!subpage-leaflet window) 'forward)))
-
       (present window))))
 
 (define (make-expression type closure flags)
@@ -247,10 +219,4 @@
       (set-color-scheme manager 'default))))
 
 (define (notify-visible-child-cb window)
-  (navigate (!main-leaflet window) 'forward))
-
-(define (main-go-previous-cb window)
-  (navigate (!main-leaflet window) 'back))
-
-(define (subpage-go-previous-cb window)
-  (navigate (!subpage-leaflet window) 'back))
+  (set-show-content (!split-view window) #t))

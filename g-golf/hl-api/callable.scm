@@ -561,18 +561,26 @@
                   (gi-argument-set! gi-argument 'v-pointer #f)
                   (error "Invalid (pointer to) " type-tag " argument: " value))
               (case type-tag
-                ((int32)
+                ((boolean
+                  int8 uint8
+                  int16 uint16
+                  int32 uint32
+                  int64 uint64
+                  float double
+                  gtype)
+                 (receive (make-bv bv-ref bv-set!)
+                     (gi-type-tag->bv-acc type-tag)
                  (let* ((bv-cache (!bv-cache clb/arg))
-                        (s32 (or bv-cache
-                                 (make-s32vector 1 0)))
-                        (s32-ptr (or (!bv-cache-ptr clb/arg)
-                                     (bytevector->pointer s32))))
+                        (bv-cache-ptr (!bv-cache-ptr clb/arg))
+                        (bv (or bv-cache (make-bv 1 0)))
+                        (bv-ptr (or bv-cache-ptr
+                                    (bytevector->pointer bv))))
                    (unless bv-cache
                      (mslot-set! clb/arg
-                                 'bv-cache s32
-                                 'bv-cache-ptr s32-ptr))
-                   (s32vector-set! s32 0 value)
-                   (gi-argument-set! gi-argument 'v-pointer s32-ptr)))
+                                 'bv-cache bv
+                                 'bv-cache-ptr bv-ptr))
+                   (bv-set! bv 0 value)
+                   (gi-argument-set! gi-argument 'v-pointer bv-ptr))))
                 ((void)
                  ;; Till proved wrong, we'll consider those opaque
                  ;; pointers.
@@ -892,16 +900,17 @@
                    int64 uint64
                    float double
                    gtype)
-                  (let* ((field (gi-type-tag->field type-tag))
-                         (type (assq-ref %gi-argument-desc field))
-                         (bv (pointer->bytevector foreign (sizeof type)))
-                         (acc (gi-type-tag->bv-acc type-tag))
-                         (val (acc bv 0)))
-                    (case type-tag
-                      ((boolean)
-                       (gi->scm val 'boolean))
-                      (else
-                       val))))
+                  (receive (make-bv bv-ref bv-set!)
+                      (gi-type-tag->bv-acc type-tag)
+                    (let* ((field (gi-type-tag->field type-tag))
+                           (type (assq-ref %gi-argument-desc field))
+                           (bv (pointer->bytevector foreign (sizeof type)))
+                           (val (bv-ref bv 0)))
+                      (case type-tag
+                        ((boolean)
+                         (gi->scm val 'boolean))
+                        (else
+                         val)))))
                  ((void)
                   ;; Till proved wrong, we'll consider those opaque
                   ;; pointers.

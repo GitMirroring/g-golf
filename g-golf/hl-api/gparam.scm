@@ -43,7 +43,8 @@
   #:export (g-param-construct
 
             g-param-construct-int
-            g-param-construct-enum))
+            g-param-construct-enum
+            g-param-construct-object))
 
 
 #;(g-export )
@@ -61,6 +62,8 @@
           (g-param-construct-int name param-desc))
          ((enum)
           (g-param-construct-enum name param-desc))
+         ((object)
+          (g-param-construct-object name param-desc))
          (else
           (scm-error 'g-param-construct #f
                      "Unimplemented g-param-construct type: ~S"
@@ -94,3 +97,18 @@
                        type
                        default
                        flags)))
+
+(define (g-param-construct-object name param-desc)
+  (let ((nick (get-keyword #:nick param-desc #f))
+        (blurb (get-keyword #:blurb param-desc #f))
+        (type (get-keyword #:type param-desc #f))
+        (flags (get-keyword #:flags param-desc #f)))
+    (if type
+        (g-param-spec-object (symbol->string name)
+                             nick
+                             blurb
+                             type
+                             flags)
+        (scm-error 'g-param-construct-object #f
+                   "Invalid g-param-construct-object type: ~S"
+                   (list type) #f))))

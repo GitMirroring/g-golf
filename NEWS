@@ -26,6 +26,76 @@ warranty.
 
 * Latest News
 
+** September 2023
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-alpha-6 is released.
+
+This is the sixth release of the upcoming 0.8.0 release, now available
+for testing.
+
+*** Noteworthy changes in 0.8.0-alpha-6
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** Dependencies
+
+- Core dependencies
+
+The guile-lib dependency has been removed from the core dependencies, as
+it effectively is only required to run the test-suite.
+
+- Test suite
+
+The test-suite requires guile-lib >= 0.2.5
+The test-suite no longer requires Clutter.
+
+- Adwaita examples
+
+  Adw-1  >=  1.4.0
+
+The adw1-demo - which currently implements the main window, primary menu
+and first two pages (wip) - has been updated to correspond to the latest
+upstream version, which no longer uses the deprecated AdwLeaflet*
+classes. Instead, it uses the AdwNavigationSplitView, AdwNavigationView
+and AdwNavigationPage classes, available since 1.4.0.
+
+**** New features
+
+Derived class
+GObject properties
+
+  Derived classes slot exposed as a gobject property now also support
+  the object type - Wip (supported type are now int, enum and object).
+
+disconnect
+
+New method, which calls the newly added g-signal-handler-disconnect
+binding.
+
+**** Examples
+
+Adwaita Demo
+
+The adw1-demo - which currently implements the main window, primary menu
+and first two pages (wip) - has been updated to correspond to the latest
+upstream version, which no longer uses the deprecated AdwLeaflet*
+classes. Instead, it uses the AdwNavigationSplitView, AdwNavigationView
+and AdwNavigationPage classes, available since 1.4.0.
+
+**** Bug fixing
+
+g-value-set-boxed
+
+Was silently setting the g-value to #f for opaque boxed type, fixed.
+
+connect
+signal-connect
+
+Now return the handler-id, needed to call disconnect.
+
+* Older News
+
 ** August 2023
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-a.5 is released.
@@ -107,8 +177,6 @@ gtk-css-provider-load-from-data function second argument, wHich is no
 longer defined as an array, but a utf8, and hence g-golf would fail,
 when using Gtk 4.10.0, to detect, compute and supply the third argument,
 which is the css string length - fixed.
-
-* Older News
 
 ** April 2023
 

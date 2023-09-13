@@ -39,25 +39,6 @@
 		last))
 
 
-(g-irepository-require "Clutter")
-
-(define %align-info
-  (g-irepository-find-by-name "Clutter" "ActorAlign"))
-
-(define %align-info-g-type
-  (g-registered-type-info-get-g-type %align-info))
-
-(gi-import-enum %align-info)
-
-(define %flags-info
-  (g-irepository-find-by-name "Clutter" "ActorFlags"))
-
-(define %flags-info-g-type
-  (g-registered-type-info-get-g-type %flags-info))
-
-(gi-import-flags %flags-info)
-
-
 (define-class <g-golf-test-gobject> (<test-case>))
 
 
@@ -66,7 +47,7 @@
 ;;;
 
 (define-method (test-g-type-name (self <g-golf-test-gobject>))
-  (assert-equal "ClutterActorAlign" (g-type-name %align-info-g-type))
+  (assert-equal "GObject" (g-type-name (!g-type <gobject>)))
   (assert-equal "gfloat" (g-type-name 56)))
 
 (define-method (test-g-type-from-name (self <g-golf-test-gobject>))
@@ -120,11 +101,12 @@
            (g-value-init (symbol->g-type 'float)))))
 
 (define-method (test-g-value-type* (self <g-golf-test-gobject>))
-  (let ((g-value (g-value-init %align-info-g-type)))
-    (assert-true (= (g-value-type g-value) %align-info-g-type))
+  (let* ((g-type (!g-type <gobject>))
+         (g-value (g-value-init g-type)))
+    (assert-true (= (g-value-type g-value) g-type))
     (assert-true (string=? (g-value-type-name g-value)
-                           "ClutterActorAlign"))
-    (assert-true (eq? (g-value-type-tag g-value) 'enum))))
+                           "GObject"))
+    (assert-true (eq? (g-value-type-tag g-value) 'object))))
 
 (define-method (test-g-value-get-boolean (self <g-golf-test-gobject>))
   (let ((g-value (g-value-init (symbol->g-type 'boolean))))
@@ -170,22 +152,32 @@
   (let ((g-value (g-value-init (symbol->g-type 'double))))
     (assert (g-value-set! g-value 5.0))))
 
+#!
+
+;; Can't find a registered enum (that has a GType) in GObject so,
+;; temporarily comment those two tests -
+
 (define-method (test-g-value-get-enum (self <g-golf-test-gobject>))
   (let ((g-value (g-value-init %align-info-g-type)))
     (assert (g-value-ref g-value))))
+
 
 (define-method (test-g-value-set-enum (self <g-golf-test-gobject>))
   (let ((g-value (g-value-init %align-info-g-type)))
     (assert (g-value-set! g-value 1))
     (assert (g-value-set! g-value 'start))))
 
+!#
+
 (define-method (test-g-value-get-flags (self <g-golf-test-gobject>))
-  (let ((g-value (g-value-init %flags-info-g-type)))
+  (let* ((binding-flags (gi-cache-ref 'flags 'g-binding-flags))
+         (g-value (g-value-init (!g-type binding-flags))))
     (assert (g-value-ref g-value))))
 
 (define-method (test-g-value-set-flags (self <g-golf-test-gobject>))
-  (let ((g-value (g-value-init %flags-info-g-type)))
-    (assert (g-value-set! g-value '(mapped)))))
+  (let* ((binding-flags (gi-cache-ref 'flags 'g-binding-flags))
+         (g-value (g-value-init (!g-type binding-flags))))
+    (assert (g-value-set! g-value '(sync-create)))))
 
 (define-method (test-g-value-get-string (self <g-golf-test-gobject>))
   (let ((g-value (g-value-init (symbol->g-type 'string))))
@@ -241,12 +233,16 @@
   (let ((g-value (g-value-init (symbol->g-type 'pointer))))
     (assert (g-value-set! g-value g-value))))
 
-;; I can't test g-value-get-object and g-value-set-object using G-Golf,
-;; till it is able to build an interface. I did manually test these two
-;; procedures though, by making a manual binding to clutter-init and
-;; clutter-actor-new, which requires "libclutter-1.0", something G-Golf
-;; does not need to depend upon.  As soon as G-Golf can make instances,
-;; we will add a proper test here.
+(define-method (test-g-value-get-object (self <g-golf-test-gobject>))
+  (let* ((g-type (symbol->g-type 'object))
+         (g-value (g-value-init g-type)))
+    (assert (g-value-ref g-value))))
+
+(define-method (test-g-value-set-object (self <g-golf-test-gobject>))
+  (let* ((g-type (symbol->g-type 'object))
+         (inst (make <gobject>))
+         (g-value (g-value-init g-type)))
+    (assert (g-value-set! g-value (!g-inst inst)))))
 
 
 ;;;

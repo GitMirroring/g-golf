@@ -23,6 +23,7 @@ purpose notification mechanism
 @item @ref{g-signal-list-ids}
 @item @ref{g-signal-emitv}
 @item @ref{g-signal-connect-closure-by-id}
+@item @ref{g-signal-handler-disconnect}
 @item @ref{g-signal-parse-name}
 @end table
 @end indentedblock
@@ -205,6 +206,20 @@ The @var{instance} is the instance to connect to, the @var{id} the id of
 the signal, @var{detail} the detail (a g-quark). @var{closure} the
 closure to connect, @var{after} (a boolean) whether the handler should
 be called before or after the default handler of the signal.
+@end deffn
+
+
+@anchor{g-signal-handler-disconnect}
+@deffn Procedure g-signal-handler-disconnect instance handler-id
+
+Returns nothing.
+
+Disconnects a handler from an instance so it will not be called during
+any future or currently ongoing emissions of the signal it has been
+connected to. The @var{handler-id} becomes invalid and may be reused.
+
+The @var{handler-id} has to be a valid signal handler id, connected to a
+signal of instance .
 @end deffn
 
 

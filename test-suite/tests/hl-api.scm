@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2022
+;;;; Copyright (C) 2019 - 2023
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -37,30 +37,6 @@
 		warn-override-core
 		warn
 		last))
-
-
-(g-irepository-require "Clutter")
-
-(define %grid-layout-info
-  (g-irepository-find-by-name "Clutter" "GridLayout"))
-
-(gi-import-object %grid-layout-info)
-
-(define %actor-info
-  (g-irepository-find-by-name "Clutter" "Actor"))
-
-(gi-import-object %actor-info)
-
-
-(define %actor-align-info
-  (g-irepository-find-by-name "Clutter" "ActorAlign"))
-
-(gi-import-enum %actor-align-info)
-
-(define %actor-flags-info
-  (g-irepository-find-by-name "Clutter" "ActorFlags"))
-
-(gi-import-flags %actor-flags-info)
 
 
 (define-class <g-golf-test-hl-api> (<test-case>))
@@ -177,11 +153,22 @@
 ;;;
 ;;;
 
+
+(define-class <foo> (<gobject>)
+  (bar #:g-param `(int
+                   #:minimum -100 #:maximum 100 #:default 42)
+       #:accessor !bar))
+
+(define-class <baz> (<foo>)
+  (zap #:g-param `(int
+                   #:minimum -10 #:maximum 10 #:default 3)
+       #:accessor !zap))
+
 (define-method (test-g-property-accessor (self <g-golf-test-hl-api>))
-  (let ((a-grid (make <clutter-grid-layout>)))
-    (assert-true (eq? (!orientation a-grid) 'horizontal))
-    (assert (set! (!orientation a-grid) 'vertical))
-    (assert-true (eq? (!orientation a-grid) 'vertical))))
+  (let ((a-foo (make <foo>)))
+    (assert-true (= (!bar a-foo) 42))
+    (assert (set! (!bar a-foo) -3))
+    (assert-true (= (!bar a-foo) -3))))
 
 
 (define-method (test-g-property-object (self <g-golf-test-hl-api>))
@@ -196,14 +183,10 @@
 
 
 (define-method (test-accessor-inheritance (self <g-golf-test-hl-api>))
-  (let* ((c-name '<foo>)
-         (c-inst (make-class (list <clutter-grid-layout>)
-                             '()
-                             #:name c-name))
-         (a-foo (make c-inst)))
-    (assert-true (eq? (!orientation a-foo) 'horizontal))
-    (assert (set! (!orientation a-foo) 'vertical))
-    (assert-true (eq? (!orientation a-foo) 'vertical))))
+  (let* ((a-baz (make <baz>)))
+    (assert-true (= (!bar a-baz) 42))
+    (assert (set! (!bar a-baz) -3))
+    (assert-true (= (!bar a-baz) -3))))
 
 
 (define-method (test-closure-enum (self <g-golf-test-hl-api>))
@@ -218,13 +201,13 @@
 
 
 (define-method (test-closure-gi-enum (self <g-golf-test-hl-api>))
-  (let* ((enum (gi-cache-ref 'enum 'clutter-actor-align))
+  (let* ((enum %gi-type-tag)
          (closure (make <closure>
                     #:function (lambda (a) a)
                     #:return-type enum
                     #:param-types (list enum))))
-    (assert-true (eq? (invoke closure 'start)
-                      'start))
+    (assert-true (eq? (invoke closure 'uint8)
+                      'uint8))
     (assert (free closure))))
 
 
@@ -240,24 +223,24 @@
 
 
 (define-method (test-closure-gi-flags (self <g-golf-test-hl-api>))
-  (let* ((flags (gi-cache-ref 'flags 'clutter-actor-flags))
+  (let* ((flags (gi-cache-ref 'flags 'g-binding-flags))
          (closure (make <closure>
                     #:function (lambda (a) a)
                     #:return-type flags
                     #:param-types (list flags))))
-    (assert-true (let ((result (invoke closure '(realized))))
-                   (eq? (car result) 'realized)))
+    (assert-true (let ((result (invoke closure '(sync-create))))
+                   (eq? (car result) 'sync-create)))
     (assert (free closure))))
 
 
 (define-method (test-closure-gobject (self <g-golf-test-hl-api>))
-  (let* ((actor (make <clutter-actor>))
+  (let* ((object (make <gobject>))
          (closure (make <closure>
                     #:function (lambda (a) a)
-                    #:return-type <clutter-actor>
-                    #:param-types (list <clutter-actor>))))
-    (assert-true (eq? (invoke closure actor)
-                      actor))
+                    #:return-type <gobject>
+                    #:param-types (list <gobject>))))
+    (assert-true (eq? (invoke closure object)
+                      object))
     (assert (free closure))))
 
 
