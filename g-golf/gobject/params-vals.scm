@@ -56,13 +56,14 @@
             g-value-type-name
             g-value-ref
             g-value-set!
+            g-param-spec-boolean
+            g-value-get-boolean
+            g-value-set-boolean
             g-param-spec-int
             g-value-get-int
             g-value-set-int
             g-value-get-uint
             g-value-set-uint
-            g-value-get-boolean
-            g-value-set-boolean
             g-value-get-float
             g-value-set-float
             g-value-get-double
@@ -138,10 +139,10 @@
     (case type-tag
       ((boolean)
        (g-value-get-boolean g-value))
-      ((uint)
-       (g-value-get-uint g-value))
       ((int)
        (g-value-get-int g-value))
+      ((uint)
+       (g-value-get-uint g-value))
       ((float)
        (g-value-get-float g-value))
       ((double)
@@ -171,10 +172,10 @@
     (case type-tag
       ((boolean)
        (g-value-set-boolean g-value value))
-      ((uint)
-       (g-value-set-uint g-value value))
       ((int)
        (g-value-set-int g-value value))
+      ((uint)
+       (g-value-set-uint g-value value))
       ((float)
        (g-value-set-float g-value value))
       ((double)
@@ -201,6 +202,20 @@
 ;;;
 ;;; GObject Low level API
 ;;;
+
+(define (g-param-spec-boolean name nick blurb default flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (default (or default #f))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_boolean (string->pointer name)
+                                   (string->pointer nick)
+                                   (string->pointer blurb)
+                                   (if default 1 0)
+                                   (flags->integer g-param-flags flags))
+             'pointer)))
 
 (define (g-value-get-boolean g-value)
   (if (= (g_value_get_boolean g-value) 0) #f #t))
@@ -424,6 +439,16 @@
 ;;;
 ;;; GObject Bindings
 ;;;
+
+(define g_param_spec_boolean
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_boolean"
+				    %libgobject)
+                      (list '*		;; name
+                            '*		;; nick
+                            '*		;; blurb
+                            int		;; default-value
+                            unsigned-int))) ;; flags
 
 (define g_value_get_boolean
   (pointer->procedure int

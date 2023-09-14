@@ -20,6 +20,7 @@ Parameters and Values — Standard Parameter and Value Types
 @item @ref{g-value-type-name}
 @item @ref{g-value-ref}
 @item @ref{g-value-set!}
+@item @ref{g-param-spec-boolean}
 @item @ref{g-value-get-boolean}
 @item @ref{g-value-set-boolean}
 @item @ref{g-param-spec-int}
@@ -144,6 +145,21 @@ Sets the content of @var{g-value} to @var{value}.  Supported
 Note that this procedure cannot cope with invalid values (the type of
 @var{value} must correspond to the @code{GType} for @var{g-value},
 otherwise it will most likely lead to a crash.
+@end deffn
+
+
+@anchor{g-param-spec-boolean}
+@deffn Procedure g-param-spec-boolean name nick blurb @
+         default flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecEnum} instance
+specifying a @code{G_TYPE_BOOLEAN} property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{default} the
+default value and @var{flags} the flags - for the property specified.
 @end deffn
 
 

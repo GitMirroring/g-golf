@@ -42,6 +42,7 @@
 
   #:export (g-param-construct
 
+            g-param-construct-boolean
             g-param-construct-int
             g-param-construct-enum
             g-param-construct-object))
@@ -58,6 +59,8 @@
     (match p-spec
       ((param-type . param-desc)
        (case param-type
+         ((boolean)
+          (g-param-construct-boolean name param-desc))
          ((int)
           (g-param-construct-int name param-desc))
          ((enum)
@@ -69,6 +72,16 @@
                      "Unimplemented g-param-construct type: ~S"
                      (list param-type) #f)))))))
 
+(define (g-param-construct-boolean name param-desc)
+  (let ((nick (get-keyword #:nick param-desc #f))
+        (blurb (get-keyword #:blurb param-desc #f))
+        (default (get-keyword #:default param-desc #f))
+        (flags (get-keyword #:flags param-desc #f)))
+    (g-param-spec-boolean (symbol->string name)
+                          nick
+                          blurb
+                          default
+                          flags)))
 
 (define (g-param-construct-int name param-desc)
   (let ((nick (get-keyword #:nick param-desc #f))
