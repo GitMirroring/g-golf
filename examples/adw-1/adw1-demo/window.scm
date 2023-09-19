@@ -61,6 +61,8 @@
               (gi-import-by-name "Gtk" name))
       '("License"
         "Window"
+        "StyleContext"
+        "CssProvider"
         "ClosureExpression"
         "IconTheme"
         "Stack"
@@ -148,11 +150,16 @@
     (present about)))
 
 (define (show-window app)
-  (let* ((display (gdk-display-get-default))
+  (let* ((cwd (dirname (current-filename)))
+         (display (gdk-display-get-default))
          (manager (adw-style-manager-get-default))
-         (icon-theme (gtk-icon-theme-get-for-display display)))
-    (add-search-path icon-theme (string-append (dirname (current-filename))
-                                               "/icons"))
+         (icon-theme (gtk-icon-theme-get-for-display display))
+         (css-path (string-append cwd "/css/style.css"))
+         (css-provider (let ((provider (make <gtk-css-provider>)))
+                         (gtk-css-provider-load-from-path provider css-path)
+                         provider)))
+    (add-search-path icon-theme (string-append cwd "/icons"))
+    (gtk-style-context-add-provider-for-display display css-provider 800)
     (let* ((window (make <adw-demo-window>
                      #:application app))
            (color-scheme-button (!color-scheme-button window))
