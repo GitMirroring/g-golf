@@ -1054,7 +1054,7 @@ The \"raised\" style class can be used to make a button inside a toolbar use def
      (child ,%misc-progress-bar)))
 
 
-(define %navigation-view-demo-window
+(define %style-classes-demo-window
   `(interface
     (requires (@ (version "4.0") (lib "gtk")))
     (requires (@ (version "1.0") (lib "libadwaita")))
@@ -1111,4 +1111,4 @@ The \"raised\" style class can be used to make a button inside a toolbar use def
 
 
 (define (make-ui)
-  (sxml->ui %navigation-view-demo-window))
+  (sxml->ui %style-classes-demo-window))
