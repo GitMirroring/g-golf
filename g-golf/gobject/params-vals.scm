@@ -70,7 +70,10 @@
             g-value-set-double
             g-param-spec-enum
             g-value-get-enum
+            ;; g-value-set-enum is a method, see g-export below
+            g-param-spec-flags
             g-value-get-flags
+            ;; g-value-set-flags is a method, see g-export below
             g-value-get-string
             g-value-set-string
             g-value-get-param
@@ -308,6 +311,24 @@
     (if val
         (g_value_set_enum g-value val)
         (error "No such " (!name gi-enum) " key: " sym))))
+
+(define (g-param-spec-flags name nick blurb type default flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (g-type (!g-type type))
+         (default (if default
+                      (flags->integer type default)
+                      0))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_flags (string->pointer name)
+                                 (string->pointer nick)
+                                 (string->pointer blurb)
+                                 g-type
+                                 default
+                                 (flags->integer g-param-flags flags))
+             'pointer)))
 
 (define (g-value-get-gi-flags g-value)
   (let* ((g-name (g-value-type-name g-value))
@@ -550,6 +571,17 @@
 				    %libgobject)
                       (list '*
                             int)))
+
+(define g_param_spec_flags
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_flags"
+				    %libgobject)
+                      (list '*		;; name
+                            '*		;; nick
+                            '*		;; blurb
+                            size_t	;; g-type
+                            int		;; default-value
+                            unsigned-int))) ;; flags
 
 (define g_value_get_flags
   (pointer->procedure unsigned-int

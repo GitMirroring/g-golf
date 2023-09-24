@@ -45,6 +45,7 @@
             g-param-construct-boolean
             g-param-construct-int
             g-param-construct-enum
+            g-param-construct-flags
             g-param-construct-object))
 
 
@@ -65,6 +66,8 @@
           (g-param-construct-int name param-desc))
          ((enum)
           (g-param-construct-enum name param-desc))
+         ((flags)
+          (g-param-construct-flags name param-desc))
          ((object)
           (g-param-construct-object name param-desc))
          (else
@@ -110,6 +113,19 @@
                        type
                        default
                        flags)))
+
+(define (g-param-construct-flags name param-desc)
+  (let ((nick (get-keyword #:nick param-desc #f))
+        (blurb (get-keyword #:blurb param-desc #f))
+        (type (get-keyword #:type param-desc #f))
+        (default (get-keyword #:default param-desc #f))
+        (flags (get-keyword #:flags param-desc #f)))
+    (g-param-spec-flags (symbol->string name)
+                        nick
+                        blurb
+                        type
+                        default
+                        flags)))
 
 (define (g-param-construct-object name param-desc)
   (let ((nick (get-keyword #:nick param-desc #f))

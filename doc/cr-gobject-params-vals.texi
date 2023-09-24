@@ -35,6 +35,7 @@ Parameters and Values — Standard Parameter and Value Types
 @item @ref{g-param-spec-enum}
 @item @ref{g-value-get-enum}
 @item @ref{g-value-set-enum}
+@item @ref{g-param-spec-flags}
 @item @ref{g-value-get-flags}
 @item @ref{g-value-set-flags}
 @item @ref{g-value-get-string}
@@ -307,6 +308,22 @@ Sets the content of @var{g-value} to @var{id}, or to the id
 corresponding to @var{sym} respectively.  The @var{id} or the @var{sym}
 must be valid (as in being a valid member of the (registered) enum type
 info for @var{g-value}), otherwise an exception is raised.
+@end deffn
+
+
+@anchor{g-param-spec-flags}
+@deffn Procedure g-param-spec-flags name nick blurb type @
+         default flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecFlags} instance
+specifying a @code{G_TYPE_FLAGS} property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{type} a
+@code{<gi-flags>} instance, @var{default} the default value and
+@var{flags} the flags  - for the property specified.
 @end deffn
 
 
