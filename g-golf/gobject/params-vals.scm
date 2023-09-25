@@ -62,6 +62,7 @@
             g-param-spec-int
             g-value-get-int
             g-value-set-int
+            g-param-spec-uint
             g-value-get-uint
             g-value-set-uint
             g-value-get-float
@@ -250,6 +251,24 @@
 
 (define (g-value-set-int g-value int)
   (g_value_set_int g-value int))
+
+(define (g-param-spec-uint name nick blurb minimum maximum default flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (minimum (or minimum 0))
+         (maximum (or maximum 4294967295)) ;; FIXME import G_MAXUINT
+         (default (or default 0))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_uint (string->pointer name)
+                                (string->pointer nick)
+                                (string->pointer blurb)
+                                minimum
+                                maximum
+                                default
+                                (flags->integer g-param-flags flags))
+             'pointer)))
 
 (define (g-value-get-uint g-value)
   (g_value_get_uint g-value))
@@ -508,6 +527,18 @@
 				    %libgobject)
                       (list '*
                             int)))
+
+(define g_param_spec_uint
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_uint"
+				    %libgobject)
+                      (list '*			;; name
+                            '*			;; nick
+                            '*			;; blurb
+                            unsigned-int	;; minimum
+                            unsigned-int	;; maximum
+                            unsigned-int	;; default-value
+                            unsigned-int)))	;; flags
 
 (define g_value_get_uint
   (pointer->procedure unsigned-int
