@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2016 - 2022
+#### Copyright (C) 2016 - 2023
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf.
@@ -27,6 +27,7 @@ lib_LTLIBRARIES = \
 	libg-golf.la
 
 libg_golf_la_sources = \
+	gg-const.c	\
 	gg-ffi.c	\
 	gg-utils.c	\
 	gg-glib.c	\
@@ -36,6 +37,7 @@ libg_golf_la_sources = \
 	g-golf.c
 
 libg_golf_la_headers = \
+	gg-const.h	\
 	gg-ffi.h	\
 	gg-utils.h	\
 	gg-glib.h	\

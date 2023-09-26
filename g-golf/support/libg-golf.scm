@@ -39,6 +39,10 @@
             ;; Misc.
             pointer_address_size
 
+            ;; Constants
+            gg_flt_min
+            gg_flt_max
+
             ;; Floats
             float_to_int
 
@@ -131,6 +135,19 @@
                       (dynamic-func "pointer_address_size"
                                     %libg-golf)
                       (list)))
+
+(define gg_flt_min
+  (pointer->procedure float
+                      (dynamic-func "gg_flt_min"
+                                    %libg-golf)
+                      (list)))
+
+(define gg_flt_max
+  (pointer->procedure float
+                      (dynamic-func "gg_flt_max"
+                                    %libg-golf)
+                      (list)))
+
 
 
 ;;;

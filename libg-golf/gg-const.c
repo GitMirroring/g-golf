@@ -1,7 +1,7 @@
 /*  -*- mode: C; coding: utf-8 -*-
 
 ####
-#### Copyright (C) 2021 - 2023
+#### Copyright (C) 2023
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf.
@@ -35,27 +35,17 @@
 
 
 /*
- * misc.
+ * constants
 */
 
-size_t
-pointer_address_size ()
+float
+gg_flt_min ()
 {
-  size_t n = sizeof(float *) * CHAR_BIT;
-
-  return n;
+  return FLT_MIN;
 }
 
-
-/*
- * floats
-*/
-
-int
-float_to_int (float f)
+float
+gg_flt_max ()
 {
-  int i;
-
-  i = (int)f;
-  return (i);
+  return FLT_MAX;
 }

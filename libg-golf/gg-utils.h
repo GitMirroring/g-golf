@@ -1,7 +1,7 @@
 /*  -*- mode: C; coding: utf-8 -*-
 
 ####
-#### Copyright (C) 2021
+#### Copyright (C) 2021 - 2023
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf.
@@ -36,7 +36,6 @@
 
 /*
  * misc.
- *
 */
 
 size_t
@@ -45,7 +44,6 @@ pointer_address_size ();
 
 /*
  * floats
- *
 */
 
 int
