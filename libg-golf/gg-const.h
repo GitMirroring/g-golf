@@ -23,19 +23,31 @@
 
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
 #include <limits.h>
 #include <float.h>
-#include <math.h>
-
-#include <glib.h>
-#include <glib-object.h>
 
 
 /*
- * constants
+ * int
+*/
+
+int
+gg_int_min ();
+
+int
+gg_int_max ();
+
+
+/*
+ * unsigned int
+*/
+
+unsigned int
+gg_uint_max ();
+
+
+/*
+ * float
 */
 
 float

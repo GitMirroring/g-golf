@@ -40,6 +40,9 @@
             pointer_address_size
 
             ;; Constants
+            gg_int_min
+            gg_int_max
+            gg_uint_max
             gg_flt_min
             gg_flt_max
 
@@ -95,6 +98,41 @@
 
 
 ;;;
+;;; Constants
+;;;
+
+(define gg_int_min
+  (pointer->procedure int
+                      (dynamic-func "gg_int_min"
+                                    %libg-golf)
+                      (list)))
+
+(define gg_int_max
+  (pointer->procedure int
+                      (dynamic-func "gg_int_max"
+                                    %libg-golf)
+                      (list)))
+
+(define gg_uint_max
+  (pointer->procedure unsigned-int
+                      (dynamic-func "gg_uint_max"
+                                    %libg-golf)
+                      (list)))
+
+(define gg_flt_min
+  (pointer->procedure float
+                      (dynamic-func "gg_flt_min"
+                                    %libg-golf)
+                      (list)))
+
+(define gg_flt_max
+  (pointer->procedure float
+                      (dynamic-func "gg_flt_max"
+                                    %libg-golf)
+                      (list)))
+
+
+;;;
 ;;; FFI
 ;;;
 
@@ -135,19 +173,6 @@
                       (dynamic-func "pointer_address_size"
                                     %libg-golf)
                       (list)))
-
-(define gg_flt_min
-  (pointer->procedure float
-                      (dynamic-func "gg_flt_min"
-                                    %libg-golf)
-                      (list)))
-
-(define gg_flt_max
-  (pointer->procedure float
-                      (dynamic-func "gg_flt_max"
-                                    %libg-golf)
-                      (list)))
-
 
 
 ;;;

@@ -29,9 +29,15 @@
 (define-module (g-golf support const)
   #:use-module (g-golf support libg-golf)
 
-  #:export (FLT-MIN
+  #:export (INT-MIN
+            INT-MAX
+            UINT-MAX
+            FLT-MIN
             FLT-MAX))
 
 
+(define INT-MIN (gg_int_min))
+(define INT-MAX (gg_int_max))
+(define UINT-MAX (gg_uint_max))
 (define FLT-MIN (gg_flt_min))
 (define FLT-MAX (gg_flt_max))
