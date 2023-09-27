@@ -32,13 +32,14 @@
   #:use-module (system foreign)
   #:use-module (rnrs bytevectors)
   #:use-module (g-golf init)
+  #:use-module (g-golf support libg-golf)
   #:use-module (g-golf support g-export)
+  #:use-module (g-golf support const)
   #:use-module (g-golf support enum)
   #:use-module (g-golf support flags)
   #:use-module (g-golf support struct)
   #:use-module (g-golf support union)
   #:use-module (g-golf support utils)
-  #:use-module (g-golf support libg-golf)
   #:use-module (g-golf gi cache-gi)
   #:use-module (g-golf gi utils)
   #:use-module (g-golf gobject type-info)
@@ -65,6 +66,7 @@
             g-param-spec-uint
             g-value-get-uint
             g-value-set-uint
+            g-param-spec-float
             g-value-get-float
             g-value-set-float
             g-value-get-double
@@ -231,8 +233,8 @@
 (define (g-param-spec-int name nick blurb minimum maximum default flags)
   (let* ((nick (or nick name))
          (blurb (or blurb nick))
-         (minimum (or minimum -2147483648)) ;; FIXME import G_MININT
-         (maximum (or maximum 2147483647)) ;; FIXME import G_MAXINT
+         (minimum (or minimum INT-MIN))
+         (maximum (or maximum INT-MAX))
          (default (or default 0))
          (flags (or flags '(readable writable)))
          (g-param-flags
@@ -256,7 +258,7 @@
   (let* ((nick (or nick name))
          (blurb (or blurb nick))
          (minimum (or minimum 0))
-         (maximum (or maximum 4294967295)) ;; FIXME import G_MAXUINT
+         (maximum (or maximum UINT-MAX))
          (default (or default 0))
          (flags (or flags '(readable writable)))
          (g-param-flags
@@ -275,6 +277,24 @@
 
 (define (g-value-set-uint g-value uint)
   (g_value_set_uint g-value uint))
+
+(define (g-param-spec-float name nick blurb minimum maximum default flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (minimum (or minimum FLT-MIN))
+         (maximum (or maximum FLT-MAX))
+         (default (or default 0))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_float (string->pointer name)
+                                (string->pointer nick)
+                                (string->pointer blurb)
+                                minimum
+                                maximum
+                                default
+                                (flags->integer g-param-flags flags))
+             'pointer)))
 
 (define (g-value-get-float g-value)
   (g_value_get_float g-value))
@@ -552,6 +572,18 @@
 				    %libgobject)
                       (list '*
                             unsigned-int)))
+
+(define g_param_spec_float
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_float"
+				    %libgobject)
+                      (list '*			;; name
+                            '*			;; nick
+                            '*			;; blurb
+                            float		;; minimum
+                            float		;; maximum
+                            float		;; default-value
+                            unsigned-int)))	;; flags
 
 (define g_value_get_float
   (pointer->procedure float
