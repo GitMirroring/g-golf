@@ -69,6 +69,7 @@
             g-param-spec-float
             g-value-get-float
             g-value-set-float
+            g-param-spec-double
             g-value-get-double
             g-value-set-double
             g-param-spec-enum
@@ -301,6 +302,24 @@
 
 (define (g-value-set-float g-value float)
   (g_value_set_float g-value float))
+
+(define (g-param-spec-double name nick blurb minimum maximum default flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (minimum (or minimum DBL-MIN))
+         (maximum (or maximum DBL-MAX))
+         (default (or default 0))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_double (string->pointer name)
+                                (string->pointer nick)
+                                (string->pointer blurb)
+                                minimum
+                                maximum
+                                default
+                                (flags->integer g-param-flags flags))
+             'pointer)))
 
 (define (g-value-get-double g-value)
   (g_value_get_double g-value))
@@ -597,6 +616,18 @@
 				    %libgobject)
                       (list '*
                             float)))
+
+(define g_param_spec_double
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_double"
+				    %libgobject)
+                      (list '*			;; name
+                            '*			;; nick
+                            '*			;; blurb
+                            double		;; minimum
+                            double		;; maximum
+                            double		;; default-value
+                            unsigned-int)))	;; flags
 
 (define g_value_get_double
   (pointer->procedure double
