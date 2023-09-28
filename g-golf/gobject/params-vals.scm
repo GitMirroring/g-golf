@@ -78,6 +78,7 @@
             g-param-spec-flags
             g-value-get-flags
             ;; g-value-set-flags is a method, see g-export below
+            g-param-spec-string
             g-value-get-string
             g-value-set-string
             g-value-get-param
@@ -213,7 +214,6 @@
 (define (g-param-spec-boolean name nick blurb default flags)
   (let* ((nick (or nick name))
          (blurb (or blurb nick))
-         (default (or default #f))
          (flags (or flags '(readable writable)))
          (g-param-flags
           (@ (g-golf gobject param-spec) %g-param-flags)))
@@ -406,6 +406,19 @@
     (if val
         (g_value_set_flags g-value val)
         (error "No such " (!name gi-flags) " key: " flags))))
+
+(define (g-param-spec-string name nick blurb default flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_string (string->pointer name)
+                                  (string->pointer nick)
+                                  (string->pointer blurb)
+                                  (scm->gi default 'string)
+                                  (flags->integer g-param-flags flags))
+             'pointer)))
 
 (define (g-value-get-string g-value)
   (let ((pointer (g_value_get_string g-value)))
@@ -689,6 +702,16 @@
 				    %libgobject)
                       (list '*
                             unsigned-int)))
+
+(define g_param_spec_string
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_string"
+				    %libgobject)
+                      (list '*		;; name
+                            '*		;; nick
+                            '*		;; blurb
+                            '*		;; default-value
+                            unsigned-int))) ;; flags
 
 (define g_value_get_string
   (pointer->procedure '*

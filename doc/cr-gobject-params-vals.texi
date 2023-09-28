@@ -41,6 +41,7 @@ Parameters and Values — Standard Parameter and Value Types
 @item @ref{g-param-spec-flags}
 @item @ref{g-value-get-flags}
 @item @ref{g-value-set-flags}
+@item @ref{g-param-spec-string}
 @item @ref{g-value-get-string}
 @item @ref{g-value-set-string}
 @item @ref{g-value-get-param}
@@ -158,7 +159,7 @@ otherwise it will most likely lead to a crash.
 
 Returns a pointer.
 
-Creates and returns a pointer to a new @code{GParamSpecEnum} instance
+Creates and returns a pointer to a new @code{GParamSpecBoolean} instance
 specifying a @code{G_TYPE_BOOLEAN} property.
 
 The @var{name} is the canonical name of the property specified,
@@ -398,6 +399,21 @@ calling @ref{flags->integer} upon the list of @var{flags},
 respectively. The @var{val} or the @var{flags} must be valid (as in
 being a valid member of the (registered) gi-flags type for
 @var{g-value}), otherwise an exception is raised.
+@end deffn
+
+
+@anchor{g-param-spec-string}
+@deffn Procedure g-param-spec-string name nick blurb @
+         default flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecEnum} instance
+specifying a @code{G_TYPE_STRING} property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{default} the
+default value and @var{flags} the flags - for the property specified.
 @end deffn
 
 
