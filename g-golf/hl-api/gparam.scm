@@ -45,6 +45,7 @@
             g-param-construct-boolean
             g-param-construct-int
             g-param-construct-uint
+            g-param-construct-float
             g-param-construct-enum
             g-param-construct-flags
             g-param-construct-object))
