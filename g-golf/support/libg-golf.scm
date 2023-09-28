@@ -45,6 +45,8 @@
             gg_uint_max
             gg_flt_min
             gg_flt_max
+            gg_dbl_min
+            gg_dbl_max
 
             ;; Floats
             float_to_int
@@ -128,6 +130,18 @@
 (define gg_flt_max
   (pointer->procedure float
                       (dynamic-func "gg_flt_max"
+                                    %libg-golf)
+                      (list)))
+
+(define gg_dbl_min
+  (pointer->procedure double
+                      (dynamic-func "gg_dbl_min"
+                                    %libg-golf)
+                      (list)))
+
+(define gg_dbl_max
+  (pointer->procedure double
+                      (dynamic-func "gg_dbl_max"
                                     %libg-golf)
                       (list)))
 

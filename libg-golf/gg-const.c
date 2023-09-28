@@ -71,3 +71,20 @@ gg_flt_max ()
 {
   return FLT_MAX;
 }
+
+
+/*
+ * double
+*/
+
+double
+gg_dbl_min ()
+{
+  return DBL_MIN;
+}
+
+double
+gg_dbl_max ()
+{
+  return DBL_MAX;
+}

@@ -55,3 +55,14 @@ gg_flt_min ();
 
 float
 gg_flt_max ();
+
+
+/*
+ * double
+*/
+
+double
+gg_dbl_min ();
+
+double
+gg_dbl_max ();

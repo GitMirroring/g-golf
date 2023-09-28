@@ -33,7 +33,9 @@
             INT-MAX
             UINT-MAX
             FLT-MIN
-            FLT-MAX))
+            FLT-MAX
+            DBL-MIN
+            DBL-MAX))
 
 
 (define INT-MIN (gg_int_min))
@@ -41,3 +43,5 @@
 (define UINT-MAX (gg_uint_max))
 (define FLT-MIN (gg_flt_min))
 (define FLT-MAX (gg_flt_max))
+(define DBL-MIN (gg_dbl_min))
+(define DBL-MAX (gg_dbl_max))
