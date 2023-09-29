@@ -408,7 +408,7 @@ being a valid member of the (registered) gi-flags type for
 
 Returns a pointer.
 
-Creates and returns a pointer to a new @code{GParamSpecEnum} instance
+Creates and returns a pointer to a new @code{GParamSpecString} instance
 specifying a @code{G_TYPE_STRING} property.
 
 The @var{name} is the canonical name of the property specified,
