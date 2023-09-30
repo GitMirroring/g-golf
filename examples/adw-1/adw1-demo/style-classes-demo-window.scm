@@ -40,7 +40,6 @@
 
 
 (g-export !devel
-          !progress-bar
           !status-pages-window
           !status-pages-action-row
           !sidebar-window
@@ -65,9 +64,6 @@
   (devel #:g-param '(boolean
                      #:default #f)
          #:accessor !devel)
-  #;(progress-bar #:g-param '(boolean
-                            #:default #f)
-                #:accessor !progress-bar)
   (progress-bar #:child-id "progress-bar"
                 #:accessor !progress-bar)
   (status-pages-window #:child-id "status-pages-window"
@@ -126,15 +122,11 @@
 
   (connect (!devel-switch-row self)
            'notify::active
-           (lambda (switch-row val)
-             ;; FIXME
-             ;; - the second arg
-             ;;     g-closure-marshal-g-value-ref <- must be enhanced
-             #;(dimfi switch-row val (g-object-type-name val))
-             (notify-devel-switch-row-cb self))))
+           (lambda (switch-row p-spec)
+             (notify-devel-switch-row-cb self switch-row))))
 
-(define (notify-devel-switch-row-cb window)
-  (let ((devel (not (!devel window))))
+(define (notify-devel-switch-row-cb window switch-row)
+  (let ((devel (!active switch-row)))
     (if devel
         (begin
           (add-css-class window "devel")

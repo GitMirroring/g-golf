@@ -190,11 +190,7 @@
 
       (connect-after (!stack window)
                      'notify::visible-child
-                     (lambda (s c)
-                       ;; FIXME
-                       ;; - the second arg
-                       ;;     g-closure-marshal-g-value-ref <- must be enhanced
-                       ;; (dimfi s c (g-object-type-name c)
+                     (lambda (stack p-spec)
                        (notify-visible-child-cb window)))
 
       (present window))))
