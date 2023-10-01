@@ -44,6 +44,7 @@ Parameters and Values — Standard Parameter and Value Types
 @item @ref{g-param-spec-string}
 @item @ref{g-value-get-string}
 @item @ref{g-value-set-string}
+@item @ref{g-param-spec-param}
 @item @ref{g-value-get-param}
 @item @ref{g-value-set-param}
 @item @ref{g-value-get-boxed}
@@ -433,6 +434,22 @@ if the @var{g-value} content is the @code{%null-pointer}.
 Returns nothing.
 
 Sets the content of @var{g-value} to @var{str}.
+@end deffn
+
+
+@anchor{g-param-spec-param}
+@deffn Procedure g-param-spec-param name nick blurb @
+         type flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecParam} instance
+specifying a @code{G_TYPE_PARAM} property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{type} a
+GType derived from @code{G_TYPE_PARAM} and @var{flags} the flags - for
+the property specified.
 @end deffn
 
 
