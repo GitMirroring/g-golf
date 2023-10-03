@@ -70,7 +70,7 @@
             gi-add-method-gf))
 
 
-#;(g-export )
+(g-export disconnect)
 
 
 ;;;
@@ -83,7 +83,7 @@
 ;; revealed that unless connect is promoted as a gf in this module
 ;; (which is defined and imported before signal, and of course before
 ;; any user import(s)), then an 'overrides core binding' warning is
-;; displayed, followed by a "module-lookup"connect exception.
+;; displayed, followed by a "module-lookup" connect exception.
 
 (define %connect
   (module-ref the-root-module 'connect))
@@ -91,6 +91,22 @@
 (define-method (connect . args)
   "The core Guile implementation of the connect(2) POSIX call"
   (apply %connect args))
+
+;; Same as above, in order to avoid the following warning [1], the
+;; disconnect gf must be added and exported from this module. This is
+;; because this module, which does not use (g-golf hl-api signal), is
+;; where imported typelib 'components' are being defined and exported.
+
+;; So, just to make sure 'everyone' understands, unless we define and
+;; export the disconnect gf from this module, what would happen, when a
+;; typelib defines a method for which the short method name is
+;; disconnect, is the user inevitably sees this warning [1] - as this
+;; situation ends up, with two disconnect gf that are not merged.
+
+;; [1] WARNING: (g-golf): `disconnect' imported from both (g-golf hl-api
+;; gobject) and (g-golf hl-api signal).
+
+(define-generic disconnect)
 
 
 ;;;
