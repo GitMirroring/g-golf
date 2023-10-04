@@ -51,6 +51,7 @@
             g-param-construct-flags
             g-param-construct-string
             g-param-construct-param
+            g-param-construct-boxed
             g-param-construct-object))
 
 
@@ -83,6 +84,8 @@
           (g-param-construct-string name param-desc))
          ((param)
           (g-param-construct-param name param-desc))
+         ((boxed)
+          (g-param-construct-boxed name param-desc))
          ((object)
           (g-param-construct-object name param-desc))
          (else
@@ -204,6 +207,17 @@
         (type (get-keyword #:type param-desc (symbol->g-type 'param)))
         (flags (get-keyword #:flags param-desc #f)))
     (g-param-spec-param (symbol->string name)
+                         nick
+                         blurb
+                         type
+                         flags)))
+
+(define (g-param-construct-boxed name param-desc)
+  (let ((nick (get-keyword #:nick param-desc #f))
+        (blurb (get-keyword #:blurb param-desc #f))
+        (type (get-keyword #:type param-desc #f))
+        (flags (get-keyword #:flags param-desc #f)))
+    (g-param-spec-boxed (symbol->string name)
                          nick
                          blurb
                          type

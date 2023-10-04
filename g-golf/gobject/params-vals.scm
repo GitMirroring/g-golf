@@ -84,6 +84,7 @@
             g-param-spec-param
             g-value-get-param
             g-value-set-param
+            g-param-spec-boxed
             g-value-get-boxed
             g-value-set-boxed
             g-value-get-pointer
@@ -457,6 +458,19 @@
       (g_value_set_param g-value param)
       (g_value_set_param g-value %null-pointer)))
 
+(define (g-param-spec-boxed name nick blurb type flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_boxed (string->pointer name)
+                                 (string->pointer nick)
+                                 (string->pointer blurb)
+                                 type
+                                 (flags->integer g-param-flags flags))
+             'pointer)))
+
 (define %gdk-event-class
   (@ (g-golf gdk events) gdk-event-class))
 
@@ -475,7 +489,7 @@
                    value))
               ((or (!is-opaque? gi-boxed)
                    (!is-semi-opaque? gi-boxed))
-               value)
+               (gi->scm value 'pointer))
               (else
                (parse-c-struct value
                                (!scm-types gi-boxed))))
@@ -492,7 +506,7 @@
          (value (if gi-boxed
                     (if (or (!is-opaque? gi-boxed)
                             (!is-semi-opaque? gi-boxed))
-                        boxed
+                        (scm->gi boxed 'pointer)
                         (make-c-struct (!scm-types gi-boxed) boxed))
                     (case name
                       ((g-value) boxed)
@@ -676,7 +690,7 @@
                       (list '*		;; name
                             '*		;; nick
                             '*		;; blurb
-                            size_t	;; g-type
+                            size_t	;; enum-type
                             int		;; default-value
                             unsigned-int))) ;; flags
 
@@ -700,7 +714,7 @@
                       (list '*		;; name
                             '*		;; nick
                             '*		;; blurb
-                            size_t	;; g-type
+                            size_t	;; flags-type
                             int		;; default-value
                             unsigned-int))) ;; flags
 
@@ -762,6 +776,16 @@
 				    %libgobject)
                       (list '*
                             '*)))
+
+(define g_param_spec_boxed
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_boxed"
+				    %libgobject)
+                      (list '*		;; name
+                            '*		;; nick
+                            '*		;; blurb
+                            size_t	;; boxed-type
+                            unsigned-int))) ;; flags
 
 (define g_value_get_boxed
   (pointer->procedure '*
