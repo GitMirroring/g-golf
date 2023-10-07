@@ -26,6 +26,35 @@ warranty.
 
 * Latest News
 
+** October 2023
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc-1 is released.
+
+This is the first release candidate of the upcoming 0.8.0 release, now
+available for testing.
+
+*** Noteworthy changes in 0.8.0-rc-1
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** New features
+
+Derived class
+GObject properties
+
+Derived classes slot exposed as a gobject property now also support the
+boolean, uint, float, double, flags, string, param and boxed types.
+
+**** Examples
+
+Adwaita Demo
+
+The 'Style Classes' page has been added to the demo.
+
+
+* Older News
+
 ** September 2023
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-alpha-6 is released.
@@ -93,8 +122,6 @@ connect
 signal-connect
 
 Now return the handler-id, needed to call disconnect.
-
-* Older News
 
 ** August 2023
 
