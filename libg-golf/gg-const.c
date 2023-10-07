@@ -1,7 +1,7 @@
 /*  -*- mode: C; coding: utf-8 -*-
 
 ####
-#### Copyright (C) 2021 - 2023
+#### Copyright (C) 2023
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf.
@@ -23,39 +23,68 @@
 
 */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
+
 #include <limits.h>
 #include <float.h>
-#include <math.h>
-
-#include <glib.h>
-#include <glib-object.h>
 
 
 /*
- * misc.
+ * int
 */
 
-size_t
-pointer_address_size ()
+int
+gg_int_min ()
 {
-  size_t n = sizeof(float *) * CHAR_BIT;
+  return INT_MIN;
+}
 
-  return n;
+int
+gg_int_max ()
+{
+  return INT_MAX;
 }
 
 
 /*
- * floats
+ * unsigned int
 */
 
-int
-float_to_int (float f)
+unsigned int
+gg_uint_max ()
 {
-  int i;
+  return UINT_MAX;
+}
 
-  i = (int)f;
-  return (i);
+
+/*
+ * float
+*/
+
+float
+gg_flt_min ()
+{
+  return FLT_MIN;
+}
+
+float
+gg_flt_max ()
+{
+  return FLT_MAX;
+}
+
+
+/*
+ * double
+*/
+
+double
+gg_dbl_min ()
+{
+  return DBL_MIN;
+}
+
+double
+gg_dbl_max ()
+{
+  return DBL_MAX;
 }

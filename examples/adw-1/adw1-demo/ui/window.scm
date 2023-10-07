@@ -73,6 +73,13 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageNavigationView"))))))
 
+(define %style-classes
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Style Classes")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageStyleClasses"))))))
+
 (define %sidebar
   `(object (@ (class "AdwNavigationPage"))
      (property (@ (name "title")
@@ -103,7 +110,8 @@
              (property (@ (name "vhomogeneous")) False)
              ;; signal - notify::visible-child ...
              (child ,%welcome-page)
-             (child ,%navigation-view)))))))
+             (child ,%navigation-view)
+             (child ,%style-classes)))))))
 
 (define %window
   `(interface

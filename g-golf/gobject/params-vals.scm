@@ -32,13 +32,14 @@
   #:use-module (system foreign)
   #:use-module (rnrs bytevectors)
   #:use-module (g-golf init)
+  #:use-module (g-golf support libg-golf)
   #:use-module (g-golf support g-export)
+  #:use-module (g-golf support const)
   #:use-module (g-golf support enum)
   #:use-module (g-golf support flags)
   #:use-module (g-golf support struct)
   #:use-module (g-golf support union)
   #:use-module (g-golf support utils)
-  #:use-module (g-golf support libg-golf)
   #:use-module (g-golf gi cache-gi)
   #:use-module (g-golf gi utils)
   #:use-module (g-golf gobject type-info)
@@ -56,24 +57,34 @@
             g-value-type-name
             g-value-ref
             g-value-set!
+            g-param-spec-boolean
+            g-value-get-boolean
+            g-value-set-boolean
             g-param-spec-int
             g-value-get-int
             g-value-set-int
+            g-param-spec-uint
             g-value-get-uint
             g-value-set-uint
-            g-value-get-boolean
-            g-value-set-boolean
+            g-param-spec-float
             g-value-get-float
             g-value-set-float
+            g-param-spec-double
             g-value-get-double
             g-value-set-double
             g-param-spec-enum
             g-value-get-enum
+            ;; g-value-set-enum is a method, see g-export below
+            g-param-spec-flags
             g-value-get-flags
+            ;; g-value-set-flags is a method, see g-export below
+            g-param-spec-string
             g-value-get-string
             g-value-set-string
+            g-param-spec-param
             g-value-get-param
             g-value-set-param
+            g-param-spec-boxed
             g-value-get-boxed
             g-value-set-boxed
             g-value-get-pointer
@@ -138,10 +149,10 @@
     (case type-tag
       ((boolean)
        (g-value-get-boolean g-value))
-      ((uint)
-       (g-value-get-uint g-value))
       ((int)
        (g-value-get-int g-value))
+      ((uint)
+       (g-value-get-uint g-value))
       ((float)
        (g-value-get-float g-value))
       ((double)
@@ -171,10 +182,10 @@
     (case type-tag
       ((boolean)
        (g-value-set-boolean g-value value))
-      ((uint)
-       (g-value-set-uint g-value value))
       ((int)
        (g-value-set-int g-value value))
+      ((uint)
+       (g-value-set-uint g-value value))
       ((float)
        (g-value-set-float g-value value))
       ((double)
@@ -202,6 +213,19 @@
 ;;; GObject Low level API
 ;;;
 
+(define (g-param-spec-boolean name nick blurb default flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_boolean (string->pointer name)
+                                   (string->pointer nick)
+                                   (string->pointer blurb)
+                                   (if default 1 0)
+                                   (flags->integer g-param-flags flags))
+             'pointer)))
+
 (define (g-value-get-boolean g-value)
   (if (= (g_value_get_boolean g-value) 0) #f #t))
 
@@ -212,8 +236,8 @@
 (define (g-param-spec-int name nick blurb minimum maximum default flags)
   (let* ((nick (or nick name))
          (blurb (or blurb nick))
-         (minimum (or minimum -2147483648)) ;; FIXME import G_MININT
-         (maximum (or maximum 2147483647)) ;; FIXME import G_MAXINT
+         (minimum (or minimum INT-MIN))
+         (maximum (or maximum INT-MAX))
          (default (or default 0))
          (flags (or flags '(readable writable)))
          (g-param-flags
@@ -233,17 +257,71 @@
 (define (g-value-set-int g-value int)
   (g_value_set_int g-value int))
 
+(define (g-param-spec-uint name nick blurb minimum maximum default flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (minimum (or minimum 0))
+         (maximum (or maximum UINT-MAX))
+         (default (or default 0))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_uint (string->pointer name)
+                                (string->pointer nick)
+                                (string->pointer blurb)
+                                minimum
+                                maximum
+                                default
+                                (flags->integer g-param-flags flags))
+             'pointer)))
+
 (define (g-value-get-uint g-value)
   (g_value_get_uint g-value))
 
 (define (g-value-set-uint g-value uint)
   (g_value_set_uint g-value uint))
 
+(define (g-param-spec-float name nick blurb minimum maximum default flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (minimum (or minimum FLT-MIN))
+         (maximum (or maximum FLT-MAX))
+         (default (or default 0))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_float (string->pointer name)
+                                (string->pointer nick)
+                                (string->pointer blurb)
+                                minimum
+                                maximum
+                                default
+                                (flags->integer g-param-flags flags))
+             'pointer)))
+
 (define (g-value-get-float g-value)
   (g_value_get_float g-value))
 
 (define (g-value-set-float g-value float)
   (g_value_set_float g-value float))
+
+(define (g-param-spec-double name nick blurb minimum maximum default flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (minimum (or minimum DBL-MIN))
+         (maximum (or maximum DBL-MAX))
+         (default (or default 0))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_double (string->pointer name)
+                                (string->pointer nick)
+                                (string->pointer blurb)
+                                minimum
+                                maximum
+                                default
+                                (flags->integer g-param-flags flags))
+             'pointer)))
 
 (define (g-value-get-double g-value)
   (g_value_get_double g-value))
@@ -294,6 +372,24 @@
         (g_value_set_enum g-value val)
         (error "No such " (!name gi-enum) " key: " sym))))
 
+(define (g-param-spec-flags name nick blurb type default flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (g-type (!g-type type))
+         (default (if default
+                      (flags->integer type default)
+                      0))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_flags (string->pointer name)
+                                 (string->pointer nick)
+                                 (string->pointer blurb)
+                                 g-type
+                                 default
+                                 (flags->integer g-param-flags flags))
+             'pointer)))
+
 (define (g-value-get-gi-flags g-value)
   (let* ((g-name (g-value-type-name g-value))
          (name (g-name->name g-name)))
@@ -313,6 +409,19 @@
         (g_value_set_flags g-value val)
         (error "No such " (!name gi-flags) " key: " flags))))
 
+(define (g-param-spec-string name nick blurb default flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_string (string->pointer name)
+                                  (string->pointer nick)
+                                  (string->pointer blurb)
+                                  (scm->gi default 'string)
+                                  (flags->integer g-param-flags flags))
+             'pointer)))
+
 (define (g-value-get-string g-value)
   (let ((pointer (g_value_get_string g-value)))
     (if (null-pointer? pointer)
@@ -325,6 +434,19 @@
                           (string->pointer str)
                           %null-pointer)))
 
+(define (g-param-spec-param name nick blurb type flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_param (string->pointer name)
+                                 (string->pointer nick)
+                                 (string->pointer blurb)
+                                 type
+                                 (flags->integer g-param-flags flags))
+             'pointer)))
+
 (define (g-value-get-param g-value)
   (let ((pointer (g_value_get_param g-value)))
     (if (null-pointer? pointer)
@@ -335,6 +457,19 @@
   (if param
       (g_value_set_param g-value param)
       (g_value_set_param g-value %null-pointer)))
+
+(define (g-param-spec-boxed name nick blurb type flags)
+  (let* ((nick (or nick name))
+         (blurb (or blurb nick))
+         (flags (or flags '(readable writable)))
+         (g-param-flags
+          (@ (g-golf gobject param-spec) %g-param-flags)))
+    (gi->scm (g_param_spec_boxed (string->pointer name)
+                                 (string->pointer nick)
+                                 (string->pointer blurb)
+                                 type
+                                 (flags->integer g-param-flags flags))
+             'pointer)))
 
 (define %gdk-event-class
   (@ (g-golf gdk events) gdk-event-class))
@@ -354,7 +489,7 @@
                    value))
               ((or (!is-opaque? gi-boxed)
                    (!is-semi-opaque? gi-boxed))
-               value)
+               (gi->scm value 'pointer))
               (else
                (parse-c-struct value
                                (!scm-types gi-boxed))))
@@ -371,7 +506,7 @@
          (value (if gi-boxed
                     (if (or (!is-opaque? gi-boxed)
                             (!is-semi-opaque? gi-boxed))
-                        boxed
+                        (scm->gi boxed 'pointer)
                         (make-c-struct (!scm-types gi-boxed) boxed))
                     (case name
                       ((g-value) boxed)
@@ -425,6 +560,16 @@
 ;;; GObject Bindings
 ;;;
 
+(define g_param_spec_boolean
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_boolean"
+				    %libgobject)
+                      (list '*		;; name
+                            '*		;; nick
+                            '*		;; blurb
+                            int		;; default-value
+                            unsigned-int))) ;; flags
+
 (define g_value_get_boolean
   (pointer->procedure int
                       (dynamic-func "g_value_get_boolean"
@@ -463,6 +608,18 @@
                       (list '*
                             int)))
 
+(define g_param_spec_uint
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_uint"
+				    %libgobject)
+                      (list '*			;; name
+                            '*			;; nick
+                            '*			;; blurb
+                            unsigned-int	;; minimum
+                            unsigned-int	;; maximum
+                            unsigned-int	;; default-value
+                            unsigned-int)))	;; flags
+
 (define g_value_get_uint
   (pointer->procedure unsigned-int
                       (dynamic-func "g_value_get_uint"
@@ -476,6 +633,18 @@
                       (list '*
                             unsigned-int)))
 
+(define g_param_spec_float
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_float"
+				    %libgobject)
+                      (list '*			;; name
+                            '*			;; nick
+                            '*			;; blurb
+                            float		;; minimum
+                            float		;; maximum
+                            float		;; default-value
+                            unsigned-int)))	;; flags
+
 (define g_value_get_float
   (pointer->procedure float
                       (dynamic-func "g_value_get_float"
@@ -488,6 +657,18 @@
 				    %libgobject)
                       (list '*
                             float)))
+
+(define g_param_spec_double
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_double"
+				    %libgobject)
+                      (list '*			;; name
+                            '*			;; nick
+                            '*			;; blurb
+                            double		;; minimum
+                            double		;; maximum
+                            double		;; default-value
+                            unsigned-int)))	;; flags
 
 (define g_value_get_double
   (pointer->procedure double
@@ -509,7 +690,7 @@
                       (list '*		;; name
                             '*		;; nick
                             '*		;; blurb
-                            size_t	;; g-type
+                            size_t	;; enum-type
                             int		;; default-value
                             unsigned-int))) ;; flags
 
@@ -526,6 +707,17 @@
                       (list '*
                             int)))
 
+(define g_param_spec_flags
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_flags"
+				    %libgobject)
+                      (list '*		;; name
+                            '*		;; nick
+                            '*		;; blurb
+                            size_t	;; flags-type
+                            int		;; default-value
+                            unsigned-int))) ;; flags
+
 (define g_value_get_flags
   (pointer->procedure unsigned-int
                       (dynamic-func "g_value_get_flags"
@@ -538,6 +730,16 @@
 				    %libgobject)
                       (list '*
                             unsigned-int)))
+
+(define g_param_spec_string
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_string"
+				    %libgobject)
+                      (list '*		;; name
+                            '*		;; nick
+                            '*		;; blurb
+                            '*		;; default-value
+                            unsigned-int))) ;; flags
 
 (define g_value_get_string
   (pointer->procedure '*
@@ -552,6 +754,16 @@
                       (list '*
                             '*)))
 
+(define g_param_spec_param
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_param"
+				    %libgobject)
+                      (list '*		;; name
+                            '*		;; nick
+                            '*		;; blurb
+                            size_t	;; param-type
+                            unsigned-int))) ;; flags
+
 (define g_value_get_param
   (pointer->procedure '*
                       (dynamic-func "g_value_get_param"
@@ -564,6 +776,16 @@
 				    %libgobject)
                       (list '*
                             '*)))
+
+(define g_param_spec_boxed
+  (pointer->procedure '*
+                      (dynamic-func "g_param_spec_boxed"
+				    %libgobject)
+                      (list '*		;; name
+                            '*		;; nick
+                            '*		;; blurb
+                            size_t	;; boxed-type
+                            unsigned-int))) ;; flags
 
 (define g_value_get_boxed
   (pointer->procedure '*

@@ -33,6 +33,7 @@
   #:use-module (adw1-demo preferences)
   #:use-module (adw1-demo welcome)
   #:use-module (adw1-demo navigation-view)
+  #:use-module (adw1-demo style-classes)
 
   #:duplicates (merge-generics
 		replace
@@ -61,6 +62,8 @@
               (gi-import-by-name "Gtk" name))
       '("License"
         "Window"
+        "StyleContext"
+        "CssProvider"
         "ClosureExpression"
         "IconTheme"
         "Stack"
@@ -148,11 +151,16 @@
     (present about)))
 
 (define (show-window app)
-  (let* ((display (gdk-display-get-default))
+  (let* ((cwd (dirname (current-filename)))
+         (display (gdk-display-get-default))
          (manager (adw-style-manager-get-default))
-         (icon-theme (gtk-icon-theme-get-for-display display)))
-    (add-search-path icon-theme (string-append (dirname (current-filename))
-                                               "/icons"))
+         (icon-theme (gtk-icon-theme-get-for-display display))
+         (css-path (string-append cwd "/css/style.css"))
+         (css-provider (let ((provider (make <gtk-css-provider>)))
+                         (gtk-css-provider-load-from-path provider css-path)
+                         provider)))
+    (add-search-path icon-theme (string-append cwd "/icons"))
+    (gtk-style-context-add-provider-for-display display css-provider 800)
     (let* ((window (make <adw-demo-window>
                      #:application app))
            (color-scheme-button (!color-scheme-button window))
@@ -182,11 +190,7 @@
 
       (connect-after (!stack window)
                      'notify::visible-child
-                     (lambda (s c)
-                       ;; FIXME
-                       ;; - the second arg
-                       ;;     g-closure-marshal-g-value-ref <- must be enhanced
-                       ;; (dimfi s c (g-object-type-name c)
+                     (lambda (stack p-spec)
                        (notify-visible-child-cb window)))
 
       (present window))))

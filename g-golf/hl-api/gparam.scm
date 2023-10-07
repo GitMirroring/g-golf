@@ -42,8 +42,16 @@
 
   #:export (g-param-construct
 
+            g-param-construct-boolean
             g-param-construct-int
+            g-param-construct-uint
+            g-param-construct-float
+            g-param-construct-double
             g-param-construct-enum
+            g-param-construct-flags
+            g-param-construct-string
+            g-param-construct-param
+            g-param-construct-boxed
             g-param-construct-object))
 
 
@@ -58,10 +66,26 @@
     (match p-spec
       ((param-type . param-desc)
        (case param-type
+         ((boolean)
+          (g-param-construct-boolean name param-desc))
          ((int)
           (g-param-construct-int name param-desc))
+         ((uint)
+          (g-param-construct-uint name param-desc))
+         ((float)
+          (g-param-construct-float name param-desc))
+         ((double)
+          (g-param-construct-double name param-desc))
          ((enum)
           (g-param-construct-enum name param-desc))
+         ((flags)
+          (g-param-construct-flags name param-desc))
+         ((string)
+          (g-param-construct-string name param-desc))
+         ((param)
+          (g-param-construct-param name param-desc))
+         ((boxed)
+          (g-param-construct-boxed name param-desc))
          ((object)
           (g-param-construct-object name param-desc))
          (else
@@ -69,6 +93,16 @@
                      "Unimplemented g-param-construct type: ~S"
                      (list param-type) #f)))))))
 
+(define (g-param-construct-boolean name param-desc)
+  (let ((nick (get-keyword #:nick param-desc #f))
+        (blurb (get-keyword #:blurb param-desc #f))
+        (default (get-keyword #:default param-desc #f))
+        (flags (get-keyword #:flags param-desc #f)))
+    (g-param-spec-boolean (symbol->string name)
+                          nick
+                          blurb
+                          default
+                          flags)))
 
 (define (g-param-construct-int name param-desc)
   (let ((nick (get-keyword #:nick param-desc #f))
@@ -85,6 +119,51 @@
                       default
                       flags)))
 
+(define (g-param-construct-uint name param-desc)
+  (let ((nick (get-keyword #:nick param-desc #f))
+        (blurb (get-keyword #:blurb param-desc #f))
+        (minimum (get-keyword #:minimum param-desc #f))
+        (maximum (get-keyword #:maximum param-desc #f))
+        (default (get-keyword #:default param-desc #f))
+        (flags (get-keyword #:flags param-desc #f)))
+    (g-param-spec-uint (symbol->string name)
+                       nick
+                       blurb
+                       minimum
+                       maximum
+                       default
+                       flags)))
+
+(define (g-param-construct-float name param-desc)
+  (let ((nick (get-keyword #:nick param-desc #f))
+        (blurb (get-keyword #:blurb param-desc #f))
+        (minimum (get-keyword #:minimum param-desc #f))
+        (maximum (get-keyword #:maximum param-desc #f))
+        (default (get-keyword #:default param-desc #f))
+        (flags (get-keyword #:flags param-desc #f)))
+    (g-param-spec-float (symbol->string name)
+                        nick
+                        blurb
+                        minimum
+                        maximum
+                        default
+                        flags)))
+
+(define (g-param-construct-double name param-desc)
+  (let ((nick (get-keyword #:nick param-desc #f))
+        (blurb (get-keyword #:blurb param-desc #f))
+        (minimum (get-keyword #:minimum param-desc #f))
+        (maximum (get-keyword #:maximum param-desc #f))
+        (default (get-keyword #:default param-desc #f))
+        (flags (get-keyword #:flags param-desc #f)))
+    (g-param-spec-double (symbol->string name)
+                         nick
+                         blurb
+                         minimum
+                         maximum
+                         default
+                         flags)))
+
 (define (g-param-construct-enum name param-desc)
   (let ((nick (get-keyword #:nick param-desc #f))
         (blurb (get-keyword #:blurb param-desc #f))
@@ -97,6 +176,52 @@
                        type
                        default
                        flags)))
+
+(define (g-param-construct-flags name param-desc)
+  (let ((nick (get-keyword #:nick param-desc #f))
+        (blurb (get-keyword #:blurb param-desc #f))
+        (type (get-keyword #:type param-desc #f))
+        (default (get-keyword #:default param-desc #f))
+        (flags (get-keyword #:flags param-desc #f)))
+    (g-param-spec-flags (symbol->string name)
+                        nick
+                        blurb
+                        type
+                        default
+                        flags)))
+
+(define (g-param-construct-string name param-desc)
+  (let ((nick (get-keyword #:nick param-desc #f))
+        (blurb (get-keyword #:blurb param-desc #f))
+        (default (get-keyword #:default param-desc #f))
+        (flags (get-keyword #:flags param-desc #f)))
+    (g-param-spec-string (symbol->string name)
+                         nick
+                         blurb
+                         default
+                         flags)))
+
+(define (g-param-construct-param name param-desc)
+  (let ((nick (get-keyword #:nick param-desc #f))
+        (blurb (get-keyword #:blurb param-desc #f))
+        (type (get-keyword #:type param-desc (symbol->g-type 'param)))
+        (flags (get-keyword #:flags param-desc #f)))
+    (g-param-spec-param (symbol->string name)
+                         nick
+                         blurb
+                         type
+                         flags)))
+
+(define (g-param-construct-boxed name param-desc)
+  (let ((nick (get-keyword #:nick param-desc #f))
+        (blurb (get-keyword #:blurb param-desc #f))
+        (type (get-keyword #:type param-desc #f))
+        (flags (get-keyword #:flags param-desc #f)))
+    (g-param-spec-boxed (symbol->string name)
+                         nick
+                         blurb
+                         type
+                         flags)))
 
 (define (g-param-construct-object name param-desc)
   (let ((nick (get-keyword #:nick param-desc #f))

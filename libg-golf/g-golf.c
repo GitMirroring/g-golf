@@ -35,6 +35,8 @@
 /* #include <gtk/gtk.h> */
 #include <girepository.h>
 
+#include "gg-const.h"
+#include "gg-ffi.h"
 #include "gg-utils.h"
 #include "gg-glib.h"
 #include "gg-gobject.h"

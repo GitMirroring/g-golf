@@ -36,7 +36,7 @@
 
 (define-module (g-golf support)
   #:use-module (oop goops)
-  #:use-module (g-golf support libg-golf)
+  #:use-module (g-golf support const)
   #:use-module (g-golf support float)
   #:use-module (g-golf support module)
   #:use-module (g-golf support goops)
@@ -61,7 +61,7 @@
 
 (eval-when (expand load eval)
   (re-export-public-interface (oop goops)
-                              (g-golf support libg-golf)
+                              (g-golf support const)
                               (g-golf support float)
                               (g-golf support module)
 			      (g-golf support goops)

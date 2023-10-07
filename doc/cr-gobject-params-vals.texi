@@ -20,26 +20,34 @@ Parameters and Values — Standard Parameter and Value Types
 @item @ref{g-value-type-name}
 @item @ref{g-value-ref}
 @item @ref{g-value-set!}
+@item @ref{g-param-spec-boolean}
 @item @ref{g-value-get-boolean}
 @item @ref{g-value-set-boolean}
 @item @ref{g-param-spec-int}
 @item @ref{g-value-get-int}
 @item @ref{g-value-set-int}
+@item @ref{g-param-spec-uint}
 @item @ref{g-value-get-uint}
 @item @ref{g-value-set-uint}
+@item @ref{g-param-spec-float}
 @item @ref{g-value-get-float}
 @item @ref{g-value-set-float}
+@item @ref{g-param-spec-double}
 @item @ref{g-value-get-double}
 @item @ref{g-value-set-double}
 @item @ref{g-param-spec-enum}
 @item @ref{g-value-get-enum}
 @item @ref{g-value-set-enum}
+@item @ref{g-param-spec-flags}
 @item @ref{g-value-get-flags}
 @item @ref{g-value-set-flags}
+@item @ref{g-param-spec-string}
 @item @ref{g-value-get-string}
 @item @ref{g-value-set-string}
+@item @ref{g-param-spec-param}
 @item @ref{g-value-get-param}
 @item @ref{g-value-set-param}
+@item @ref{g-param-spec-boxed}
 @item @ref{g-value-get-boxed}
 @item @ref{g-value-set-boxed}
 @item @ref{g-value-get-pointer}
@@ -147,6 +155,21 @@ otherwise it will most likely lead to a crash.
 @end deffn
 
 
+@anchor{g-param-spec-boolean}
+@deffn Procedure g-param-spec-boolean name nick blurb @
+         default flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecBoolean} instance
+specifying a @code{G_TYPE_BOOLEAN} property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{default} the
+default value and @var{flags} the flags - for the property specified.
+@end deffn
+
+
 @anchor{g-value-get-boolean}
 @deffn Procedure g-value-get-boolean g-value
 
@@ -173,7 +196,7 @@ Sets the content of @var{g-value} to @code{0} if @var{val} is
 
 Returns a pointer.
 
-Creates and returns a pointer to a new @code{GParamSpecEnum} instance
+Creates and returns a pointer to a new @code{GParamSpecInt} instance
 specifying a @code{G_TYPE_INT} property.
 
 The @var{name} is the canonical name of the property specified,
@@ -201,6 +224,22 @@ Sets the content of @var{g-value} to @var{int}.
 @end deffn
 
 
+@anchor{g-param-spec-uint}
+@deffn Procedure g-param-spec-uint name nick blurb @
+         minimum maximum default flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecUInt} instance
+specifying a @code{G_TYPE_UINT} property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{minimum} the
+minimum value, @var{maximum} the maximum value, @var{default} the
+default value and @var{flags} the flags - for the property specified.
+@end deffn
+
+
 @anchor{g-value-get-uint}
 @deffn Procedure g-value-get-uint g-value
 
@@ -219,6 +258,22 @@ Sets the content of @var{g-value} to @var{uint}.
 @end deffn
 
 
+@anchor{g-param-spec-float}
+@deffn Procedure g-param-spec-float name nick blurb @
+         minimum maximum default flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecFloat} instance
+specifying a @code{G_TYPE_FLOAT} property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{minimum} the
+minimum value, @var{maximum} the maximum value, @var{default} the
+default value and @var{flags} the flags - for the property specified.
+@end deffn
+
+
 @anchor{g-value-get-float}
 @deffn Procedure g-value-get-float g-value
 
@@ -234,6 +289,22 @@ Obtains and returns the content of @var{g-value}.
 Returns nothing.
 
 Sets the content of @var{g-value} to @var{float}.
+@end deffn
+
+
+@anchor{g-param-spec-double}
+@deffn Procedure g-param-spec-double name nick blurb @
+         minimum maximum default flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecDouble} instance
+specifying a @code{G_TYPE_DOUBLE} property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{minimum} the
+minimum value, @var{maximum} the maximum value, @var{default} the
+default value and @var{flags} the flags - for the property specified.
 @end deffn
 
 
@@ -294,6 +365,22 @@ info for @var{g-value}), otherwise an exception is raised.
 @end deffn
 
 
+@anchor{g-param-spec-flags}
+@deffn Procedure g-param-spec-flags name nick blurb type @
+         default flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecFlags} instance
+specifying a @code{G_TYPE_FLAGS} property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{type} a
+@code{<gi-flags>} instance, @var{default} the default value and
+@var{flags} the flags  - for the property specified.
+@end deffn
+
+
 @anchor{g-value-get-flags}
 @deffn Procedure g-value-get-flags g-value
 
@@ -317,6 +404,21 @@ being a valid member of the (registered) gi-flags type for
 @end deffn
 
 
+@anchor{g-param-spec-string}
+@deffn Procedure g-param-spec-string name nick blurb @
+         default flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecString} instance
+specifying a @code{G_TYPE_STRING} property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{default} the
+default value and @var{flags} the flags - for the property specified.
+@end deffn
+
+
 @anchor{g-value-get-string}
 @deffn Procedure g-value-get-string g-value
 
@@ -333,6 +435,22 @@ if the @var{g-value} content is the @code{%null-pointer}.
 Returns nothing.
 
 Sets the content of @var{g-value} to @var{str}.
+@end deffn
+
+
+@anchor{g-param-spec-param}
+@deffn Procedure g-param-spec-param name nick blurb @
+         type flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecParam} instance
+specifying a @code{G_TYPE_PARAM} property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{type} a
+GType derived from @code{G_TYPE_PARAM} and @var{flags} the flags - for
+the property specified.
 @end deffn
 
 
@@ -353,6 +471,22 @@ Obtains and returns the content of @var{g-value}, a (pointer to)
 Returns nothing.
 
 Sets the content of @var{g-value} to @var{param}.
+@end deffn
+
+
+@anchor{g-param-spec-boxed}
+@deffn Procedure g-param-spec-boxed name nick blurb @
+         type flags
+
+Returns a pointer.
+
+Creates and returns a pointer to a new @code{GParamSpecBoxed} instance
+specifying a @code{G_TYPE_BOXED} derived property.
+
+The @var{name} is the canonical name of the property specified,
+@var{nick} its nick name, @var{blurb} its description, @var{type} a
+GType derived from @code{G_TYPE_BOXED} and @var{flags} the flags - for
+the property specified.
 @end deffn
 
 

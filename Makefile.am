@@ -29,6 +29,7 @@ pkgconfig_DATA=meta/g-golf-1.0.pc
 
 SOURCES = \
 	g-golf/support/libg-golf.scm		\
+	g-golf/support/const.scm		\
 	g-golf/support/float.scm		\
 	g-golf/support/module.scm		\
 	g-golf/support/goops.scm		\

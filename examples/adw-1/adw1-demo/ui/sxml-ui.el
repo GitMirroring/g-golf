@@ -32,13 +32,14 @@
 
 (defvar %template-ui-sxml-tags-indent-0
   '(section
-    item))
+    item
+    style
+    layout))
 
 (defvar %template-ui-sxml-tags-indent-1
   '(interface
     template
     object
-    style
     property
     child
     menu
@@ -65,6 +66,10 @@
      . font-lock-constant-face)))
 
 (font-lock-add-keywords 'sxml-ui-mode
+  '(("\\<\\(binding\\)\\>"
+     . font-lock-constant-face)))
+
+(font-lock-add-keywords 'sxml-ui-mode
   '(("\\<\\(section\\)\\>"
      . font-lock-doc-face)))
 
@@ -73,7 +78,15 @@
      . font-lock-warning-face)))
 
 (font-lock-add-keywords 'sxml-ui-mode
+  '(("\\<\\(property\\)\\>"
+     . font-lock-comment-face)))
+
+(font-lock-add-keywords 'sxml-ui-mode
   '(("\\<\\(attribute\\)\\>"
+     . font-lock-comment-face)))
+
+(font-lock-add-keywords 'sxml-ui-mode
+  '(("\\<\\(lookup\\)\\>"
      . font-lock-comment-face)))
 
 (font-lock-add-keywords 'sxml-ui-mode
@@ -89,12 +102,16 @@
      . font-lock-preprocessor-face)))
 
 (font-lock-add-keywords 'sxml-ui-mode
-  '(("\\<\\(property\\)\\>"
-     . font-lock-comment-face)))
+  '(("\\<\\(child\\)\\>"
+     . font-lock-warning-face)))
 
 (font-lock-add-keywords 'sxml-ui-mode
-  '(("\\<\\(child\\|style\\)\\>"
-     . font-lock-warning-face)))
+  '(("\\<\\(style\\\|layout\\|condition\\)\\>"
+     . font-lock-doc-markup-face)))
+
+(font-lock-add-keywords 'sxml-ui-mode
+  '(("\\<\\(setter\\)\\>"
+     . font-lock-type-face)))
 
 (font-lock-add-keywords 'sxml-ui-mode
   '(("\\<\\(version\\|class\\|parent\\|name\\|translatable\\|id\\|bind-source\\|bind-property\\|bind-flags\\|type\\)\\>"
