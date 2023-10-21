@@ -29,6 +29,7 @@
 (define-module (g-golf hl-api callback)
   #:use-module (system foreign)
   #:use-module (ice-9 threads)
+  #:use-module (ice-9 format)
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
   #:use-module (srfi srfi-1)
@@ -81,7 +82,7 @@
          (g-name (g-base-info-get-name info))
          (name (g-name->name g-name)))
     (when (%debug)
-      (dimfi 'import-callback namespace name))
+      (dimfi "      [" 'importing: namespace name "]"))
     (or (gi-callback-inst-cache-ref name)
         (let ((callback (make <callback> #:info info
                               #:namespace namespace
@@ -162,19 +163,17 @@
                                          return-value
                                          ffi-args
                                          user-data)
-  (let* ((%gi-argument->scm
-          (@ (g-golf hl-api callable) gi-argument->scm))
-         (%scm->gi-argument
+  (let* ((%scm->gi-argument
           (@ (g-golf hl-api callable) scm->gi-argument))
          (callback-closure (pointer->scm user-data))
          (callback (!callback callback-closure))
          (procedure (!procedure callback-closure))
-         (g-value-ptr? (preserve-g-value-ptr? callback))
+
          (return-type (!return-type callback))
          (gi-argument (!gi-arg-result callback)))
     (when (%debug)
       (dimfi 'g-golf-callback-closure-marshal)
-      (dimfi "  " (!name callback)))
+      (dimfi " " (!name callback)))
     (let loop ((arguments (!arguments callback))
                (ffi-arg ffi-args)
                (args '()))
@@ -184,14 +183,12 @@
            (case return-type
              ((void)
               (when (%debug)
-                (dimfi "       arguments:" args)
-                (dimfi "    return-value: void"))
+                (dimfi "      returned value: void"))
               (apply procedure args))
              (else
               (let ((r-val (apply procedure args)))
                 (when (%debug)
-                  (dimfi "       arguments:" args)
-                  (dimfi "    return-value:" r-val))
+                  (dimfi "      returned value:" r-val))
                 (%scm->gi-argument return-type
                                    (!type-desc callback)
                                    return-value
@@ -202,62 +199,12 @@
                                    #:is-method? (!is-method? callback)
                                    #:forced-type return-type))))))
         ((argument . rests)
-         (let* ((type-tag (!type-tag argument))
-                (type-desc (!type-desc argument))
-                (is-pointer? (!is-pointer? argument))
-                (is-enum? (!is-enum? argument))
-                (gi-argument (or (!gi-argument-in argument)
-                                 (!gi-argument-out argument)))
-                (forced-type (!forced-type argument))
-                (ffi-value (ffi-arg->scm ffi-arg type-tag is-pointer? is-enum?)))
+         (let ((value (ffi-arg->value callback argument ffi-arg)))
+           (when (%debug)
+             (dimfi (format #f "~20,,,' @A:" (!name argument)) value))
            (loop rests
                  (gi-pointer-inc ffi-arg)
-                 (cons (case type-tag
-                         ((boolean
-                           int8
-                           uint8
-                           int16
-                           uint16
-                           int32
-                           uint32
-                           unichar
-                           int64
-                           uint64
-                           float
-                           double
-                           gtype
-                           utf8
-                           filename)
-                          ffi-value)
-                         ((array
-                           glist
-                           gslist
-                           ghash
-                           error)
-                          (begin
-                            (gi-argument-set! gi-argument 'v-pointer ffi-value)
-                            (%gi-argument->scm type-tag
-                                               type-desc
-                                               gi-argument
-                                               argument
-                                               #:forced-type forced-type
-                                               #:is-pointer? is-pointer?)))
-                         ((interface)
-                          (if is-enum?
-                              (gi-argument-set! gi-argument 'v-int32 ffi-value)
-                              (gi-argument-set! gi-argument 'v-pointer ffi-value))
-                          (%gi-argument->scm type-tag
-                                             type-desc
-                                             gi-argument
-                                             argument
-                                             #:forced-type forced-type
-                                             #:is-pointer? is-pointer?
-                                             #:g-value-ptr? g-value-ptr?))
-                         ((void)
-                          (if is-pointer?
-                              ffi-value
-                              (error "unlikely possible"))))
-                       args))))))))
+                 (cons value args))))))))
 
 (define %g-golf-callback-closure-marshal
   (procedure->pointer void
@@ -277,6 +224,64 @@
                                           %g-golf-callback-closure-marshal
                                           (scm->pointer callback-closure))
             callback-closure)))
+
+(define (ffi-arg->value callback argument ffi-arg)
+  (let* ((%gi-argument->scm
+          (@ (g-golf hl-api callable) gi-argument->scm))
+         (g-value-ptr? (preserve-g-value-ptr? callback))
+         (type-tag (!type-tag argument))
+         (type-desc (!type-desc argument))
+         (is-pointer? (!is-pointer? argument))
+         (is-enum? (!is-enum? argument))
+         (gi-argument (or (!gi-argument-in argument)
+                          (!gi-argument-out argument)))
+         (forced-type (!forced-type argument))
+         (ffi-value (ffi-arg->scm ffi-arg type-tag is-pointer? is-enum?)))
+    (case type-tag
+      ((boolean
+        int8
+        uint8
+        int16
+        uint16
+        int32
+        uint32
+        unichar
+        int64
+        uint64
+        float
+        double
+        gtype
+        utf8
+        filename)
+       ffi-value)
+      ((array
+        glist
+        gslist
+        ghash
+        error)
+       (begin
+         (gi-argument-set! gi-argument 'v-pointer ffi-value)
+         (%gi-argument->scm type-tag
+                            type-desc
+                            gi-argument
+                            argument
+                            #:forced-type forced-type
+                            #:is-pointer? is-pointer?)))
+      ((interface)
+       (if is-enum?
+           (gi-argument-set! gi-argument 'v-int32 ffi-value)
+           (gi-argument-set! gi-argument 'v-pointer ffi-value))
+       (%gi-argument->scm type-tag
+                          type-desc
+                          gi-argument
+                          argument
+                          #:forced-type forced-type
+                          #:is-pointer? is-pointer?
+                          #:g-value-ptr? g-value-ptr?))
+      ((void)
+       (if is-pointer?
+           ffi-value
+           (error "unlikely possible"))))))
 
 
 ;;;
