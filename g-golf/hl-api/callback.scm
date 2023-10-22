@@ -199,7 +199,7 @@
                                    #:is-method? (!is-method? callback)
                                    #:forced-type return-type))))))
         ((argument . rests)
-         (let ((value (ffi-arg->value callback argument ffi-arg)))
+         (let ((value (ffi-arg->cb-arg callback argument ffi-arg)))
            (when (%debug)
              (dimfi (format #f "~20,,,' @A:" (!name argument)) value))
            (loop rests
@@ -225,7 +225,7 @@
                                           (scm->pointer callback-closure))
             callback-closure)))
 
-(define (ffi-arg->value callback argument ffi-arg)
+(define (ffi-arg->cb-arg callback argument ffi-arg)
   (let* ((%gi-argument->scm
           (@ (g-golf hl-api callable) gi-argument->scm))
          (g-value-ptr? (preserve-g-value-ptr? callback))
