@@ -108,38 +108,42 @@
                                `(#:namespace ,namespace
                                  #:g-name ,g-name
                                  #:name ,name)))))
-    (mslot-set! self
-                'ffi-cif (callback-ffi-cif self))))
+    (receive (ffi-cif-bv ffi-cif)
+        (callback-ffi-cif self)
+      (mslot-set! self
+                  'ffi-cif-bv ffi-cif-bv
+                  'ffi-cif ffi-cif))))
 
-(define (ffi-prep-cif-elements callback)
+(define (ffi-prep-cif-elements callback n-arg)
   (let* ((ffi-cif-bv (make-bytevector (ffi-cif-size) 0))
          (r-type-info (g-callable-info-get-return-type (!info callback)))
          (r-type (g-type-info-get-ffi-type r-type-info))
-         (n-arg (!n-arg callback))
          (a-types-bv (make-bytevector (* n-arg (ffi-type-size)) 0)))
     (g-base-info-unref r-type-info)
-    (values (bytevector->pointer ffi-cif-bv)
-            n-arg
+    (values ffi-cif-bv
+            (bytevector->pointer ffi-cif-bv)
             r-type
+            a-types-bv
             (bytevector->pointer a-types-bv))))
 
 (define (callback-ffi-cif callback)
-  (receive (ffi-cif n-arg r-type a-types)
-      (ffi-prep-cif-elements callback)
+  (let ((n-arg (!n-arg callback)))
     (if (= n-arg 0)
-        %null-pointer
-        (let loop ((arguments (!arguments callback))
-                   (w-ptr a-types))
-          (match arguments
-            (()
-             (ffi-prep-cif ffi-cif n-arg r-type a-types)
-             ffi-cif)
-            ((argument . rest)
-             (bv-ptr-set! w-ptr
-                          (gi-type-tag-get-ffi-type (!type-tag argument)
-                                                    (!is-pointer? argument)))
-             (loop rest
-                   (gi-pointer-inc w-ptr))))))))
+        (values #f %null-pointer)
+        (receive (ffi-cif-bv ffi-cif r-type a-types-bv a-types)
+            (ffi-prep-cif-elements callback n-arg)
+          (let loop ((arguments (!arguments callback))
+                     (w-ptr a-types))
+            (match arguments
+              (()
+               (ffi-prep-cif ffi-cif n-arg r-type a-types)
+               (values ffi-cif-bv ffi-cif))
+               ((argument . rest)
+               (bv-ptr-set! w-ptr
+                            (gi-type-tag-get-ffi-type (!type-tag argument)
+                                                      (!is-pointer? argument)))
+               (loop rest
+                     (gi-pointer-inc w-ptr)))))))))
 
 (define (g-callable-info-make-closure info
                                       ffi-cif
@@ -168,7 +172,6 @@
          (callback-closure (pointer->scm user-data))
          (callback (!callback callback-closure))
          (procedure (!procedure callback-closure))
-
          (return-type (!return-type callback))
          (gi-argument (!gi-arg-result callback)))
     (when (%debug)

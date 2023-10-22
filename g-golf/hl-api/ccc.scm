@@ -79,7 +79,8 @@
           !gi-args-out-bv
           !gi-arg-result
 
-          !ffi-cif		;; callback
+          !ffi-cif-bv		;; callback
+          !ffi-cif
 
           !callback		;; callback-closure
           !procedure)
@@ -125,6 +126,7 @@
 ;;;
 
 (define-class <callback> (<callable>)
+  (ffi-cif-bv #:accessor !ffi-cif-bv)
   (ffi-cif #:accessor !ffi-cif))
 
 
