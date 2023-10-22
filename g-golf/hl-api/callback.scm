@@ -138,7 +138,7 @@
               (()
                (ffi-prep-cif ffi-cif n-arg r-type a-types)
                (values ffi-cif-bv ffi-cif))
-               ((argument . rest)
+              ((argument . rest)
                (bv-ptr-set! w-ptr
                             (gi-type-tag-get-ffi-type (!type-tag argument)
                                                       (!is-pointer? argument)))
