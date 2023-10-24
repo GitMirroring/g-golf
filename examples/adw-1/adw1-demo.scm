@@ -51,9 +51,17 @@ exec guile -e main -s "$0" "$@"
 
 
 (define (main args)
-  (let ((app (make <adw-application>
-               #:application-id "org.gnu.g-golf.adw1.demo")))
-    (connect app 'activate show-window)
-    (let ((status (g-application-run app args)))
-      #;(exit status)
-      'done)))
+  (letrec ((animate
+            (lambda ()
+              (let ((app (make <adw-application>
+                           #:application-id "org.gnu.g-golf.adw1.demo")))
+                (connect app 'activate show-window)
+                (let ((status (g-application-run app '())))
+                  #;(exit status)
+                  'done)))))
+    ;; a simple -d [--debug] cmd line option detection
+    (if (or (member "-d" args)
+            (member "--debug" args))
+        (parameterize ((%debug #t))
+          (animate))
+        (animate))))
