@@ -80,6 +80,16 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageStyleClasses"))))))
 
+(define %dialogs
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Dialogs")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageDialogs"))
+         ;; signal - add-toast - adw_toast_overlay_add_toast
+         ;;        - toast-overlay - swapped
+         ))))
+
 (define %sidebar
   `(object (@ (class "AdwNavigationPage"))
      (property (@ (name "title")
@@ -111,7 +121,8 @@
              ;; signal - notify::visible-child ...
              (child ,%welcome-page)
              (child ,%navigation-view)
-             (child ,%style-classes)))))))
+             (child ,%style-classes)
+             (child ,%dialogs)))))))
 
 (define %window
   `(interface
