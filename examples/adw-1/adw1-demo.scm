@@ -51,7 +51,11 @@ exec guile -e main -s "$0" "$@"
 
 
 (define (main args)
-  (letrec ((animate
+  (letrec ((debug? (or (member "-d" args)
+                       (member "--debug" args)))
+           (async-api? (or (member "-a" args)
+                           (member "--async-api" args)))
+           (animate
             (lambda ()
               (let ((app (make <adw-application>
                            #:application-id "org.gnu.g-golf.adw1.demo")))
@@ -59,9 +63,15 @@ exec guile -e main -s "$0" "$@"
                 (let ((status (g-application-run app '())))
                   #;(exit status)
                   'done)))))
-    ;; a simple -d [--debug] cmd line option detection
-    (if (or (member "-d" args)
-            (member "--debug" args))
-        (parameterize ((%debug #t))
-          (animate))
-        (animate))))
+
+    (cond ((and debug? async-api?)
+           (parameterize ((%debug #t) (%async-api #t))
+             (animate)))
+          (debug?
+           (parameterize ((%debug #t))
+             (animate)))
+          (async-api?
+           (parameterize ((%async-api #t))
+             (animate)))
+          (else
+           (animate)))))
