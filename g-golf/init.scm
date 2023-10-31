@@ -35,7 +35,9 @@
             %libg-golf
 
             %debug
-            %iface-vfunc-warnings))
+            %iface-vfunc-warnings
+
+            %async-api))
 
 
 (define %libgirepository (dynamic-link "libgirepository-1.0"))
@@ -47,3 +49,21 @@
 
 (define %debug (make-parameter #f))
 (define %iface-vfunc-warnings (make-parameter #f))
+
+;; The AdwMessageDialog class offers two ways to capture the user
+;; response: (1) the traditional dialog 'response signal callback and
+;; (2) the Gio Async API.
+
+;; For some misterious reason (still), I couldn't (yet) make the Gio
+;; Async API approach work. See the commit dc9ff1f as well as the
+;; comments in the (adw1-demo dialogs) module for a detailed description
+;; of the problem.
+
+;; Till I or someone else figures out what's going on and how to fix it,
+;; I'll swith to use the dialog 'response signal callback model, but to
+;; be able to later track and possibly fix this problem, I add this
+;; parameter, that together with the ./examples/adw-1/adw1-demo.scm -a,
+;; --async-api command line option, allows the (adw1-demo dialogs) to
+;; implement and selectively switch to one response model or the other.
+
+(define %async-api (make-parameter #f))
