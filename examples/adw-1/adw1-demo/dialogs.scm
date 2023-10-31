@@ -53,6 +53,7 @@
               (gi-import-by-name "Adw" name))
       '("Bin"
         "Toast"
+        "ToastOverlay"
         "MessageDialog"
         "ResponseAppearance")))
 
@@ -76,7 +77,14 @@
   (connect (!dialogs-button self)
            'clicked
            (lambda (b)
-             (demo-message-dialog-cb self))))
+             (demo-message-dialog-cb self)))
+
+  (connect self
+           'add-toast
+           (lambda (self toast)
+             (let* ((parent (get-root self))
+                    (toast-overlay (slot-ref parent 'toast-overlay)))
+               (add-toast toast-overlay toast)))))
 
 (define (demo-message-dialog-cb window)
   (let* ((parent (get-root window))
@@ -94,12 +102,20 @@
     (set-close-response dialog "cancel")
     (when (%debug)
       (demo-message-dialog-cb-debug-info window parent))
-    ;; below, the user-data (last) arg should be passed to the callback,
-    ;; so passed to the message-cb data (last) arg - that's not
-    ;; happening, but i can't figure out why. whether i pass #f (NULL)
-    ;; or the g-inst pointer of the window goops proxy instance, the
-    ;; meesage-cb call always receive a valid but unknown pointer.
-    (choose dialog #f message-cb (!g-inst window))))
+    (if (%async-api)
+        ;; below, the user-data (last) arg should be passed to the
+        ;; callback, so passed to the message-cb data (last) arg -
+        ;; that's not happening, but i can't figure out why. whether i
+        ;; pass #f (NULL) or the g-inst pointer of the window goops
+        ;; proxy instance, the meesage-cb call always receive a valid
+        ;; but unknown pointer.
+        (choose dialog #f message-cb (!g-inst window))
+        (begin
+          (connect dialog
+                   'response
+                   (lambda (dialog response)
+                     (response-cb dialog response window)))
+          (present dialog)))))
 
 (define (add-responses dialog responses)
   (for-each (lambda (response)
@@ -119,6 +135,13 @@
     ;; call above (see line 106 - and a further detailed comment lines
     ;; 101 - 105) - currently, uncomment would (ofc) raise an exception.
     #;(emit -the-goops-proxy-inst-for-data- 'add-toast toast)))
+
+(define (response-cb dialog response window)
+  (let ((toast (make <adw-toast>
+                 #:title (format #f "Dialog response: ~A" response))))
+    (when (%debug)
+      (response-cb-debug-info dialog response window toast))
+    (emit window 'add-toast toast)))
 
 
 ;;;
@@ -141,3 +164,12 @@
   (dimfi "  " '-- 'local 'variables '--)
   (dimfi (format #f "~20,,,' @A:" 'response) response)
   (dimfi (format #f "~20,,,' @A:" 'toast) toast))
+
+(define (response-cb-debug-info dialog response window toast)
+  (dimfi 'response-cb)
+  (dimfi (format #f "~20,,,' @A:" 'dialog) dialog)
+  (dimfi (format #f "~20,,,' @A:" 'response) response)
+  (dimfi (format #f "~20,,,' @A:" 'window) window)
+  (dimfi "  " '-- 'local 'variable '--)
+  (dimfi (format #f "~20,,,' @A:" 'toast) toast)
+  (describe add-toast))
