@@ -51,9 +51,27 @@ exec guile -e main -s "$0" "$@"
 
 
 (define (main args)
-  (let ((app (make <adw-application>
-               #:application-id "org.gnu.g-golf.adw1.demo")))
-    (connect app 'activate show-window)
-    (let ((status (g-application-run app args)))
-      #;(exit status)
-      'done)))
+  (letrec ((debug? (or (member "-d" args)
+                       (member "--debug" args)))
+           (async-api? (or (member "-a" args)
+                           (member "--async-api" args)))
+           (animate
+            (lambda ()
+              (let ((app (make <adw-application>
+                           #:application-id "org.gnu.g-golf.adw1.demo")))
+                (connect app 'activate show-window)
+                (let ((status (g-application-run app '())))
+                  #;(exit status)
+                  'done)))))
+
+    (cond ((and debug? async-api?)
+           (parameterize ((%debug #t) (%async-api #t))
+             (animate)))
+          (debug?
+           (parameterize ((%debug #t))
+             (animate)))
+          (async-api?
+           (parameterize ((%async-api #t))
+             (animate)))
+          (else
+           (animate)))))

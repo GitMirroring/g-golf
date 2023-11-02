@@ -34,6 +34,7 @@
   #:use-module (adw1-demo welcome)
   #:use-module (adw1-demo navigation-view)
   #:use-module (adw1-demo style-classes)
+  #:use-module (adw1-demo dialogs)
 
   #:duplicates (merge-generics
 		replace
@@ -81,13 +82,15 @@
 
 (define-class <adw-demo-window> (<adw-application-window>)
   ;; slots
+  (toast-overlay #:accessor !toast-overlay #:child-id "toast-overlay")
   (split-view #:accessor !split-view #:child-id "split-view")
   (color-scheme-button #:accessor !color-scheme-button #:child-id "color-scheme-button")
   (stack #:accessor !stack #:child-id "stack")
   ;; class options
   #:template (string-append (dirname (current-filename))
                             "/ui/window.ui")
-  #:child-ids '("split-view"
+  #:child-ids '("toast-overlay"
+                "split-view"
                 "color-scheme-button"
                 "stack"))
 

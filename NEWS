@@ -26,6 +26,37 @@ warranty.
 
 * Latest News
 
+** November 2023
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc-2 is released.
+
+This is the second release candidate of the upcoming 0.8.0 release, now
+available for testing.
+
+*** Noteworthy changes in 0.8.0-rc-2
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** Examples
+
+Adwaita Demo
+
+The 'Dialogs' page has been added to the demo.
+
+**** Bug fixing
+
+emit
+signal-emit
+
+Fixed to properly handle 'object extra arg(s) type. Prior to this fix, a
+call such (emit window 'add-toast toast), with window and toast being
+goops proxy instances, would raise an exception, as the extra args
+handler missed a proper dispatch clause and treatment for the 'object
+arg type,
+
+* Older News
+
 ** October 2023
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc-1 is released.
@@ -51,9 +82,6 @@ boolean, uint, float, double, flags, string, param and boxed types.
 Adwaita Demo
 
 The 'Style Classes' page has been added to the demo.
-
-
-* Older News
 
 ** September 2023
 

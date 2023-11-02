@@ -31,7 +31,7 @@ AC_PREREQ(2.69)
 
 AC_INIT(
   [g-golf],
-  [0.8.0-rc-1],
+  [0.8.0-rc-2],
   [bug-g-golf@gnu.org])
 
 AC_CONFIG_AUX_DIR([build-aux])

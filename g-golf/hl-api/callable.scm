@@ -27,6 +27,7 @@
 
 
 (define-module (g-golf hl-api callable)
+  #:use-module (ice-9 format)
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
   #:use-module (oop goops)
@@ -355,6 +356,8 @@
   (memq name %allow-none-exceptions))
 
 (define (callable-prepare-gi-args-in callable args)
+  (when (%debug)
+    (dimfi (!name callable)))
   (let ((is-method? (!is-method? callable)))
     (let loop ((arguments (!args-in callable)))
       (match arguments
@@ -374,6 +377,15 @@
                              #:may-be-null-acc !may-be-null?
                              #:is-method? is-method?
                              #:forced-type (!forced-type argument))
+           (when (%debug)
+             (dimfi (format #f "~20,,,' @A:" (!name argument)) value
+                    #;(gi-argument->scm  (!type-tag argument)
+                                       (!type-desc argument)
+                                       gi-argument-
+                                       arguments
+                                       ;; #:forced-type (!forced-type argument)
+                                       #:is-pointer? (!is-pointer? argument)
+                                       )))
            (loop rest)))))))
 
 (define* (scm->gi-argument type-tag
