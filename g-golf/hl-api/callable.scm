@@ -349,11 +349,11 @@
                          al-pos
                          (cons (car args) cble-args)))))))))
 
-(define %allow-none-exceptions
+(define %maybe-null-exceptions
   '(child-setup-data-destroy))
 
-(define (allow-none-exception? name)
-  (memq name %allow-none-exceptions))
+(define (maybe-null-exception? name)
+  (memq name %maybe-null-exceptions))
 
 (define (callable-prepare-gi-args-in callable args)
   (when (%debug)
@@ -454,7 +454,7 @@
                                (if value
                                    (%g-golf-callback-closure gi-type value)
                                    (if (or may-be-null?
-                                           (allow-none-exception? name))
+                                           (maybe-null-exception? name))
                                        #f
                                        (error "Invalid argument: " value)))))))))
       ((array)
