@@ -454,6 +454,7 @@
                                (if value
                                    (%g-golf-callback-closure gi-type value)
                                    (if (or may-be-null?
+                                           (>= (!destroy clb/arg) 0)
                                            (maybe-null-exception? name))
                                        #f
                                        (error "Invalid argument: " value)))))))))
