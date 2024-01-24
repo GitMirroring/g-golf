@@ -107,7 +107,7 @@
         ;; callback, so passed to the message-cb data (last) arg -
         ;; that's not happening, but i can't figure out why. whether i
         ;; pass #f (NULL) or the g-inst pointer of the window goops
-        ;; proxy instance, the meesage-cb call always receive a valid
+        ;; proxy instance, the message-cb call always receive a valid
         ;; but unknown pointer.
         (choose dialog #f message-cb (!g-inst window))
         (begin
