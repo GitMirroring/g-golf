@@ -44,6 +44,7 @@
   #:use-module (g-golf hl-api events)
   #:use-module (g-golf hl-api argument)
   #:use-module (g-golf hl-api ccc)
+  #:use-module (g-golf hl-api callable)
 
   #:duplicates (merge-generics
 		replace
@@ -167,9 +168,7 @@
                                          return-value
                                          ffi-args
                                          user-data)
-  (let* ((%scm->gi-argument
-          (@ (g-golf hl-api callable) scm->gi-argument))
-         (callback-closure (pointer->scm user-data))
+  (let* ((callback-closure (pointer->scm user-data))
          (callback (!callback callback-closure))
          (procedure (!procedure callback-closure))
          (return-type (!return-type callback))
@@ -192,15 +191,15 @@
               (let ((r-val (apply procedure args)))
                 (when (%debug)
                   (dimfi "      returned value:" r-val))
-                (%scm->gi-argument return-type
-                                   (!type-desc callback)
-                                   return-value
-                                   r-val
-                                   callback
-                                   args
-                                   #:may-be-null-acc !may-return-null?
-                                   #:is-method? (!is-method? callback)
-                                   #:forced-type return-type))))))
+                (scm->gi-argument return-type
+                                  (!type-desc callback)
+                                  return-value
+                                  r-val
+                                  callback
+                                  args
+                                  #:may-be-null-acc !may-return-null?
+                                  #:is-method? (!is-method? callback)
+                                  #:forced-type return-type))))))
         ((argument . rests)
          (let ((value (ffi-arg->cb-arg callback argument ffi-arg)))
            (when (%debug)
