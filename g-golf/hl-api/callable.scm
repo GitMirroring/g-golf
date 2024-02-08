@@ -286,7 +286,8 @@
          (al-pos (!al-pos callable))
          (effective-n-arg-in (- n-arg-in (length al-pos)))
          (override? (!override? callable)))
-    (if (or (and override?
+    (if (or (and (or override?
+                     (is-a? callable <callback>))
                  (= args-length n-arg))
             (= args-length effective-n-arg-in))
         (let ((args (if (null? al-pos)
