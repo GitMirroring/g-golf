@@ -34,8 +34,7 @@
   #:use-module (g-golf gi utils)
   #:use-module (g-golf support utils)
 
-  #:export (ffi-args->scm
-            ffi-arg->scm
+  #:export (ffi-arg->scm
             ffi-arg-boolean->scm
             ffi-arg-int8->scm
             ffi-arg-uint8->scm
@@ -58,21 +57,6 @@
             ffi-prep-cif
             #;ffi-pack-double))
 
-
-(define (ffi-args->scm ffi-args type-descs)
-  (let loop ((ffi-arg ffi-args)
-             (descs type-descs)
-             (results '()))
-    (match descs
-      (()
-       (reverse! results))
-      ((desc . rest)
-       (loop (gi-pointer-inc ffi-arg)
-             rest
-             (cons (match desc
-                     ((type-tag is-póinter? is-enum?)
-                      (ffi-arg->scm ffi-arg type-tag is-póinter? is-enum?)))
-                   results))))))
 
 (define (ffi-arg->scm ffi-arg type-tag is-pointer? is-enum?)
   (case type-tag
