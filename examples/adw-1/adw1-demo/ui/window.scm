@@ -1,7 +1,7 @@
 ;; -*- mode: sxml-ui; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -80,6 +80,13 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageStyleClasses"))))))
 
+(define %animations
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Animations")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageAnimations"))))))
+
 (define %dialogs
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
@@ -122,6 +129,7 @@
              (child ,%welcome-page)
              (child ,%navigation-view)
              (child ,%style-classes)
+             (child ,%animations)
              (child ,%dialogs)))))))
 
 (define %window
