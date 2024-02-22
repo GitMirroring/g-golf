@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2018 - 2023
+;;;; Copyright (C) 2018 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -35,6 +35,7 @@
 
 
 (define-module (g-golf hl-api gobject)
+  #:use-module (ice-9 format)
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
   #:use-module (srfi srfi-1)
@@ -317,6 +318,12 @@
                (list class) #f))
   (let ((g-class (!g-class class))
         (name (slot-definition-name slot)))
+    (when (%debug)
+      (dimfi 'install-property)
+      (dimfi (format #f "~20,,,' @A:" 'class) (class-name class))
+      (dimfi (format #f "~20,,,' @A:" 'g-class) g-class)
+      (dimfi (format #f "~20,,,' @A:" 'slot) name)
+      (dimfi (format #f "~20,,,' @A:" 'id) id))
     (if (g-object-class-find-property g-class
                                       (symbol->string name))
         (scm-error 'invalid-property #f
@@ -407,11 +414,13 @@ vfunc, so those newly added properties won't work as expected.
                        (%properties properties)
                        (%template template)
                        (%child-ids child-ids))
-                   #;(dimfi '%class-init-func %name)
-                   #;(dimfi "  " 'g-class g-class)
-                   #;(dimfi "  " 'g-class g-class)
-                   #;(dimfi "  " 'g-type (g-type-from-class g-class))
-                   #;(dimfi "  " 'child-ids %child-ids)
+                   (when (%debug)
+                     (dimfi 'class-init-func-closure 'for %name)
+                     (dimfi (format #f "~20,,,' @A:" 'g-class) g-class)
+                     (dimfi (format #f "~20,,,' @A:" 'g-type) (g-type-from-class g-class))
+                     (dimfi (format #f "~20,,,' @A:" 'properties) %properties)
+                     (dimfi (format #f "~20,,,' @A:" 'template) %template)
+                     (dimfi (format #f "~20,,,' @A:" 'child-ids) %child-ids))
                    (unless (null? %properties)
                      (receive (get-p-vfunc-offset set-p-vfunc-offset)
                          (lookup-g-class-get-set-p-vfunc-offset)
@@ -448,22 +457,25 @@ vfunc, so those newly added properties won't work as expected.
       (lookup-init-template-func)
     (let* ((class (g-class-cache-ref g-class))
            (g-type (!g-type class)))
-      #;(dimfi '%instance-init-func (class-name class))
-      #;(dimfi "  " 'g-type g-type)
-      #;(dimfi "  " 'g-inst g-inst)
-      #;(dimfi "  " 'inst (g-inst-cache-ref g-inst))
-      #;(dimfi "  " 'template-initialization...)
+      (when (%debug)
+        (dimfi '%instance-init-func (class-name class))
+        (dimfi (format #f "~20,,,' @A:" 'g-type) g-type)
+        (dimfi (format #f "~20,,,' @A:" 'g-inst) g-inst)
+        (dimfi (format #f "~20,,,' @A:" 'inst) (g-inst-cache-ref g-inst))
+        (dimfi "        ----" 'template-initialization "----"))
       (gi-argument-set! gi-argument 'v-pointer g-inst)
       (apply init-template
              (list g-inst 'skip-prepare-gi-arguments))
       (let ((g-inst-construct-g-type (%g-inst-construct-g-type)))
         ;; we only creating a goops proxy instance under the following
         ;; conditions - mandatory to avoid 'double' instance creation
-        #;(dimfi "  " 'g-inst-construct-g-type g-inst-construct-g-type)
+        (when (%debug)
+          (dimfi (format #f "~20,,,' @A:" 'g-inst-construct-g-type)
+                 g-inst-construct-g-type))
         (unless (and g-inst-construct-g-type
                      (= g-type g-inst-construct-g-type))
-          #;(dimfi "  " 'inst
-                 (make class #:g-inst g-inst))
+          (when (%debug)
+            (dimfi "        ---- making a goops proxy inst. for" (class-name class)))
           (make class #:g-inst g-inst)))
       (values))))
 
@@ -497,6 +509,10 @@ vfunc, so those newly added properties won't work as expected.
          (properties (find-g-param-slots slots))
          (template (get-keyword #:template initargs #f))
          (child-ids (get-keyword #:child-ids initargs '())))
+    (when (%debug)
+      (dimfi 'g-golf-g-type-register)
+      (dimfi (format #f "~20,,,' @A:" 'name) name)
+      (dimfi (format #f "~20,,,' @A:" 'g-name) g-name))
     (if (and template
              (not (is-a-gtk-widget? dsupers)))
         (scm-error 'invalid-class #f
