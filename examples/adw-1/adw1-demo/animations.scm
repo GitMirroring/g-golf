@@ -184,7 +184,8 @@
     (connect (!play-pause-bt self)
              'clicked
              (lambda (b)
-               (animation-play-pause self)))
+               (display-some-animation-sceme-infos self)
+               #;(animation-play-pause self)))
 
     (connect (!skip-forward-bt self)
              'clicked
@@ -206,11 +207,11 @@
     (set-follow-enable-animations-setting spring-animation #f)
     (notify self "timed-animation")
     (notify self "spring-animation")
-    (let ((time-animation-sample (!timed-animation-sample self))
+    (let ((timed-animation-sample (!timed-animation-sample self))
           (manager (gtk-custom-layout-new #f
                                           timed-animation-measure
                                           timed-animation-allocate)))
-      (set-layout-manager time-animation-sample manager))
+      (set-layout-manager timed-animation-sample manager))
     (set-direction (!timed-animation-button-box self) 'ltr)))
 
 (define (set-animations animations-page)
@@ -502,3 +503,35 @@
           (get-value (!spring-animation-stiffness animations-page)))))
     (set-spring-params (!spring-animation animations-page) spring-params)
     (unref spring-params)))
+
+
+;;;
+;;; Debug - utils
+;;;
+
+(define (display-some-animation-sceme-infos self)
+  (let* ((timed-animation-sample (!timed-animation-sample self))
+         (parent (get-ancestor timed-animation-sample
+                               (!g-type <adw-clamp>)))
+         (child (get-first-child timed-animation-sample)))
+    (dimfi-widget-measures 'parent parent)
+    (dimfi-widget-measures 'timed-animation-sample timed-animation-sample)
+    (dimfi-widget-measures 'child child)))
+
+(define (dimfi-widget-measures title widget)
+  (dimfi title)
+  (dimfi " " widget)
+  (dimfi "   " 'horizontal)
+  (receive (minimum natural minimum-baseline natural-baseline)
+      (measure widget 'horizontal -1)
+    (dimfi (format #f "~20,,,' @A:" 'minimum) minimum)
+    (dimfi (format #f "~20,,,' @A:" 'natural) natural)
+    (dimfi (format #f "~20,,,' @A:" 'minimum-baseline) minimum-baseline)
+    (dimfi (format #f "~20,,,' @A:" 'natural-baseline) natural-baseline))
+  (dimfi "   " 'vertical)
+  (receive (minimum natural minimum-baseline natural-baseline)
+      (measure widget 'vertical -1)
+    (dimfi (format #f "~20,,,' @A:" 'minimum) minimum)
+    (dimfi (format #f "~20,,,' @A:" 'natural) natural)
+    (dimfi (format #f "~20,,,' @A:" 'minimum-baseline) minimum-baseline)
+    (dimfi (format #f "~20,,,' @A:" 'natural-baseline) natural-baseline)))
