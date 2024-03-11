@@ -6,7 +6,7 @@ dnl
 
 define(G_GOLF_CONFIGURE_COPYRIGHT,[[
 
-Copyright (C) 2016 - 2023
+Copyright (C) 2016 - 2024
 Free Software Foundation, Inc.
 
 This file is part of GNU G-Golf
@@ -58,7 +58,6 @@ GUILE_PROGS([2.0.14])
 GUILE3_PROGS([3.0.7])
 GUILE_SITE_DIR
 GUILE_GLOBAL_SITE_DIR
-GUILE_SITE_CCACHE_DIR
 GUILE_FLAGS
 
 

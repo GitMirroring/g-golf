@@ -23,7 +23,6 @@
 ## -----
 
 ## GUILE_GLOBAL_SITE_DIR -- find path to Guile "global site" directory
-## GUILE_SITE_CCACHE_DIR -- find path to Guile "site-ccache" directory
 
 ## Code
 ## ----
@@ -48,29 +47,6 @@ AC_DEFUN([GUILE_GLOBAL_SITE_DIR],
   fi
   AC_MSG_RESULT($GUILE_GLOBAL_SITE)
   AC_SUBST(GUILE_GLOBAL_SITE)
- ])
-
-
-# GUILE_SITE_CCACHE_DIR -- find path to Guile "site-ccache" directory
-#
-# Usage: GUILE_SITE_CCACHE_DIR
-#
-# This looks for Guile's "site-ccache" directory, usually something
-# like PREFIX/lib/guile/GUILE_EFFECTIVE_VERSION/site-ccache, and sets
-# var @var{GUILE_SITE_CCACHE} to the path.  Note that the var name is
-# different from the macro name.
-#
-# The variable is marked for substitution, as by @code{AC_SUBST}.
-#
-AC_DEFUN([GUILE_SITE_CCACHE_DIR],
- [AC_REQUIRE([GUILE_PROGS])
-  AC_MSG_CHECKING(for Guile site ccache directory)
-  GUILE_SITE_CCACHE=`$GUILE -c "(display (%site-ccache-dir))"`
-  if test "$GUILE_SITE_CCACHE" = ""; then
-     AC_MSG_FAILURE(site ccache dir not found)
-  fi
-  AC_MSG_RESULT($GUILE_SITE_CCACHE)
-  AC_SUBST(GUILE_SITE_CCACHE)
  ])
 
 
