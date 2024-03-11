@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2023 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2024 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -187,7 +187,7 @@ proceed with the following steps:
 cd <download-path>
 tar zxf g-golf-@value{VERSION}.tar.gz
 cd g-golf-@value{VERSION}
-./configure [--prefix=/your/prefix] [--with-guile-site=yes]
+./configure [--prefix=/your/prefix] [--with-guile-site]
 make
 make install
 @end example
@@ -211,7 +211,7 @@ So, to grab, compile and install from the source, open a terminal and:
 git clone git://git.savannah.gnu.org/g-golf.git
 cd g-golf
 ./autogen.sh
-./configure [--prefix=/your/prefix] [--with-guile-site=yes]
+./configure [--prefix=/your/prefix] [--with-guile-site]
 make
 make install
 @end example
@@ -234,14 +234,14 @@ Happy @code{hacking!}
 @item
 The @code{default} and @code{--prefix} installation locations for source
 modules and compiled files (in the absence of
-@code{--with-guile-site=yes}) are:
+@code{--with-guile-site}) are:
 
 @example
 $(datadir)/g-golf
 $(libdir)/g-golf/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 @end example
 
-If you pass @code{--with-guile-site=yes}, these locations become the
+If you pass @code{--with-guile-site}, these locations become the
 Guile global site and site-ccache directories, respectively.
 
 The configure step reports these locations as the content of the
@@ -254,7 +254,7 @@ pkg-config g-golf-1.0 --variable=sitedir
 pkg-config g-golf-1.0 --variable=siteccachedir
 @end example
 
-You will need - unless you have used @code{--with-guile-site=yes}, or
+You will need - unless you have used @code{--with-guile-site}, or
 unless these locations are already 'known' by Guile - to define or
 augment your @code{GUILE_LOAD_PATH} and @code{GUILE_COMPILED_PATH}
 environment variables with these locations, respectively (or
@@ -297,7 +297,7 @@ priviledges on your system.}.
 @item
 To install G-Golf, you must have write permissions to the default or
 @code{$(prefix)} directory and its subdirs, as well as to both Guile's
-site and site-ccache directories if @code{--with-guile-site=yes} was
+site and site-ccache directories if @code{--with-guile-site} was
 passed.
 @ifhtml
 @*@*

@@ -4,7 +4,7 @@
 
 #+BEGIN_COMMENT
 
-Copyright (C) 2016 - 2023
+Copyright (C) 2016 - 2024
 Free Software Foundation, Inc.
 
 This document is part of GNU G-Golf.
@@ -81,7 +81,7 @@ proceed with the following steps:
 	cd <download-path>
 	tar zxf g-golf-0.8.0-rc-2.tar.gz
 	cd g-golf-0.8.0-rc-2
-	./configure [--prefix=/your/prefix] [--with-guile-site=yes]
+	./configure [--prefix=/your/prefix] [--with-guile-site]
 	make
 	make install
 
@@ -100,7 +100,7 @@ So, to grab, compile and install from the source, open a terminal and:
 	git clone git://git.savannah.gnu.org/g-golf.git
 	cd g-golf
 	./autogen.sh
-	./configure [--prefix=/your/prefix] [--with-guile-site=yes]
+	./configure [--prefix=/your/prefix] [--with-guile-site]
 	make
 	make install
 
@@ -115,12 +115,12 @@ Happy hacking!
 ** Notes
 
 [1] The default and --prefix install locations for source modules and
-    compiled files (in the absence of --with-guile-site=yes) are:
+    compiled files (in the absence of --with-guile-site) are:
 
 	    $(datadir)/g-golf
 	    $(libdir)/g-golf/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 
-    If you pass --with-guile-site=yes, these locations become the Guile
+    If you pass --with-guile-site, these locations become the Guile
     global site and site-ccache directories, respectively.
 
     The configure step reports these locations as the content of the
@@ -131,10 +131,10 @@ Happy hacking!
 	    pkg-config g-golf-1.0 --variable=sitedir
 	    pkg-config g-golf-1.0 --variable=siteccachedir
 
-    You will need - unless you have used --with-guile-site=yes, or
-    unless these locations are already ’known’ by Guile - to define or
-    augment your GUILE_LOAD_PATH and GUILE_COMPILED_PATH environment
-    variables with these locations, respectively (or %load-path and
+    You will need - unless you have used --with-guile-site, or unless
+    these locations are already ’known’ by Guile - to define or augment
+    your GUILE_LOAD_PATH and GUILE_COMPILED_PATH environment variables
+    with these locations, respectively (or %load-path and
     %load-compiled-path at run time if you prefer (See Environment
     Variables and Load Path in the Guile Reference Manual) [fn:1]
 
@@ -156,7 +156,7 @@ Happy hacking!
 
 [3] To install G-Golf, you must have write permissions to the default
     or $(prefix) directory and its subdirs, as well as to both Guile’s
-    site and site-ccache directories if --with-guile-site=yes was
+    site and site-ccache directories if --with-guile-site was
     passed.
 
 [4] Like for any other GNU Tool Chain compatible software, you may

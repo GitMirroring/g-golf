@@ -155,5 +155,5 @@ if test "x$guile_site" = "xno"; then
     [and %load-compiled-path variables before to use Guile-CV's modules (see]
     ['Environment Variables' and 'Load Paths' in the Guile Reference Manual).]
     []
-    [Otherwise, consider using --with-guile-site=yes])
+    [Otherwise, consider using --with-guile-site])
 fi
