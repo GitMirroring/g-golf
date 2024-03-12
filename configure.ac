@@ -148,12 +148,12 @@ AC_MSG_NOTICE(
 
 if test "x$guile_site" = "xno"; then
   AC_MSG_WARN(
-    []
-    []
-    [Since --with-guile-site="no", sitedir and siteccachedir differ from]
-    [the one used by Guile itself. You have to augment both Guile's %load-path]
-    [and %load-compiled-path variables before to use Guile-CV's modules (see]
-    ['Environment Variables' and 'Load Paths' in the Guile Reference Manual).]
-    []
-    [Otherwise, consider using --with-guile-site])
+  []
+  []
+  [Since --with-guile-site="no", sitedir and siteccachedir differ from]
+  [the one used by Guile itself. You have to augment both Guile's %load-path]
+  [and %load-compiled-path variables before to use Guile-CV's modules (see]
+  ['Environment Variables' and 'Load Paths' in the Guile Reference Manual).]
+  []
+  [Otherwise, consider using --with-guile-site])
 fi
