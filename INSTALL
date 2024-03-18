@@ -114,59 +114,63 @@ Happy hacking!
 
 ** Notes
 
-[1] The default and --prefix install locations for source modules and
-    compiled files (in the absence of --with-guile-site) are:
+[1] The source modules and compiled files default install locations (in
+    the absence of --with-guile-site) are:
 
 	    $(datadir)/g-golf
 	    $(libdir)/g-golf/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 
-    If you pass --with-guile-site, these locations become the Guile
-    global site and site-ccache directories, respectively.
+    If you pass --with-guile-site, these locations become:
 
-    The configure step reports these locations as the content of the
-    sitedir and siteccachedir variables, respectivelly the source
-    modules and compiled files install locations.  After installation,
-    you may consult these variables using pkg-config:
+      Guile global site directory
+      Guile site-ccache directory
+
+[2] The configure step reports these locations as the content of the
+    sitedir and siteccachedir variables.
+
+    After installation, you may consult these variables using
+    pkg-config:
 
 	    pkg-config g-golf-1.0 --variable=sitedir
 	    pkg-config g-golf-1.0 --variable=siteccachedir
 
-    You will need - unless you have used --with-guile-site, or unless
-    these locations are already ’known’ by Guile - to define or augment
+[3] Unless you have used --with-guile-site, or unless these locations
+    are already ’known’ by Guile, you will need to define or augment
     your GUILE_LOAD_PATH and GUILE_COMPILED_PATH environment variables
-    with these locations, respectively (or %load-path and
-    %load-compiled-path at run time if you prefer (See Environment
-    Variables and Load Path in the Guile Reference Manual) [fn:1]
+    accordingly (or %load-path and %load-compiled-path at run time if
+    you prefer (See Environment Variables and Load Path in the Guile
+    Reference Manual) [fn:1].
 
-[2] G-Golf also installs its libg-golf.* library files, in
-    $(libdir). The configure step reports its location as the content of
-    the libdir variable, which depends on on the content of the prefix
-    and exec_prefix variables (also reported). After nstallation, you
-    may consult these variables using pkg-config:
+[4] G-Golf installs its libg-golf.* library files, in $(libdir). The
+    configure step reports its location as the content of the libdir
+    variable, which depends on on the content of the prefix and
+    exec_prefix variables (also reported).
+
+    After nstallation, you may consult these variables using
+    pkg-config:
 
 	    pkg-config g-golf-1.0 --variable=prefix
         pkg-config g-golf-1.0 --variable=exec_prefix
         pkg-config g-golf-1.0 --variable=libdir
 
-    You will need - unless the $(libdir) location is already ’known’ by
-    your system - to either define or augment your $LD_LIBRARY_PATH
-    environment variable, or alter the /etc/ld.so.conf (or add a file in
-    /etc/ld.so.conf.d) and run (as root) ldconfig, so that G-Golf
-    finds its libg-golf.* library files [fn:2].
-
-[3] To install G-Golf, you must have write permissions to the default
+[5] To install G-Golf, you must have write permissions to the default
     or $(prefix) directory and its subdirs, as well as to both Guile’s
     site and site-ccache directories if --with-guile-site was
     passed.
 
-[4] Like for any other GNU Tool Chain compatible software, you may
+[6] Like for any other GNU Tool Chain compatible software, you may
     install the documentation locally using make install-info, make
     install-info, make install-html and/or make install-pdf.
 
-[5] Last but not least :), G-Golf comes with a test-suite, which we
-    recommend you to run (especially before Reporting Bugs):
+[7] G-Golf comes with a test-suite, which we recommend you to run
+    (especially before Reporting Bugs):
 
 		make check
+
+[8] To try/run an uninstalled version of G-Golf, use the pre-inst-env
+    script:
+
+	  ./pre-inst-env your-program [arg1 arg2 ...]
 
 Footnotes:
 
