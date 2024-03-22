@@ -190,7 +190,8 @@
     (connect (!skip-forward-bt self)
              'clicked
              (lambda (b)
-               (animations-skip self)))
+               (set-custom-layout-manager (!timed-animation-sample self))
+               #;(animations-skip self)))
 
     (connect (!spring-animation-mass self)
              'notify::value
@@ -207,11 +208,6 @@
     (set-follow-enable-animations-setting spring-animation #f)
     (notify self "timed-animation")
     (notify self "spring-animation")
-    (let ((timed-animation-sample (!timed-animation-sample self))
-          (manager (gtk-custom-layout-new #f
-                                          timed-animation-measure
-                                          timed-animation-allocate)))
-      (set-layout-manager timed-animation-sample manager))
     (set-direction (!timed-animation-button-box self) 'ltr)))
 
 (define (set-animations animations-page)
@@ -419,35 +415,60 @@
 
 
 ;;;
-;;; custom layout callback
+;;; custom layout manager
 ;;;
 
-(define (timed-animation-measure widget orientation for-size)
-  (let ((child (get-first-child widget)))
-    (if child
-        (receive (minimum natural minimum-baseline natural-baseline)
-            (measure child orientation for-size)
-          (values minimum natural minimum-baseline natural-baseline))
-        (values -1 -1 -1 -1))))
+(define (set-custom-layout-manager scene)
+  #;(dimfi 'set-layout-manager scene)
+  (set-layout-manager scene
+                      (gtk-custom-layout-new #f
+                                             custom-measure
+                                             custom-allocate)))
 
-(define (timed-animation-allocate widget width height baseline)
-  (let ((child (get-first-child widget)))
-    (if child
-        (let* ((ancestor (get-ancestor widget
-                                       (!g-type <adw-demo-page-animations>)))
-               (animation (get-current-animation ancestor))
-               (progress (get-value animation)))
-          (receive (minimum natural minimum-baseline natural-baseline)
-              (measure child 'horizontal -1)
-            (let ((offset (inexact->exact (* (- width minimum)
-                                             (- progress 0.5)))))
-              (allocate child width height baseline
-                        (gsk-transform-translate #f
-                                                 (graphene-point-init (graphene-point-alloc)
-                                                                      offset
-                                                                      0)))
-              (values))))
-        (values))))
+(define (custom-measure scene orientation for-size)
+  #;(dimfi-widget-measures 'WITHIN-custom-measure-func scene)
+  (let ((child (get-first-child scene)))
+    (receive (minimum natural minimum-baseline natural-baseline)
+        (measure child orientation for-size)
+      #;(dimfi-widget-measures 'CHILD-size child)
+      (values minimum natural minimum-baseline natural-baseline))))
+
+(define (custom-allocate scene width height baseline)
+  #;(dimfi-widget-measures 'WITHIN-custom-allocate-func scene)
+  (let ((child (get-first-child scene))
+        (progress (get-progress scene)))
+    #;(dimfi-widget-measures 'CHILD-size child)
+    (receive (child-width natural minimum-baseline natural-baseline)
+        (measure child 'horizontal -1)
+      (allocate child width height baseline
+                (transform width child-width progress))
+      (values))))
+
+
+;;;
+;;; custom layout manager utils
+;;;
+
+(define (get-progress scene)
+  (let* ((ancestor (get-ancestor scene
+                                 (!g-type <adw-demo-page-animations>)))
+         (animation (get-current-animation ancestor)))
+    (get-value animation)))
+
+(define (get-offset width child-width progress)
+  (inexact->exact (* (- width child-width)
+                     (- progress 0.5))))
+
+(define (transform width child-width progress)
+  (gsk-transform-translate #f
+                           (graphene-point-init (graphene-point-alloc)
+                                                (get-offset width child-width progress)
+                                                0)))
+
+
+;;;
+;;; get currrent animation
+;;;
 
 (define (get-current-animation animations-page)
   (let* ((animation-preferences-stack (!animation-preferences-stack animations-page))
@@ -468,6 +489,7 @@
 
 (define (timed-animation-cb-handler timed-animation-sample)
   (lambda (value user-data)
+    (dimfi 'queue-allocate timed-animation-sample)
     (queue-allocate timed-animation-sample)))
 
 (define (animations-reset animations-page)
@@ -481,8 +503,6 @@
 (define (animation-play-pause animations-page)
   (let* ((animation (get-current-animation animations-page))
          (state (get-state animation)))
-    #;(dimfi 'animation-play-pause)
-    #;(dimfi "  " animation 'state state)
     (case state
       ((idle
         finished)
@@ -523,15 +543,15 @@
   (dimfi " " widget)
   (dimfi (format #f "~20,,,' @A:" 'get-width) (get-width widget))
   (dimfi (format #f "~20,,,' @A:" 'get-height) (get-height widget))
-  (dimfi "  --- (gtk-widget-measure widget 'horizontal -1)")
-  (receive (minimum natural minimum-baseline natural-baseline)
+  #;(dimfi "  --- (gtk-widget-measure widget 'horizontal -1)")
+  #;(receive (minimum natural minimum-baseline natural-baseline)
       (measure widget 'horizontal -1)
     (dimfi (format #f "~20,,,' @A:" 'minimum) minimum)
     (dimfi (format #f "~20,,,' @A:" 'natural) natural)
     (dimfi (format #f "~20,,,' @A:" 'minimum-baseline) minimum-baseline)
     (dimfi (format #f "~20,,,' @A:" 'natural-baseline) natural-baseline))
-  (dimfi "   --- (gtk-widget-measure widget 'vertical -1)")
-  (receive (minimum natural minimum-baseline natural-baseline)
+  #;(dimfi "   --- (gtk-widget-measure widget 'vertical -1)")
+  #;(receive (minimum natural minimum-baseline natural-baseline)
       (measure widget 'vertical -1)
     (dimfi (format #f "~20,,,' @A:" 'minimum) minimum)
     (dimfi (format #f "~20,,,' @A:" 'natural) natural)
