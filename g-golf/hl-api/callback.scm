@@ -239,8 +239,6 @@
       ((arg-out . args-out-tail)
        (match r-vals
          ((value . r-vals-tail)
-          (when (%debug)
-            (dimfi (format #f "~20,,,' @A:" (!name arg-out)) value "   [ out arg ]"))
           (scm->gi-argument (!type-tag arg-out)
                             (!type-desc arg-out)
                             ffi-out-arg
@@ -250,9 +248,20 @@
                             #:may-be-null-acc !may-be-null?
                             #:is-method? #f ;; args-in off-by-one 'only'
                             #:forced-type (!forced-type arg-out))
+          (when (%debug)
+            (dimfi (format #f "~20,,,' @A:" (!name arg-out)) value
+                   (format #f " [ out arg - ffi val (check) ~A"
+                           (gi-argument->scm (!type-tag arg-out)
+                                             (!type-desc arg-out)
+                                             ffi-out-arg
+                                             arg-out
+                                             #:forced-type (!forced-type arg-out)
+                                             #:is-pointer? (!is-pointer? arg-out)))
+                   "]"))
           (loop (gi-pointer-inc ffi-out-arg)
                 args-out-tail
                 r-vals-tail)))))))
+
 
 ;;;
 ;;; ffi additional support
