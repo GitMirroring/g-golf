@@ -60,6 +60,12 @@ GUILE_SITE_DIR
 GUILE_GLOBAL_SITE_DIR
 GUILE_FLAGS
 
+dnl This argument is passed to guild; it ensures cross-compiling uses
+dnl the right target.
+if test -n "$host_alias"; then
+   AC_SUBST([GUILE_TARGET], [--target=$host_alias])
+fi
+
 
 AC_ARG_WITH(
   [guile-site],
