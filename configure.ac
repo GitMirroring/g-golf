@@ -59,6 +59,8 @@ GUILE3_PROGS([3.0.7])
 GUILE_SITE_DIR
 GUILE_GLOBAL_SITE_DIR
 GUILE_FLAGS
+PKG_INSTALLDIR
+
 
 dnl This argument is passed to guild; it ensures cross-compiling uses
 dnl the right target.
