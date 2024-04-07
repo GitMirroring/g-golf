@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2020
+;;;; Copyright (C) 2019 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -42,6 +42,7 @@
   #:use-module (g-golf support goops)
   #:use-module (g-golf support g-export)
   #:use-module (g-golf support utils)
+  #:use-module (g-golf support bytevector)
   #:use-module (g-golf support struct)
 
   #:duplicates (merge-generics
@@ -67,15 +68,6 @@
           !discriminator-offset
           !discriminator)
 
-
-(define %readers
-  (@@ (system foreign) *readers*))
-
-(define %writers
-  (@@ (system foreign) *writers*))
-
-(define %align
-  (@@ (system foreign) align))
 
 (define* (make-c-union types #:optional (type #f) (val #f))
   (let* ((size (apply max (map sizeof types)))
