@@ -47,8 +47,10 @@
             show-window))
 
 
-(g-export !split-view
+#;(g-export !toast-overlay
+          !split-view
           !color-scheme-button
+          !content
           !stack)
 
 
@@ -86,6 +88,7 @@
   (toast-overlay #:accessor !toast-overlay #:child-id "toast-overlay")
   (split-view #:accessor !split-view #:child-id "split-view")
   (color-scheme-button #:accessor !color-scheme-button #:child-id "color-scheme-button")
+  (content #:accessor !content #:child-id "content")
   (stack #:accessor !stack #:child-id "stack")
   ;; class options
   #:template (string-append (dirname (current-filename))
@@ -93,6 +96,7 @@
   #:child-ids '("toast-overlay"
                 "split-view"
                 "color-scheme-button"
+                "content"
                 "stack"))
 
 (define (install-actions app)
@@ -227,4 +231,10 @@
       (set-color-scheme manager 'default))))
 
 (define (notify-visible-child-cb window)
-  (set-show-content (!split-view window) #t))
+  (let* ((split-view (!split-view window))
+         (content (!content window))
+         (stack (!stack window))
+         (child (get-visible-child stack))
+         (page (get-page stack child)))
+    (set-title content (get-title page))
+    (set-show-content split-view #t)))

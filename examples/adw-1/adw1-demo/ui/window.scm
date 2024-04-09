@@ -112,9 +112,11 @@
              (property (@ (name "stack")) stack)))))))
 
 (define %content
-  `(object (@ (class "AdwNavigationPage"))
-     ;; libadwaita-1-0:amd64 1.4~rc-1 complains if none, despite
-     ;; its AdwHeaderBar show-title property set to false ...
+  `(object (@ (class "AdwNavigationPage")
+              (id "content"))
+     ;; Unless we set the AdwNavigationPage title to something, Adwaita
+     ;; complains, even if if/when we set its AdwHeaderBar show-title
+     ;; property set to false ...
      (property (@ (name "title")) "Bluefox") ;; fake title
      (property (@ (name "child"))
        (object (@ (class "AdwToolbarView"))
