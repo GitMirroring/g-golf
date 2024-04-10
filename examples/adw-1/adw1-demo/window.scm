@@ -231,10 +231,8 @@
       (set-color-scheme manager 'default))))
 
 (define (notify-visible-child-cb window)
-  (let* ((split-view (!split-view window))
-         (content (!content window))
-         (stack (!stack window))
+  (let* ((stack (!stack window))
          (child (get-visible-child stack))
          (page (get-page stack child)))
-    (set-title content (get-title page))
-    (set-show-content split-view #t)))
+    (set-title (!content window) (get-title page))
+    (set-show-content (!split-view window) #t)))
