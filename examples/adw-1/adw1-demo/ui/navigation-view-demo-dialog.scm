@@ -1,7 +1,7 @@
 ;; -*- mode: sxml-ui; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023, 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -126,19 +126,18 @@
                (style (class (@ (name "pill"))))))))))
 
 
-(define %navigation-view-demo-window
+(define %navigation-view-demo-dialog
   `(interface
     (requires (@ (version "4.0") (lib "gtk")))
     (requires (@ (version "1.0") (lib "libadwaita")))
-    (template (@ (class "AdwNavigationViewDemoWindow")
-                 (parent "AdwWindow"))
-      (property (@ (name "modal")) True)
-      (property (@ (name "default-width")) 360)
-      (property (@ (name "default-height")) 360)
+    (template (@ (class "AdwNavigationViewDemoDialog")
+                 (parent "AdwDialog"))
       (property (@ (name "width-request")) 360)
+      (property (@ (name "content-width")) 360)
+      (property (@ (name "content-height")) 360)
       (property (@ (name "title")
                    (translatable "yes")) "AdwNavigationView Demo")
-      (property (@ (name "content"))
+      (property (@ (name "child"))
         (object (@ (class "AdwNavigationView"))
           (child ,%page-1)
           (child ,%page-2)
@@ -147,4 +146,4 @@
 
 
 (define (make-ui)
-  (sxml->ui %navigation-view-demo-window))
+  (sxml->ui %navigation-view-demo-dialog))
