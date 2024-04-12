@@ -67,9 +67,9 @@
   (progress-bar #:child-id "progress-bar"
                 #:accessor !progress-bar)
   (status-page-dialog #:child-id "status-page-dialog"
-                       #:accessor !status-page-dialog)
+                      #:accessor !status-page-dialog)
   (status-page-action-row #:child-id "status-page-action-row"
-                           #:accessor !status-page-action-row)
+                          #:accessor !status-page-action-row)
   (sidebar-dialog #:child-id "sidebar-dialog"
                   #:accessor !sidebar-dialog)
   (sidebar-action-row #:child-id "sidebar-action-row"
@@ -108,12 +108,12 @@
   (connect (!status-page-action-row self)
            'activated
            (lambda (r)
-             (present (!status-page-dialog self))))
+             (present (!status-page-dialog self) self)))
 
   (connect (!sidebar-action-row self)
            'activated
            (lambda (r)
-             (present (!sidebar-dialog self))))
+             (present (!sidebar-dialog self) self)))
 
   (connect (!sidebar-list self)
            'row-activated
