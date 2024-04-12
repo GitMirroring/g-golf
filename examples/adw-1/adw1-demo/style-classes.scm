@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023, 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -29,7 +29,7 @@
 (define-module (adw1-demo style-classes)
   #:use-module (oop goops)
   #:use-module (g-golf)
-  #:use-module (adw1-demo style-classes-demo-window)
+  #:use-module (adw1-demo style-classes-demo-dialog)
 
   #:duplicates (merge-generics
 		replace
@@ -71,8 +71,6 @@
   (connect (!style-classes-button self)
            "clicked"
            (lambda (b)
-             (let ((adw-style-classes-demo-window
-                    (make <adw-style-classes-demo-window>)))
-               (set-transient-for adw-style-classes-demo-window
-                                  (get-root self))
-               (present adw-style-classes-demo-window)))))
+             (let ((style-classes-demo-dialog
+                    (make <adw-style-classes-demo-dialog>)))
+               (present style-classes-demo-dialog self)))))

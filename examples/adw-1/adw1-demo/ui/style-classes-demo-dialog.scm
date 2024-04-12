@@ -1,7 +1,7 @@
 ;; -*- mode: sxml-ui; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023, 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -46,7 +46,7 @@
          (attribute (@ (name "action")) style.dummy)))))
 
 
-(define %status-pages-sidebar
+(define %status-page-sidebar
   '(property (@ (name "sidebar"))
      (object (@ (class "AdwStatusPage"))
        (property (@ (name "icon-name")) org.gnome.Adwaita1.Demo-symbolic)
@@ -63,7 +63,7 @@
            (property (@ (name "halign")) center)
            (style (class (@ (name "pill")))))))))
 
-(define %status-pages-content
+(define %status-page-content
   '(property (@ (name "content"))
      (object (@ (class "AdwStatusPage"))
        (property (@ (name "hexpand")) True)
@@ -79,26 +79,23 @@
            (property (@ (name "halign")) center)
            (style (class (@ (name "pill")))))))))
 
-(define %status-pages
-  `(object (@ (class "AdwWindow")
-              (id "status-pages-window"))
-     (property (@ (name "modal")) True)
-     (property (@ (name "transient-for")) AdwStyleClassesDemoWindow)
+(define %status-page
+  `(object (@ (class "AdwDialog")
+              (id "status-page-dialog"))
      (property (@ (name "title")
                   (translatable "yes")) "Status Pages")
-     (property (@ (name "hide-on-close")) True)
-     (property (@ (name "default-width")) 640)
-     (property (@ (name "default-height")) 480)
+     (property (@ (name "content-width")) 640)
+     (property (@ (name "content-height")) 480)
      (property (@ (name "width-request")) 360)
      (property (@ (name "height-request")) 200)
-     (child
+     #;(child
          (object (@ (class "GtkShortcutController"))
            (property (@ (name "scope")) managed)
            (child
                (object (@ (class "GtkShortcut"))
                  (property (@ (name "trigger")) Escape)
                  (property (@ (name "action")) "action(window.close)")))))
-     (property (@ (name "content"))
+     (property (@ (name "child"))
        (object (@ (class "AdwToolbarView"))
          (property (@ (name "top-bar-style")) raised)
          (child (@ (type "top"))
@@ -114,8 +111,8 @@
          (property (@ (name "content"))
            (object (@ (class "AdwOverlaySplitView")
                       (id "compact-split-view"))
-             ,%status-pages-sidebar
-             ,%status-pages-content))))
+             ,%status-page-sidebar
+             ,%status-page-content))))
      (child
          (object (@ (class "AdwBreakpoint"))
            (condition "max-width: 450sp")
@@ -194,25 +191,22 @@
                               (translatable "yes")) "\"navigation-sidebar\" style class on GtkListBox or GtkListView."))))))))
 
 (define %sidebar
-  `(object (@ (class "AdwWindow")
-              (id "sidebar-window"))
-     (property (@ (name "modal")) True)
-     (property (@ (name "transient-for")) AdwStyleClassesDemoWindow)
+  `(object (@ (class "AdwDialog")
+              (id "sidebar-dialog"))
      (property (@ (name "title")
                   (translatable "yes")) Sidebar)
-     (property (@ (name "hide-on-close")) True)
-     (property (@ (name "default-width")) 720)
-     (property (@ (name "default-height")) 480)
+     (property (@ (name "content-width")) 720)
+     (property (@ (name "content-height")) 480)
      (property (@ (name "width-request")) 360)
      (property (@ (name "height-request")) 240)
-     (child
+     #;(child
          (object (@ (class "GtkShortcutController"))
            (property (@ (name "scope")) managed)
            (child
                (object (@ (class "GtkShortcut"))
                  (property (@ (name "trigger")) Escape)
                  (property (@ (name "action")) "action(window.close)")))))
-     (property (@ (name "content"))
+     (property (@ (name "child"))
        (object (@ (class "AdwNavigationSplitView")
                   (id "sidebar-split-view"))
          (property (@ (name "min-sidebar-width")) 140)
@@ -236,7 +230,7 @@
      (property (@ (name "tooltip-text")) osd)
      (property (@ (name "visible")) False)
      #;(binding (@ (name "visible"))
-       (lookup (@ (name "progress")) "AdwStyleClassesDemoWindow"))
+       (lookup (@ (name "progress")) "AdwStyleClassesDemoDialog"))
      (style (class (@ (name "osd"))))))
 
 
@@ -1002,9 +996,9 @@ The \"raised\" style class can be used to make a button inside a toolbar use def
            ,@%background-items))))
 
 
-(define %misc-status-pages
+(define %misc-status-page
   '(object (@ (class "AdwActionRow")
-              (id "status-pages-action-row"))
+              (id "status-page-action-row"))
      (property (@ (name "title")
                   (translatable "yes")) "Status Pages")
      (property (@ (name "activatable")) True)
@@ -1048,26 +1042,24 @@ The \"raised\" style class can be used to make a button inside a toolbar use def
   `(object (@ (class "AdwPreferencesGroup"))
      (property (@ (name "title")
                   (translatable "yes")) Misc)
-     (child ,%misc-status-pages)
+     (child ,%misc-status-page)
      (child ,%misc-sidebar)
      (child ,%misc-devel-switch)
      (child ,%misc-progress-bar)))
 
 
-(define %style-classes-demo-window
+(define %style-classes-demo-dialog
   `(interface
     (requires (@ (version "4.0") (lib "gtk")))
     (requires (@ (version "1.0") (lib "libadwaita")))
-    (template (@ (class "AdwStyleClassesDemoWindow")
-                 (parent "AdwWindow"))
-      (property (@ (name "modal")) True)
-      (property (@ (name "default-width")) 800)
-      (property (@ (name "default-height")) 640)
-      (property (@ (name "width-request")) 360)
-      (property (@ (name "height-request")) 150)
+    (template (@ (class "AdwStyleClassesDemoDialog")
+                 (parent "AdwDialog"))
       (property (@ (name "title")
                    (translatable "yes")) "Style Classes")
-      (property (@ (name "content"))
+      (property (@ (name "content-width")) 800)
+      (property (@ (name "width-request")) 360)
+      (property (@ (name "height-request")) 150)
+      (property (@ (name "child"))
         (object (@ (class "AdwToolbarView"))
           (child (@ (type "top"))
             (object (@ (class "AdwHeaderBar"))))
@@ -1079,7 +1071,8 @@ The \"raised\" style class can be used to make a button inside a toolbar use def
                   (object (@ (class "AdwPreferencesPage"))
                     (property (@ (name "width-request")) 360)
                     (property (@ (name "description")
-                                 (translatable "yes")) "Hover over widgets to see their exact style class names.")
+                                 (translatable "yes"))
+                      "Hover over widgets to see their exact style class names.")
                     (child ,%buttons)
                     (child ,%entries)
                     (child ,%linked-controls)
@@ -1106,9 +1099,9 @@ The \"raised\" style class can be used to make a button inside a toolbar use def
             (setter (@ (object "label-box")
                        (property "spacing")) 12))))
     ,%demo-menu
-    ,%status-pages
+    ,%status-page
     ,%sidebar))
 
 
 (define (make-ui)
-  (sxml->ui %style-classes-demo-window))
+  (sxml->ui %style-classes-demo-dialog))
