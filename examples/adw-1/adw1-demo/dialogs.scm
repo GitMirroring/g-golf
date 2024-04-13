@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023, 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -54,12 +54,14 @@
       '("Bin"
         "Toast"
         "ToastOverlay"
-        "MessageDialog"
+        "AlertDialog"
         "ResponseAppearance")))
 
 
 (define-class <adw-demo-page-dialogs> (<adw-bin>)
-  ;; slots
+  ;; slot(s)
+  (last-toast #:accessor !last-toast #:init-value #f)
+  ;; child-id slot(s)
   (dialogs-button #:child-id "dialogs-button"
                   #:accessor !dialogs-button)
   ;; class options
@@ -77,21 +79,18 @@
   (connect (!dialogs-button self)
            'clicked
            (lambda (b)
-             (demo-message-dialog-cb self)))
+             (demo-alert-dialog-cb self)))
 
   (connect self
            'add-toast
            (lambda (self toast)
-             (let* ((parent (get-root self))
-                    (toast-overlay (slot-ref parent 'toast-overlay)))
+             (let* ((demo-window (get-root self))
+                    (toast-overlay (slot-ref demo-window 'toast-overlay)))
                (add-toast toast-overlay toast)))))
 
-(define (demo-message-dialog-cb window)
-  (let* ((parent (get-root window))
-         (dialog (adw-message-dialog-new parent
-                                         "Save Changes"
-                                         "Open document contains unsaved changes. Changes which are not saved will be permanently lost.")))
-
+(define (demo-alert-dialog-cb window)
+  (let ((dialog (adw-alert-dialog-new "Save Changes"
+                                      "Open document contains unsaved changes. Changes which are not saved will be permanently lost.")))
     (add-responses dialog
                    '(("cancel" "Cancel")	;; (G_ "Cancel")
                      ("discard" "Discard")	;; ...
@@ -100,22 +99,24 @@
     (set-response-appearance dialog "save" 'suggested)
     (set-default-response dialog "save")
     (set-close-response dialog "cancel")
-    (when (%debug)
-      (demo-message-dialog-cb-debug-info window parent))
     (if (%async-api)
         ;; below, the user-data (last) arg should be passed to the
-        ;; callback, so passed to the message-cb data (last) arg -
-        ;; that's not happening, but i can't figure out why. whether i
-        ;; pass #f (NULL) or the g-inst pointer of the window goops
-        ;; proxy instance, the message-cb call always receive a valid
-        ;; but unknown pointer.
-        (choose dialog #f message-cb (!g-inst window))
+        ;; callback, so passed to the alert-cb data (last) arg - that's
+        ;; not happening, but i can't figure out why.  ofc, we can (and
+        ;; should) use a closure 'anyway', here is how.
+        (choose dialog
+                window
+                #f
+                (lambda (dialog result data)
+                  (alert-cb dialog result window))
+                #f)
+        ;; traditional signal callback api
         (begin
           (connect dialog
                    'response
                    (lambda (dialog response)
                      (response-cb dialog response window)))
-          (present dialog)))))
+          (present dialog window)))))
 
 (define (add-responses dialog responses)
   (for-each (lambda (response)
@@ -124,52 +125,33 @@
                  (add-response dialog id label))))
       responses))
 
-(define (message-cb dialog result data)
+(define (dismissed-cb toast demo-page-dialogs)
+  (when (eq? (!last-toast demo-page-dialogs) toast)
+    (set! (!last-toast demo-page-dialogs) #f)))
+
+(define (alert-cb dialog result demo-page-dialogs)
   (let* ((response (choose-finish dialog result))
          (toast (make <adw-toast>
-                  #:title (format #f "Dialog response: ~A" response))))
-    (when (%debug)
-      (message-cb-debug-info dialog result data response toast))
-    ;; before i can emit the signal, I need to find why the data arg is
-    ;; not the user-data arg of the adw-message-dialog-choose method
-    ;; call above (see line 106 - and a further detailed comment lines
-    ;; 101 - 105) - currently, uncomment would (ofc) raise an exception.
-    #;(emit -the-goops-proxy-inst-for-data- 'add-toast toast)))
+                  #:title (format #f "Dialog response: ~A" response)))
+         (last-toast (!last-toast demo-page-dialogs)))
+    (connect toast
+             'dismissed
+             (lambda (toast)
+               (dismissed-cb toast demo-page-dialogs)))
+    (when last-toast (dismiss last-toast))
+    (set! (!last-toast demo-page-dialogs) toast)
 
-(define (response-cb dialog response window)
+    (emit demo-page-dialogs 'add-toast toast)))
+
+(define (response-cb dialog response demo-page-dialogs)
   (let ((toast (make <adw-toast>
-                 #:title (format #f "Dialog response: ~A" response))))
-    (when (%debug)
-      (response-cb-debug-info dialog response window toast))
-    (emit window 'add-toast toast)))
+                 #:title (format #f "Dialog response: ~A" response)))
+        (last-toast (!last-toast demo-page-dialogs)))
+    (connect toast
+             'dismissed
+             (lambda (toast)
+               (dismissed-cb toast demo-page-dialogs)))
+    (when last-toast (dismiss last-toast))
+    (set! (!last-toast demo-page-dialogs) toast)
 
-
-;;;
-;;; *-debug-info procs
-;;;
-
-(define (demo-message-dialog-cb-debug-info window parent)
-  (dimfi 'demo-message-dialog-cb)
-  (dimfi (format #f "~20,,,' @A:" 'window) window)
-  (dimfi (format #f "~20,,,' @A:" "[ g-inst") (!g-inst window) "]")
-  (dimfi "  " '-- 'local 'variables '--)
-  (dimfi (format #f "~20,,,' @A:" 'parent) parent)
-  (dimfi (format #f "~20,,,' @A:" "[ g-inst") (!g-inst parent) "]"))
-
-(define (message-cb-debug-info dialog result data response toast)
-  (dimfi 'message-cb)
-  (dimfi (format #f "~20,,,' @A:" 'dialog) dialog)
-  (dimfi (format #f "~20,,,' @A:" 'result) result)
-  (dimfi (format #f "~20,,,' @A:" 'data) data)
-  (dimfi "  " '-- 'local 'variables '--)
-  (dimfi (format #f "~20,,,' @A:" 'response) response)
-  (dimfi (format #f "~20,,,' @A:" 'toast) toast))
-
-(define (response-cb-debug-info dialog response window toast)
-  (dimfi 'response-cb)
-  (dimfi (format #f "~20,,,' @A:" 'dialog) dialog)
-  (dimfi (format #f "~20,,,' @A:" 'response) response)
-  (dimfi (format #f "~20,,,' @A:" 'window) window)
-  (dimfi "  " '-- 'local 'variable '--)
-  (dimfi (format #f "~20,,,' @A:" 'toast) toast)
-  (describe add-toast))
+    (emit demo-page-dialogs 'add-toast toast)))
