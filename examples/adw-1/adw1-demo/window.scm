@@ -34,7 +34,7 @@
   #:use-module (adw1-demo welcome)
   #:use-module (adw1-demo navigation-view)
   #:use-module (adw1-demo style-classes)
-  #:use-module (adw1-demo animations)
+  ;; #:use-module (adw1-demo animations)
   #:use-module (adw1-demo dialogs)
 
   #:duplicates (merge-generics

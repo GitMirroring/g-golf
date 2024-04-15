@@ -80,7 +80,7 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageStyleClasses"))))))
 
-(define %animations
+#;(define %animations
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
                   (translatable "yes")) "Animations")
@@ -131,7 +131,7 @@
              (child ,%welcome-page)
              (child ,%navigation-view)
              (child ,%style-classes)
-             (child ,%animations)
+             #;(child ,%animations)
              (child ,%dialogs)))))))
 
 (define %window
