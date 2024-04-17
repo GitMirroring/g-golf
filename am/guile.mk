@@ -49,4 +49,4 @@ GUILE_WARNINGS = -Wunbound-variable -Warity-mismatch -Wformat
 SUFFIXES = .scm .go
 .scm.go:
 	$(AM_V_GEN) $(top_builddir)/pre-inst-env \
-	$(GUILD) compile $(GUILE_WARNINGS) -o "$@" "$<"
+	$(GUILD) compile $(GUILE_WARNINGS) $(GUILE_TARGET) -o "$@" "$<"

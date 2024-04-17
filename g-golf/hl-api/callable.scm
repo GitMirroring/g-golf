@@ -286,7 +286,8 @@
          (al-pos (!al-pos callable))
          (effective-n-arg-in (- n-arg-in (length al-pos)))
          (override? (!override? callable)))
-    (if (or (and override?
+    (if (or (and (or override?
+                     (is-a? callable <callback>))
                  (= args-length n-arg))
             (= args-length effective-n-arg-in))
         (let ((args (if (null? al-pos)
@@ -349,11 +350,11 @@
                          al-pos
                          (cons (car args) cble-args)))))))))
 
-(define %allow-none-exceptions
+(define %maybe-null-exceptions
   '(child-setup-data-destroy))
 
-(define (allow-none-exception? name)
-  (memq name %allow-none-exceptions))
+(define (maybe-null-exception? name)
+  (memq name %maybe-null-exceptions))
 
 (define (callable-prepare-gi-args-in callable args)
   (when (%debug)
@@ -454,7 +455,8 @@
                                (if value
                                    (%g-golf-callback-closure gi-type value)
                                    (if (or may-be-null?
-                                           (allow-none-exception? name))
+                                           (>= (!destroy clb/arg) 0)
+                                           (maybe-null-exception? name))
                                        #f
                                        (error "Invalid argument: " value)))))))))
       ((array)

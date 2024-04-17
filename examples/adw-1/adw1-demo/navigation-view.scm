@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023, 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -29,7 +29,7 @@
 (define-module (adw1-demo navigation-view)
   #:use-module (oop goops)
   #:use-module (g-golf)
-  #:use-module (adw1-demo navigation-view-demo-window)
+  #:use-module (adw1-demo navigation-view-demo-dialog)
   
   #:duplicates (merge-generics
 		replace
@@ -52,7 +52,8 @@
   (g-irepository-require "Adw" #:version "1")
   (for-each (lambda (name)
               (gi-import-by-name "Adw" name))
-      '("Bin")))
+      '("Bin"
+        "Dialog")))
 
 
 (define-class <adw-demo-page-navigation-view> (<adw-bin>)
@@ -71,8 +72,6 @@
   (connect (!navigation-view-button self)
            "clicked"
            (lambda (b)
-             (let ((adw-navigation-view-demo-window
-                    (make <adw-navigation-view-demo-window>)))
-               (set-transient-for adw-navigation-view-demo-window
-                                  (get-root self))
-               (present adw-navigation-view-demo-window)))))
+             (let ((navigation-view-demo-dialog
+                    (make <adw-navigation-view-demo-dialog>)))
+               (present navigation-view-demo-dialog self)))))

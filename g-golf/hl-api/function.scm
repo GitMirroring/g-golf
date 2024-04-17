@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2023
+;;;; Copyright (C) 2019 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -81,6 +81,9 @@
           (n-gi-arg-out (!n-gi-arg-out f-inst))
           (gi-args-out (!gi-args-out f-inst))
           (gi-arg-result (!gi-arg-result f-inst)))
+      #;(when (%debug)
+        (dimfi "        ----" 'g-function-info-invoke name)
+        (dimfi "          ----" args))
       (unless (memq 'skip-prepare-gi-arguments args)
         (callable-prepare-gi-arguments f-inst args))
       (with-gerror g-error

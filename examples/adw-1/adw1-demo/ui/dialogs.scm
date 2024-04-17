@@ -1,7 +1,7 @@
 ;; -*- mode: sxml-ui; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023, 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -46,7 +46,7 @@
             (object (@ (class "GtkButton")
                        (id dialogs-button))
               (property (@ (name "label")
-                           (translatable "yes")) "Message Dialog")
+                           (translatable "yes")) "Alert Dialog")
               (property (@ (name "halign")) center)
               (style (class (@ (name "pill")))))))))))
 

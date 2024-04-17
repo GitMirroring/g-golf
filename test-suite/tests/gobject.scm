@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2023
+;;;; Copyright (C) 2016 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -28,6 +28,7 @@
 
 (define-module (tests gobject)
   #:use-module (ice-9 match)
+  #:use-module (ice-9 receive)
   #:use-module (oop goops)
   #:use-module (unit-test)
   #:use-module (g-golf)
@@ -84,6 +85,25 @@
   (assert (g-type-add-interface-static (g-type-from-name "FooBar")
                                        (!g-type <g-file>)
                                        #f)))
+
+
+;;;
+;;; GObject
+;;;
+
+
+(define-method (test-g-object-class-find-property (self <g-golf-test-gobject>))
+  (assert
+   (g-object-class-find-property (!g-class <g-binding>)
+                                 "source"))
+  (assert-false
+   (g-object-class-find-property (!g-class <g-binding>)
+                                 "unknown")))
+
+(define-method (test-g-object-class-list-properties (self <g-golf-test-gobject>))
+  (assert-true (receive (props n-prop)
+                   (g-object-class-list-properties (!g-class <g-binding>))
+                 (= (length props) n-prop))))
 
 
 ;;;

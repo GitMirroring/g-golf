@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2023
+;;;; Copyright (C) 2016 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -29,10 +29,12 @@
 (define-module (g-golf gobject gobject)
   #:use-module (oop goops)
   #:use-module (system foreign)
+  #:use-module (srfi srfi-4)
   #:use-module (g-golf init)
   #:use-module (g-golf support libg-golf)
   #:use-module (g-golf support enum)
   #:use-module (g-golf gi utils)
+  #:use-module (g-golf glib mem-alloc)
   #:use-module (g-golf gobject type-info)
   #:use-module (g-golf gobject generic-values)
   #:use-module (g-golf gobject params-vals)
@@ -45,6 +47,7 @@
 
   #:export (g-object-class-install-property
             g-object-class-find-property
+            g-object-class-list-properties
             g-object-new
             g-object-new-with-properties
             g-object-ref
@@ -71,6 +74,16 @@
   (gi->scm (g_object_class_find_property g-class
                                          (string->pointer property-name))
            'pointer))
+
+(define (g-object-class-list-properties g-class)
+  (let* ((bv (make-s32vector 1 0))
+         (bv-ptr (bytevector->pointer bv))
+         (g-params (g_object_class_list_properties g-class bv-ptr))
+         (n-prop (s32vector-ref bv 0))
+         (p-specs (gi->scm g-params 'pointers)))
+    (g-free g-params)
+    (values p-specs
+            n-prop)))
 
 (define (g-object-new gtype)
   (gi->scm (g_object_new gtype %null-pointer) 'pointer))
@@ -141,6 +154,13 @@
 				    %libgobject)
                       (list '*		;; g-class
                             '*)))	;; property name
+
+(define g_object_class_list_properties
+  (pointer->procedure '*
+                      (dynamic-func "g_object_class_list_properties"
+				    %libgobject)
+                      (list '*		;; g-class
+                            '*)))	;; n-properties
 
 (define g_object_new
   (pointer->procedure '*

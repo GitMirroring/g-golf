@@ -44,6 +44,7 @@
   #:use-module (g-golf hl-api events)
   #:use-module (g-golf hl-api argument)
   #:use-module (g-golf hl-api ccc)
+  #:use-module (g-golf hl-api callable)
 
   #:duplicates (merge-generics
 		replace
@@ -167,40 +168,34 @@
                                          return-value
                                          ffi-args
                                          user-data)
-  (let* ((%scm->gi-argument
-          (@ (g-golf hl-api callable) scm->gi-argument))
-         (callback-closure (pointer->scm user-data))
+  (let* ((callback-closure (pointer->scm user-data))
          (callback (!callback callback-closure))
          (procedure (!procedure callback-closure))
-         (return-type (!return-type callback))
-         (gi-argument (!gi-arg-result callback)))
+         (n-arg-out (!n-gi-arg-out callback))
+         (return-type (!return-type callback)))
     (when (%debug)
       (dimfi 'g-golf-callback-closure-marshal)
       (dimfi " " (!name callback)))
-    (let loop ((arguments (!arguments callback))
+    (let loop ((arguments (!args-in callback))
                (ffi-arg ffi-args)
                (args '()))
       (match arguments
         (()
          (let ((args (reverse args)))
-           (case return-type
-             ((void)
-              (when (%debug)
-                (dimfi "      returned value: void"))
-              (apply procedure args))
-             (else
-              (let ((r-val (apply procedure args)))
-                (when (%debug)
-                  (dimfi "      returned value:" r-val))
-                (%scm->gi-argument return-type
-                                   (!type-desc callback)
-                                   return-value
-                                   r-val
-                                   callback
-                                   args
-                                   #:may-be-null-acc !may-return-null?
-                                   #:is-method? (!is-method? callback)
-                                   #:forced-type return-type))))))
+           (receive (. r-vals)
+               (apply procedure args)
+             (unless (= n-arg-out 0)
+               (scm->ffi-args-out callback ffi-args r-vals))
+             (unless (eq? return-type 'void)
+               (scm->gi-argument return-type
+                                 (!type-desc callback)
+                                 return-value
+                                 (car r-vals) ;; by design
+                                 callback
+                                 args ;; required, but won't be used
+                                 #:may-be-null-acc !may-return-null?
+                                 #:is-method? (!is-method? callback)
+                                 #:forced-type return-type)))))
         ((argument . rests)
          (let ((value (ffi-arg->cb-arg callback argument ffi-arg)))
            (when (%debug)
@@ -228,6 +223,50 @@
                                           (scm->pointer callback-closure))
             callback-closure)))
 
+(define (scm->ffi-args-out callback ffi-args r-vals)
+  ;; r-vals may contain the callback returned value, if so, it is the
+  ;; first element of the r-vals list.
+  (let loop ((ffi-out-arg (gi-pointer-inc ffi-args
+                                          (* (!n-gi-arg-in callback)
+                                             (sizeof size_t))))
+             (args-out (!args-out callback))
+             (r-vals (case (!return-type callback)
+                       ((void) r-vals)
+                       (else (cdr r-vals)))))
+    (match args-out
+      (()
+       'done)
+      ((arg-out . args-out-tail)
+       (match r-vals
+         ((value . r-vals-tail)
+          (scm->gi-argument (!type-tag arg-out)
+                            (!type-desc arg-out)
+                            ffi-out-arg
+                            value
+                            arg-out
+                            r-vals ;; required, but won't be used
+                            #:may-be-null-acc !may-be-null?
+                            #:is-method? #f ;; args-in off-by-one 'only'
+                            #:forced-type (!forced-type arg-out))
+          (when (%debug)
+            (dimfi (format #f "~20,,,' @A:" (!name arg-out)) value
+                   (format #f " [ out arg - ffi val (check) ~A"
+                           (gi-argument->scm (!type-tag arg-out)
+                                             (!type-desc arg-out)
+                                             ffi-out-arg
+                                             arg-out
+                                             #:forced-type (!forced-type arg-out)
+                                             #:is-pointer? (!is-pointer? arg-out)))
+                   "]"))
+          (loop (gi-pointer-inc ffi-out-arg)
+                args-out-tail
+                r-vals-tail)))))))
+
+
+;;;
+;;; ffi additional support
+;;;
+
 (define (ffi-arg->cb-arg callback argument ffi-arg)
   (let* ((%gi-argument->scm
           (@ (g-golf hl-api callable) gi-argument->scm))
@@ -240,6 +279,8 @@
                           (!gi-argument-out argument)))
          (forced-type (!forced-type argument))
          (ffi-value (ffi-arg->scm ffi-arg type-tag is-pointer? is-enum?)))
+    #;(when (%debug)
+      (dimfi (format #f "~20,,,' @A:" (!name argument)) ffi-value '[ffi-arg]))
     (case type-tag
       ((boolean
         int8

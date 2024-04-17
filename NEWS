@@ -4,7 +4,7 @@
 
 #+BEGIN_COMMENT
 
-Copyright (C) 2016 - 2023
+Copyright (C) 2016 - 2024
 Free Software Foundation, Inc.
 
 This document is part of GNU G-Golf.
@@ -25,6 +25,60 @@ warranty.
 
 
 * Latest News
+
+** April 2024
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc-3 is released.
+
+This is the third release candidate of the upcoming 0.8.0 release, now
+available for testing.
+
+*** Noteworthy changes in 0.8.0-rc-3
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** Dependencies
+
+***** Adwaita examples
+
+  Adw-1  >=  1.5.0
+
+The adw1-demo has been updated, following upstream changes, so that most
+of its demo pages now inherit and/or use the AdwDialog class, which is
+available in Adwaita since 1.5.
+
+**** Examples
+
+***** Adwaita Demo
+
+The 'Navigation View' and 'Style Classes' pages have been updated to
+inherit and/or use the AdwDialog Class.
+
+The 'Dialogs' page has been updated to use the AdwAlertDialog class. It
+also has been enhanced to properly support the async-api model, and,
+while running the alert dialog callback, to dismiss any previsouly added
+'Toast' if any.
+
+**** Bug fixing
+
+***** Autotool chain
+
+Changes has been made to support parallel installation as well as
+cross-compilation.
+
+***** Callback closure marshal(er)
+
+The callback closure marshal(er) has been fixed to support callback with
+'inout and 'out argument(s).
+
+***** scm->gi-argument
+
+Fixed to allow all GDestroyNotify callback functions to be nullable by
+default.
+
+
+* Older News
 
 ** November 2023
 
@@ -54,8 +108,6 @@ call such (emit window 'add-toast toast), with window and toast being
 goops proxy instances, would raise an exception, as the extra args
 handler missed a proper dispatch clause and treatment for the 'object
 arg type,
-
-* Older News
 
 ** October 2023
 

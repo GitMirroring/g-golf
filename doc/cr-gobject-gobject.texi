@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2023 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2024 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -17,6 +17,7 @@ GObject — The base object type
 @table @code
 @item @ref{g-object-class-install-property}
 @item @ref{g-object-class-find-property}
+@item @ref{g-object-class-list-properties}
 @item @ref{g-object-new}
 @item @ref{g-object-new-with-properties}
 @item @ref{g-object-ref}
@@ -101,6 +102,17 @@ Returns a pointer or @code{#f}.
 Obtains and returns (a pointer to) the @code{GParamSpec} for @var{name},
 or @code{#f} if @var{g-class} (a pointer to a @code{GObjectClass})
 doesn't have a property of that @var{name}.
+@end deffn
+
+
+@anchor{g-object-class-list-properties}
+@deffn Procedure g-object-class-list-properties g-class
+
+Returns two values.
+
+Obtains and returns (1) the (possibly empty) list of GParamSpec
+pointers for @var{g-class} and (2) its length (the number of properties
+for @var{g-class}).
 @end deffn
 
 

@@ -1,7 +1,7 @@
 ;; -*- mode: sxml-ui; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -80,6 +80,13 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageStyleClasses"))))))
 
+#;(define %animations
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Animations")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageAnimations"))))))
+
 (define %dialogs
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
@@ -105,9 +112,11 @@
              (property (@ (name "stack")) stack)))))))
 
 (define %content
-  `(object (@ (class "AdwNavigationPage"))
-     ;; libadwaita-1-0:amd64 1.4~rc-1 complains if none, despite
-     ;; its AdwHeaderBar show-title property set to false ...
+  `(object (@ (class "AdwNavigationPage")
+              (id "content"))
+     ;; Unless we set the AdwNavigationPage title to something, Adwaita
+     ;; complains, even if if/when we set its AdwHeaderBar show-title
+     ;; property set to false ...
      (property (@ (name "title")) "Bluefox") ;; fake title
      (property (@ (name "child"))
        (object (@ (class "AdwToolbarView"))
@@ -122,6 +131,7 @@
              (child ,%welcome-page)
              (child ,%navigation-view)
              (child ,%style-classes)
+             #;(child ,%animations)
              (child ,%dialogs)))))))
 
 (define %window

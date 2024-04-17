@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023, 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -26,7 +26,7 @@
 ;;; Code:
 
 
-(define-module (adw1-demo navigation-view-demo-window)
+(define-module (adw1-demo navigation-view-demo-dialog)
   #:use-module (oop goops)
   #:use-module (g-golf)
 
@@ -36,7 +36,7 @@
 		warn
 		last)
 
-  #:export (<adw-navigation-view-demo-window>))
+  #:export (<adw-navigation-view-demo-dialog>))
 
 
 #;(g-export )
@@ -46,11 +46,11 @@
   (g-irepository-require "Adw" #:version "1")
   (for-each (lambda (name)
               (gi-import-by-name "Adw" name))
-      '("Window")))
+      '("Dialog")))
 
 
-(define-class <adw-navigation-view-demo-window> (<adw-window>)
+(define-class <adw-navigation-view-demo-dialog> (<adw-dialog>)
   ;; slots
   ;; class options
   #:template (string-append (dirname (current-filename))
-                            "/ui/navigation-view-demo-window.ui"))
+                            "/ui/navigation-view-demo-dialog.ui"))

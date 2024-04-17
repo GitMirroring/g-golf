@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2016 - 2023
+#### Copyright (C) 2016 - 2024
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -24,7 +24,6 @@
 include $(top_srcdir)/am/guile.mk
 
 
-pkgconfigdir=$(libdir)/pkgconfig
 pkgconfig_DATA=meta/g-golf-1.0.pc
 
 SOURCES = \

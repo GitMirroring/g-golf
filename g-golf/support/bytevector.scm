@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2022
+;;;; Copyright (C) 2019 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -31,8 +31,11 @@
   #:use-module (system foreign)
   #:use-module (rnrs bytevectors)
 
-  #:export (bv-ptr-ref
+  #:export (%align
+            bv-ptr-ref
             bv-ptr-set!
+            %readers
+            %writers
 
             make-gtypevector
             gtypevector-ref
@@ -47,14 +50,44 @@
             list->ulongvector))
 
 
-(define %align
-  (@@ (system foreign) align))
+;;;
+;;; from (system foreign)
+;;;
+
+;; Guile 3.0.10 introduces read-c-struct and write-c-struct, here is an
+;; excerpt of the manual for the read-c-struct definition:
+
+;;   Unless cross-compiling, the field types are evaluated at
+;;   macro-expansion time. This allows the resulting bytevector
+;;   accessors and size/alignment computations to be completely
+;;   inlined.
+
+;; One of the consequence is that some of the internals i was refering
+;; to, *readers*, *writers*, align ... are now part of the newly
+;; introduced syntax machinery.
+
+;; So, for the time being, i'll just take a copy of those, from 3.0.9 -
+;; later, i'll update g-golf to take advantage of these new
+;; read-c-struct and write-c-struct syntax.
+
+(define (%align off alignment)
+  (1+ (logior (1- off) (1- alignment))))
 
 (define %bv-ptr-ref
-  (@@ (system foreign) bytevector-pointer-ref))
+  (case (sizeof '*)
+    ((8) (lambda (bv offset)
+           (make-pointer (bytevector-u64-native-ref bv offset))))
+    ((4) (lambda (bv offset)
+           (make-pointer (bytevector-u32-native-ref bv offset))))
+    (else (error "what machine is this?"))))
 
 (define %bv-ptr-set!
-  (@@ (system foreign) bytevector-pointer-set!))
+  (case (sizeof '*)
+    ((8) (lambda (bv offset ptr)
+           (bytevector-u64-native-set! bv offset (pointer-address ptr))))
+    ((4) (lambda (bv offset ptr)
+           (bytevector-u32-native-set! bv offset (pointer-address ptr))))
+    (else (error "what machine is this?"))))
 
 (define (bv-ptr-ref foreign)
   (let* ((size (sizeof '*))
@@ -67,6 +100,56 @@
          (bv (pointer->bytevector foreign size))
          (offset (%align 0 (alignof '*))))
     (%bv-ptr-set! bv offset val)))
+
+(define (writer-complex set size)
+  (lambda (bv i val)
+    (set bv i (real-part val))
+    (set bv (+ i size) (imag-part val))))
+
+(define (reader-complex ref size)
+  (lambda (bv i)
+    (make-rectangular
+     (ref bv i)
+     (ref bv (+ i size)))))
+
+(define %writers
+  `((,float . ,bytevector-ieee-single-native-set!)
+    (,double . ,bytevector-ieee-double-native-set!)
+    ,@(if (defined? 'complex-float)
+          `((,complex-float
+             . ,(writer-complex bytevector-ieee-single-native-set! (sizeof float)))
+            (,complex-double
+             . ,(writer-complex bytevector-ieee-double-native-set! (sizeof double))))
+          '())
+    (,int8 . ,bytevector-s8-set!)
+    (,uint8 . ,bytevector-u8-set!)
+    (,int16 . ,bytevector-s16-native-set!)
+    (,uint16 . ,bytevector-u16-native-set!)
+    (,int32 . ,bytevector-s32-native-set!)
+    (,uint32 . ,bytevector-u32-native-set!)
+    (,int64 . ,bytevector-s64-native-set!)
+    (,uint64 . ,bytevector-u64-native-set!)
+    (* . ,%bv-ptr-set!)))
+
+(define %readers
+  `((,float . ,bytevector-ieee-single-native-ref)
+    (,double . ,bytevector-ieee-double-native-ref)
+    ,@(if (defined? 'complex-float)
+          `((,complex-float
+             . ,(reader-complex bytevector-ieee-single-native-ref (sizeof float)))
+            (,complex-double
+             . ,(reader-complex bytevector-ieee-double-native-ref (sizeof double))))
+          '())
+    (,int8 . ,bytevector-s8-ref)
+    (,uint8 . ,bytevector-u8-ref)
+    (,int16 . ,bytevector-s16-native-ref)
+    (,uint16 . ,bytevector-u16-native-ref)
+    (,int32 . ,bytevector-s32-native-ref)
+    (,uint32 . ,bytevector-u32-native-ref)
+    (,int64 . ,bytevector-s64-native-ref)
+    (,uint64 . ,bytevector-u64-native-ref)
+    (* . ,%bv-ptr-ref)))
+
 
 
 ;;;

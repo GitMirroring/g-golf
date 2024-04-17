@@ -6,7 +6,7 @@ dnl
 
 define(G_GOLF_CONFIGURE_COPYRIGHT,[[
 
-Copyright (C) 2016 - 2023
+Copyright (C) 2016 - 2024
 Free Software Foundation, Inc.
 
 This file is part of GNU G-Golf
@@ -31,7 +31,7 @@ AC_PREREQ(2.69)
 
 AC_INIT(
   [g-golf],
-  [0.8.0-rc-2],
+  [0.8.0-rc-3],
   [bug-g-golf@gnu.org])
 
 AC_CONFIG_AUX_DIR([build-aux])
@@ -58,8 +58,15 @@ GUILE_PROGS([2.0.14])
 GUILE3_PROGS([3.0.7])
 GUILE_SITE_DIR
 GUILE_GLOBAL_SITE_DIR
-GUILE_SITE_CCACHE_DIR
 GUILE_FLAGS
+PKG_INSTALLDIR
+
+
+dnl This argument is passed to guild; it ensures cross-compiling uses
+dnl the right target.
+if test -n "$host_alias"; then
+   AC_SUBST([GUILE_TARGET], [--target=$host_alias])
+fi
 
 
 AC_ARG_WITH(
@@ -149,12 +156,12 @@ AC_MSG_NOTICE(
 
 if test "x$guile_site" = "xno"; then
   AC_MSG_WARN(
-    []
-    []
-    [Since --with-guile-site="no", sitedir and siteccachedir differ from]
-    [the one used by Guile itself. You have to augment both Guile's %load-path]
-    [and %load-compiled-path variables before to use Guile-CV's modules (see]
-    ['Environment Variables' and 'Load Paths' in the Guile Reference Manual).]
-    []
-    [Otherwise, consider using --with-guile-site=yes])
+  []
+  []
+  [Since --with-guile-site="no", sitedir and siteccachedir differ from]
+  [the one used by Guile itself. You have to augment both Guile's %load-path]
+  [and %load-compiled-path variables before to use Guile-CV's modules (see]
+  ['Environment Variables' and 'Load Paths' in the Guile Reference Manual).]
+  []
+  [Otherwise, consider using --with-guile-site])
 fi

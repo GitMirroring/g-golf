@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -34,6 +34,7 @@
   #:use-module (adw1-demo welcome)
   #:use-module (adw1-demo navigation-view)
   #:use-module (adw1-demo style-classes)
+  ;; #:use-module (adw1-demo animations)
   #:use-module (adw1-demo dialogs)
 
   #:duplicates (merge-generics
@@ -46,8 +47,10 @@
             show-window))
 
 
-(g-export !split-view
+#;(g-export !toast-overlay
+          !split-view
           !color-scheme-button
+          !content
           !stack)
 
 
@@ -85,6 +88,7 @@
   (toast-overlay #:accessor !toast-overlay #:child-id "toast-overlay")
   (split-view #:accessor !split-view #:child-id "split-view")
   (color-scheme-button #:accessor !color-scheme-button #:child-id "color-scheme-button")
+  (content #:accessor !content #:child-id "content")
   (stack #:accessor !stack #:child-id "stack")
   ;; class options
   #:template (string-append (dirname (current-filename))
@@ -92,6 +96,7 @@
   #:child-ids '("toast-overlay"
                 "split-view"
                 "color-scheme-button"
+                "content"
                 "stack"))
 
 (define (install-actions app)
@@ -226,4 +231,8 @@
       (set-color-scheme manager 'default))))
 
 (define (notify-visible-child-cb window)
-  (set-show-content (!split-view window) #t))
+  (let* ((stack (!stack window))
+         (child (get-visible-child stack))
+         (page (get-page stack child)))
+    (set-title (!content window) (get-title page))
+    (set-show-content (!split-view window) #t)))
