@@ -174,7 +174,7 @@ Adw-1 examples:
 
 @itemize @bullet
 @item
-@uref{@value{UADW1}, Adw-1} @geq{} 1.4.0
+@uref{@value{UADW1}, Adw-1} @geq{} 1.5.0
 @end itemize
 
 
@@ -241,40 +241,49 @@ $(datadir)/g-golf
 $(libdir)/g-golf/guile/$(GUILE_EFFECTIVE_VERSION)/site-ccache
 @end example
 
-If you pass @code{--with-guile-site}, these locations become the
-Guile global site and site-ccache directories, respectively.
+If you pass @code{--with-guile-site}, these locations become:
 
+@example
+Guile global site directory
+Guile site-ccache directory
+@end example
+
+@item
 The configure step reports these locations as the content of the
-@code{sitedir} and @code{siteccachedir} variables, respectivelly the
-source modules and compiled files install locations. After installation,
-you may consult these variables using pkg-config:
+@code{sitedir} and @code{siteccachedir} variables.
+
+After installation, you may consult these variables using pkg-config:
 
 @example
 pkg-config g-golf-1.0 --variable=sitedir
 pkg-config g-golf-1.0 --variable=siteccachedir
 @end example
 
-You will need - unless you have used @code{--with-guile-site}, or
-unless these locations are already 'known' by Guile - to define or
-augment your @code{GUILE_LOAD_PATH} and @code{GUILE_COMPILED_PATH}
-environment variables with these locations, respectively (or
-@code{%load-path} and @code{%load-compiled-path} at run time if you
-prefer@footnote{In this case, you may as well decide to either alter
-your @file{$HOME/.guile} personal file, or, if you are working in a
-mult-user environmet, you may also opt for a global configuration. In
-this case, the file must be named @file{init.scm} and placed it here
-(evaluate the following expression in a terminal): @code{guile -c
-"(display (%global-site-dir))(newline)"}.}  (See
-@uref{@value{UGUILE-ENV-VARS}, Environment Variables} and
-@uref{@value{UGUILE-LOAD-PATH}, Load Path} in the Guile Reference
-Manual).
+@item
+Unless you have used @code{--with-guile-site}, or unless these locations
+are already ’known’ by Guile, you will need to define or augment your
+@code{GUILE_LOAD_PATH} and @code{GUILE_COMPILED_PATH} environment
+variables accordingly (or @code{%load-path} and
+@code{%load-compiled-path} at run time if you prefer@footnote{In this
+case, you may as well decide to either alter your @file{$HOME/.guile}
+personal file, or, if you are working in a mult-user environmet, you may
+also opt for a global configuration. In this case, the file must be
+named @file{init.scm} and placed it here (evaluate the following
+expression in a terminal): @code{guile -c "(display
+(%global-site-dir))(newline)"}.}  (See @uref{@value{UGUILE-ENV-VARS},
+Environment Variables} and @uref{@value{UGUILE-LOAD-PATH}, Load Path} in
+the Guile Reference Manual).
+@ifhtml
+@*@*
+@end ifhtml
 
 @item
 G-Golf also installs its @code{libg-golf.*} library files, in
 @code{$(libdir)}. The configure step reports its location as the content
 of the @code{libdir} variable, which depends on on the content of the
-@code{prefix} and @code{exec_prefix} variables (also reported). After
-nstallation, you may consult these variables using pkg-config:
+@code{prefix} and @code{exec_prefix} variables (also reported).
+
+After installation, you may consult these variables using pkg-config:
 
 @example
 pkg-config g-golf-1.0 --variable=prefix
@@ -282,17 +291,17 @@ pkg-config g-golf-1.0 --variable=exec_prefix
 pkg-config g-golf-1.0 --variable=libdir
 @end example
 
-You will need - unless the @code{$(libdir)} location is already 'known'
-by your system - to either define or augment your
-@code{$LD_LIBRARY_PATH} environment variable, or alter the
-@file{/etc/ld.so.conf} (or add a file in @file{/etc/ld.so.conf.d}) and
-run (as root) @code{ldconfig}, so that G-Golf finds its
-@code{libg-golf.*} library files@footnote{Contact your administrator
-if you opt for the second solution but don't have @code{write}
-priviledges on your system.}.
-@c @ifhtml
-@c @*@*
-@c @end ifhtml
+@item
+Unless the @code{$(libdir)} location is already 'known' by your system,
+you will need - to either define or augment your @code{$LD_LIBRARY_PATH}
+environment variable, or alter the @file{/etc/ld.so.conf} (or add a file
+in @file{/etc/ld.so.conf.d}) and run (as root) @code{ldconfig}, so that
+G-Golf finds its @code{libg-golf.*} library files@footnote{Contact your
+administrator if you opt for the second solution but don't have
+@code{write} priviledges on your system.}.
+@ifhtml
+@*@*
+@end ifhtml
 
 @item
 To install G-Golf, you must have write permissions to the default or
@@ -312,11 +321,19 @@ install-html} and/or @code{make install-pdf}.
 @end ifhtml
 
 @item
-Last but not least :), G-Golf comes with a @code{test-suite}, which we
-recommend you to run (especially before @ref{Reporting Bugs}):
+G-Golf comes with a @code{test-suite}, which we recommend you to run
+(especially before @ref{Reporting Bugs}):
 
 @example
 make check
+@end example
+
+@item
+To try/run an uninstalled version of G-Golf, use the pre-inst-env
+script:
+
+@example
+./pre-inst-env your-program [arg1 arg2 ...]
 @end example
 @end enumerate
 
