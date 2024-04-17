@@ -63,14 +63,14 @@ Gtk-4.0 examples:
 G-Golf currently needs the following additional software to run its
 Adw-1 examples:
 
-  Adw-1 >= 1.4.0
+  Adw-1 >= 1.5.0
 
 ** Install from the tarball
 
 G-Golf release are [[http://ftp.gnu.org/gnu/g-golf/][here]].  The latest tarballs are:
 
-	g-golf-0.8.0-rc-2.tar.gz
-	g-golf-0.8.0-rc-2.tar.gz.sig
+	g-golf-0.8.0-rc-3.tar.gz
+	g-golf-0.8.0-rc-3.tar.gz.sig
 
 	[ GPG Key: A3057AD7
 	[ gpg --keyserver keys.gnupg.net --recv-keys A3057AD7
@@ -79,8 +79,8 @@ Assuming you have satisfied the dependencies, open a terminal and
 proceed with the following steps:
 
 	cd <download-path>
-	tar zxf g-golf-0.8.0-rc-2.tar.gz
-	cd g-golf-0.8.0-rc-2
+	tar zxf g-golf-0.8.0-rc-3.tar.gz
+	cd g-golf-0.8.0-rc-3
 	./configure [--prefix=/your/prefix] [--with-guile-site]
 	make
 	make install
@@ -153,21 +153,27 @@ Happy hacking!
         pkg-config g-golf-1.0 --variable=exec_prefix
         pkg-config g-golf-1.0 --variable=libdir
 
-[5] To install G-Golf, you must have write permissions to the default
+[5] Unless the $(libdir) location is already ’known’ by your system, you
+    will need to either define or augment your $LD_LIBRARY_PATH
+    environment variable, or alter the /etc/ld.so.conf (or add a file in
+    /etc/ld.so.conf.d) and run (as root) ldconfig, so that G-Golf finds
+    its libg-golf.* library files.
+
+[6] To install G-Golf, you must have write permissions to the default
     or $(prefix) directory and its subdirs, as well as to both Guile’s
     site and site-ccache directories if --with-guile-site was
-    passed.
+    passed [fn:2].
 
-[6] Like for any other GNU Tool Chain compatible software, you may
+[7] Like for any other GNU Tool Chain compatible software, you may
     install the documentation locally using make install-info, make
     install-info, make install-html and/or make install-pdf.
 
-[7] G-Golf comes with a test-suite, which we recommend you to run
+[8] G-Golf comes with a test-suite, which we recommend you to run
     (especially before Reporting Bugs):
 
 		make check
 
-[8] To try/run an uninstalled version of G-Golf, use the pre-inst-env
+[9] To try/run an uninstalled version of G-Golf, use the pre-inst-env
     script:
 
 	  ./pre-inst-env your-program [arg1 arg2 ...]

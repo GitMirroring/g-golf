@@ -4,7 +4,7 @@
 
 #+BEGIN_COMMENT
 
-Copyright (C) 2016 - 2023
+Copyright (C) 2016 - 2024
 Free Software Foundation, Inc.
 
 This document is part of GNU G-Golf.
@@ -81,9 +81,9 @@ points to its source code, in the G-Golf sources [[http://git.savannah.gnu.org/c
 
 ** Latest News
 
-November 2023
+April 2024
 
-GNU G-Golf version 0.8.0-rc-2 released.
+GNU G-Golf version 0.8.0-rc-3 released.
 
 Visit the NEWS file or see the [[http://git.savannah.gnu.org/cgit/g-golf.git/tree/NEWS][News]] page for the list of visible changes
 in this release, as well as older news.
