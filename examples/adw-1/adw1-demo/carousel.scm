@@ -180,24 +180,24 @@
 ;;;
 
 (define (bind-properties carousel-page)
-  (bind-property (!carousel carousel-page)
+  (bind-property (!scroll-wheel carousel-page)
+                 "active"
+                 (!carousel carousel-page)
                  "allow-scroll-wheel"
-                 (!scroll-wheel carousel-page)
-                 "active"
                  '(sync-create bidirectional))
-  (bind-property (!carousel carousel-page)
+  (bind-property (!long-swipes carousel-page)
+                 "active"
+                 (!carousel carousel-page)
                  "allow-long-swipes"
-                 (!long-swipes carousel-page)
-                 "active"
                  '(sync-create bidirectional))
-  (bind-property (!carousel carousel-page)
+  (bind-property (!indicators-dots carousel-page)
                  "orientation"
-                 (!indicators-dots carousel-page)
+                 (!carousel carousel-page)
                  "orientation"
                  '(sync-create bidirectional))
-  (bind-property (!carousel carousel-page)
+  (bind-property (!indicators-lines carousel-page)
                  "orientation"
-                 (!indicators-lines carousel-page)
+                 (!carousel carousel-page)
                  "orientation"
                  '(sync-create bidirectional)))
 
