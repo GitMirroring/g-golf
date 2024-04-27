@@ -73,6 +73,13 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageNavigationView"))))))
 
+(define %clamp
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Clamp")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageClamp"))))))
+
 (define %carousel
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
@@ -137,6 +144,7 @@
              ;; signal - notify::visible-child ...
              (child ,%welcome-page)
              (child ,%navigation-view)
+             (child ,%clamp)
              (child ,%carousel)
              (child ,%style-classes)
              #;(child ,%animations)
