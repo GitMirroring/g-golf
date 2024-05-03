@@ -84,8 +84,17 @@ exec guile -e main -s "$0" "$@"
 
 
 (define (main args)
-  (let ((app (make <gtk-application>
-               #:application-id "org.gtk.example")))
-    (connect app 'activate activate)
-    (let ((status (g-application-run app args)))
-      (exit status))))
+  (letrec ((debug? (or (member "-d" args)
+                       (member "--debug" args)))
+           (animate
+            (lambda ()
+              (let ((app (make <gtk-application>
+                           #:application-id "org.gnu.g-golf.drawing-widget")))
+                (connect app 'activate activate)
+                (let ((status (g-application-run app '())))
+                  #;(exit status)
+                  (dimfi 'status status))))))
+    (if debug?
+        (parameterize ((%debug #t))
+          (animate))
+        (animate))))
