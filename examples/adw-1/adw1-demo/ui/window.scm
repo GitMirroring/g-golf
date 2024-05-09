@@ -80,6 +80,13 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageClamp"))))))
 
+(define %lists
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Lists")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageLists"))))))
+
 (define %carousel
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
@@ -145,6 +152,7 @@
              (child ,%welcome-page)
              (child ,%navigation-view)
              (child ,%clamp)
+             (child ,%lists)
              (child ,%carousel)
              (child ,%style-classes)
              #;(child ,%animations)
