@@ -87,6 +87,13 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageLists"))))))
 
+(define %view-switcher
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "View Switcher")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageViewSwitcher"))))))
+
 (define %carousel
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
@@ -153,6 +160,7 @@
              (child ,%navigation-view)
              (child ,%clamp)
              (child ,%lists)
+             (child ,%view-switcher)
              (child ,%carousel)
              (child ,%style-classes)
              #;(child ,%animations)
