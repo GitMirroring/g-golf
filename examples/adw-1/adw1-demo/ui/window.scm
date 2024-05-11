@@ -73,6 +73,34 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageNavigationView"))))))
 
+(define %clamp
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Clamp")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageClamp"))))))
+
+(define %lists
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Lists")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageLists"))))))
+
+(define %view-switcher
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "View Switcher")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageViewSwitcher"))))))
+
+(define %carousel
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Carousel")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageCarousel"))))))
+
 (define %style-classes
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
@@ -130,6 +158,10 @@
              ;; signal - notify::visible-child ...
              (child ,%welcome-page)
              (child ,%navigation-view)
+             (child ,%clamp)
+             (child ,%lists)
+             (child ,%view-switcher)
+             (child ,%carousel)
              (child ,%style-classes)
              #;(child ,%animations)
              (child ,%dialogs)))))))

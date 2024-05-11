@@ -26,6 +26,32 @@ warranty.
 
 * Latest News
 
+** May 2024
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc-4 is released.
+
+This is the fourth release candidate of the upcoming 0.8.0 release, now
+available for testing.
+
+*** Noteworthy changes in 0.8.0-rc-4
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** Examples
+
+***** Adwaita Demo
+
+The following Adwaita Demo pages have been added:
+
+  AdwDemoPageCarousel
+  AdwDemoPageClamp
+  AdwDemoPageLists
+  AdwDemoPageViewSwitcher
+
+
+* Older News
+
 ** April 2024
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc-3 is released.
@@ -76,9 +102,6 @@ The callback closure marshal(er) has been fixed to support callback with
 
 Fixed to allow all GDestroyNotify callback functions to be nullable by
 default.
-
-
-* Older News
 
 ** November 2023
 

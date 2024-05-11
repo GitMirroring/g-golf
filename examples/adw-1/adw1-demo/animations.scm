@@ -168,7 +168,7 @@
   (next-method)
   (receive (timed-animation spring-animation)
       (set-animations self)
-    (set-bind-expressions self)
+    (set-expressions self)
     (bind-properties self)
     
     (connect (!animation-preferences-stack self)
@@ -227,7 +227,7 @@
                 'spring-animation spring-animation)
     (values timed-animation spring-animation)))
 
-(define (set-bind-expressions animations-page)
+(define (set-expressions animations-page)
   (let ((timed-animation-easing (!timed-animation-easing animations-page)))
     ;; AdwComboRow requires their expression property to be set, it is
     ;; used to bind strings to the labels produced by the default
