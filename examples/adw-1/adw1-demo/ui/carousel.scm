@@ -159,7 +159,7 @@
                ;;   source carousel // orientation // sync-create|bidirectional
                ))))))
 
-(define %carousel
+(define %carousel-page
   `(interface
     (requires (@ (version "4.0") (lib "gtk")))
     (requires (@ (version "1.0") (lib "libadwaita")))
@@ -181,4 +181,4 @@
 
 
 (define (make-ui)
-  (sxml->ui %carousel))
+  (sxml->ui %carousel-page))
