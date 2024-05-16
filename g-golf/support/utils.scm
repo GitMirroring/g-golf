@@ -139,13 +139,15 @@
 	(display "\n")))
   (car (last-pair items)))
 
-(define* (warning what msg
+(define* (warning what
+                  #:optional msg
                   #:key (msg-2 #f)
                   (port (current-output-port)))
   (display "Warning: " port)
   (display what port)
-  (display ": " port)
-  (display msg port)
+  (when msg
+    (display ": " port)
+    (display msg port))
   (newline port)
   (when msg-2
     (display msg-2 port)
