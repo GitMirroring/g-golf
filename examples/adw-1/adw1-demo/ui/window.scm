@@ -101,6 +101,13 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageCarousel"))))))
 
+(define %avatar
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Avatar")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageAvatar"))))))
+
 (define %style-classes
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
@@ -162,6 +169,7 @@
              (child ,%lists)
              (child ,%view-switcher)
              (child ,%carousel)
+             (child ,%avatar)
              (child ,%style-classes)
              #;(child ,%animations)
              (child ,%dialogs)))))))
