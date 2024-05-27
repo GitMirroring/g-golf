@@ -38,6 +38,7 @@
   #:use-module (adw1-demo view-switcher)
   #:use-module (adw1-demo carousel)
   #:use-module (adw1-demo avatar)
+  #:use-module (adw1-demo split-views)
   #:use-module (adw1-demo style-classes)
   ;; #:use-module (adw1-demo animations)
   #:use-module (adw1-demo dialogs)

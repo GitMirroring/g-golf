@@ -108,6 +108,13 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageAvatar"))))))
 
+(define %split-views
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Split Views")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageSplitViews"))))))
+
 (define %style-classes
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
@@ -170,6 +177,7 @@
              (child ,%view-switcher)
              (child ,%carousel)
              (child ,%avatar)
+             (child ,%split-views)
              (child ,%style-classes)
              #;(child ,%animations)
              (child ,%dialogs)))))))
