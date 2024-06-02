@@ -114,5 +114,5 @@
      . font-lock-type-face)))
 
 (font-lock-add-keywords 'sxml-ui-mode
-  '(("\\<\\(version\\|class\\|parent\\|name\\|translatable\\|id\\|bind-source\\|bind-property\\|bind-flags\\|type\\)\\>"
+  '(("\\<\\(version\\|class\\|parent\\|name\\|translatable\\|comments\\|id\\|bind-source\\|bind-property\\|bind-flags\\|type\\)\\>"
      . font-lock-variable-name-face)))
