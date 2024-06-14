@@ -305,25 +305,26 @@
             (initialize-child-id-slots self)))))))
 
 (define (initialize-g-param-slots inst g-param-kw)
-  (let* ((class (class-of inst))
+  (let* ((module (resolve-module '(g-golf hl-api gobject)))
+         (g-inst-g-param-set-property
+          (module-ref module 'g-inst-g-param-set-property))
+         (class (class-of inst))
          (g-class (!g-class class)))
     (for-each (lambda (item)
                 (match item
                   ((g-class g-param-slots)
                    (for-each
                        (lambda (slot)
-                         (let* ((name (slot-definition-name slot))
-                                (name_ (symbol-append name '_))
+                         (let* ((p-name (symbol->string (slot-definition-name slot)))
                                 (init-kw? (slot-definition-init-keyword slot))
                                 (init-value? (and init-kw?
                                                   (get-keyword init-kw? g-param-kw #f))))
                            (if init-value?
-                               (slot-set! inst name_ init-value?)
-                               (let* ((p-name (symbol->string name))
-                                      (p-spec (g-object-class-find-property g-class p-name))
+                               (g-inst-g-param-set-property inst p-name init-value?)
+                               (let* ((p-spec (g-object-class-find-property g-class p-name))
                                       (p-spec-default (g-param-spec-get-default-value p-spec))
                                       (default (g-value-ref p-spec-default)))
-                                 (slot-set! inst name_ default)))))
+                                 (g-inst-g-param-set-property inst p-name default)))))
                        g-param-slots))))
         (g-class-g-param-slots class))))
 
