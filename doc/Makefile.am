@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2016 - 2023
+#### Copyright (C) 2016 - 2024
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -71,6 +71,7 @@ g_golf_TEXINFOS = \
   cr-glib-gslist.texi		\
   cr-glib-byte-arrays.texi	\
   cr-glib-quarks.texi		\
+  cr-glib-simple-xml-parser.texi \
   cr-gobject.texi		\
   cr-gobject-type-info.texi	\
   cr-gobject-gobject.texi	\

@@ -1,0 +1,64 @@
+@c -*-texinfo-*-
+@c This is part of the GNU G-Golf Reference Manual.
+@c Copyright (C) 2024 Free Software Foundation, Inc.
+@c See the file g-golf.texi for copying conditions.
+
+
+@c @defindex tl
+
+
+@node Simple XML Subset Parser
+@subsection Simple XML Subset Parser
+
+G-Golf GLib Simple XML Subset Parser low level API.@*
+Simple XML Subset Parser — parses a subset of XML
+
+
+@subheading Procedures
+
+@indentedblock
+@table @code
+@item @ref{g-markup-escape-text}
+@end table
+@end indentedblock
+
+
+@subheading Description
+
+The @samp{GMarkup} parser is intended to parse a simple markup format
+that's a subset of XML. This is a small, efficient, easy-to-use
+parser. It should not be used if you expect to interoperate with other
+applications generating full-scale XML. However, it's very useful for
+application data files, config files, etc. where you know your
+application will be the only one writing the file. Full-scale XML
+parsers should be able to parse the subset used by GMarkup, so you can
+easily migrate to full-scale XML at a later time if the need arises.
+
+GMarkup is not guaranteed to signal an error on all invalid XML; the
+parser may accept documents that an XML parser would not. However, XML
+documents which are not well-formed are not considered valid GMarkup
+documents.
+
+Please read the @uref{@value{UGLIB-Markup}, Simple XML Subset Parser}
+section from the GLib reference manual for a complete description.
+
+
+@subheading Procedures
+
+
+@anchor{g-markup-escape-text}
+@deffn Procedure g-markup-escape-text text
+
+Returns a string.
+
+Escapes @var{text}, some valid UTF-8 text, so that the markup parser
+will parse it verbatim. Less than, greater than, ampersand, etc. are
+replaced with the corresponding entities. This function would typically
+be used when writing out a file to be parsed with the markup parser.
+
+Note that this function doesn't protect whitespace and line endings from
+being processed according to the XML rules for normalization of line
+endings and attribute values.
+
+Returns a newly allocated string with the escaped text.
+@end deffn

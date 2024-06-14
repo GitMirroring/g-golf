@@ -1,22 +1,22 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2023 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2024 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
-G-Golf Glib modules are defined in the @code{glib} subdirectory, such as
+G-Golf GLib modules are defined in the @code{glib} subdirectory, such as
 @code{(g-golf glib main-event-loop)}.
 
 Where you may load these modules individually, the easiest way to use
-G-Golf Glib is to import its main module, which imports and re-exports
+G-Golf GLib is to import its main module, which imports and re-exports
 the public interface of (oop goops), (system foreign), all G-Golf
-support and G-Golf Glib modules:
+support and G-Golf GLib modules:
 
 @lisp
 (use-modules (g-golf glib))
 @end lisp
 
-G-Golf Glib low level API modules correspond to a Glib section,
+G-Golf GLib low level API modules correspond to a GLib section,
 though they might be some exception in the future.
 
 
@@ -31,7 +31,8 @@ though they might be some exception in the future.
 * Doubly-Linked Lists:: Linked lists that can be iterated in both directions
 * Singly-Linked Lists:: Linked lists that can be iterated in one direction
 * Byte Arrays:: Arrays of bytes.
-* Quarks:: a2-way association between a string and a unique integer identifier
+* Quarks:: Two way association between a string and a unique integer identifier
+* Simple XML Subset Parser:: Parses a subset of XML
 @end menu
 
 @include cr-glib-version-information.texi
@@ -44,3 +45,4 @@ though they might be some exception in the future.
 @include cr-glib-gslist.texi
 @include cr-glib-byte-arrays.texi
 @include cr-glib-quarks.texi
+@include cr-glib-simple-xml-parser.texi
