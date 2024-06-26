@@ -58,7 +58,8 @@ exec guile -e main -s "$0" "$@"
            (animate
             (lambda ()
               (let ((app (make <adw-application>
-                           #:application-id "org.gnu.g-golf.adw1.demo")))
+                           #:application-id "org.gnu.g-golf.adw-1.demo")))
+                (set! *random-state* (random-state-from-platform))
                 (connect app 'activate show-window)
                 (let ((status (g-application-run app '())))
                   #;(exit status)
