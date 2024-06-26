@@ -240,44 +240,55 @@
 ;;;
 
 (eval-when (load eval)
-  (gi-import-by-name "GLib" "IOChannel"
-                     #:with-methods? #f #:force? #t)
+  (for-each (lambda (i-spec)
+              (match i-spec
+                ((name force? with-methods?)
+                 (gi-import-by-name "GLib" name
+                                    #:force? force?
+                                    #:with-methods? with-methods?))))
+      '(("IOChannel" #t #f)
+        ("SpawnFlags" #t #f)
+        ("VariantClass" #t #f)
+        ("Variant" #t #t)
+        ("VariantType" #t #t)))
 
-  (gi-import-by-name "GLib" "SpawnFlags"
-                     #:with-methods? #f #:force? #t)
-
-  ;; Some (if not all) GObject subclasses also are subclasses of
+  ;; Some (if not all) GObject subclasses re subclasses of
   ;; GInitiallyUnowned.
+  (for-each (lambda (i-spec)
+              (match i-spec
+                ((name force? with-methods?)
+                 (gi-import-by-name "GObject" name
+                                    #:force? force?
+                                    #:with-methods? with-methods?))))
+      '(("InitiallyUnowned" #t #f)
+        ;; Although at this stage, G-Golf would properly import
+        ;; "GObject" "ParamSpec", it's ok to manually import it here
+        ;; anyway: (a) some namespace define classes that inherit from
+        ;; it, like "Clutter" "ParamSpecUnit" and (b) it is the returned
+        ;; type of some gtk class methods, like
+        ;; gtk-container-class-find-child-property.
 
-  (gi-import-by-name "GObject" "InitiallyUnowned"
-                     #:with-methods? #f #:force? #t)
+        ;; In all use cases - see (g-golf hl-api argument)
+        ;; gi-argument->scm - G-Golf never creates <g-param> instances,
+        ;; and 'blindingly' receive and pass GParamSpec pointers from/to
+        ;; GObject (just like opaque structures).
 
-  ;; Although at this stage, G-Golf would properly import "GObject"
-  ;; "ParamSpec", it's ok to manually import it here anyway: (a) some
-  ;; namespace define classes that inherit from it, like "Clutter"
-  ;; "ParamSpecUnit" and (b) it is the returned type of some gtk class
-  ;; methods, like gtk-container-class-find-child-property.
+        ;; Finally, note that the base info name is "ParamSpec" but the
+        ;; registered type name is "GParam", hence the class is imported
+        ;; as <g-param>.
+        ("ParamSpec" #t #f)
+        ("Binding" #t #f) ;; needs to be true ?
+        ("BindingFlags" #t #f)
+        ("TypeFlags" #t #f)))
 
-  ;; In all use cases - see (g-golf hl-api argument) gi-argument->scm - G-Golf
-  ;; never creates <g-param> instances, and 'blindingly' receive and pass
-  ;; GParamSpec pointers from/to GObject (just like opaque structures).
-
-  ;; Finally, note that the base info name is "ParamSpec" but the registered
-  ;; type name is "GParam", hence the class is imported as <g-param>.
-
-  (gi-import-by-name "GObject" "ParamSpec"
-                     #:with-methods? #f #:force? #t)
-
-  (gi-import-by-name "GObject" "Binding" #:force? #t)
-  (gi-import-by-name "GObject" "BindingFlags" #:force? #t)
-  (gi-import-by-name "GObject" "TypeFlags" #:force? #t)
-
-  (let* ((%gi-import-object-methods
-          (@@ (g-golf hl-api object) gi-import-object-methods))
+  (let* ((module (resolve-module '(g-golf hl-api object)))
+         (gi-import-object-methods
+          (module-ref module 'gi-import-object-methods))
          (g-object-info
           (g-irepository-find-by-name "GObject" "Object"))
-         (class-struct (g-object-info-get-class-struct g-object-info)))
+         (class-struct
+          (g-object-info-get-class-struct g-object-info)))
     (mslot-set! <gobject>
                 'info g-object-info
                 'g-struct-fields (gi-struct-field-desc class-struct))
-    (%gi-import-object-methods g-object-info #:force? #t)))
+    (gi-import-object-methods g-object-info #:force? #t)))
