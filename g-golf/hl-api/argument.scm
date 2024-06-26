@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -426,9 +426,6 @@
                                #:key (with-methods? #t)
                                (force? #f))
   (let* ((namespace (g-base-info-get-namespace info))
-         (with-methods? (if (gi-namespace-import-exception? namespace)
-                            #f
-                            with-methods?))
          (g-type (g-registered-type-info-get-g-type info))
          (g-name (gi-registered-type-info-name info))
          (name (g-name->name g-name)))
