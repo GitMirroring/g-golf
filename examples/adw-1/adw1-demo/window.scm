@@ -50,14 +50,7 @@
 		last)
 
   #:export (<adw-demo-window>
-            show-window))
-
-
-#;(g-export !toast-overlay
-          !split-view
-          !color-scheme-button
-          !content
-          !stack)
+            activate-demo))
 
 
 (eval-when (expand load eval)
@@ -66,14 +59,9 @@
       '("SimpleAction"))
   (g-irepository-require "Gtk" #:version "4.0")
   (for-each (lambda (name)
-              (gi-import-by-name "Gdk" name))
-      '("Display"))
-  (for-each (lambda (name)
               (gi-import-by-name "Gtk" name))
       '("License"
         "Window"
-        "StyleContext"
-        "CssProvider"
         "ClosureExpression"
         "IconTheme"
         "Stack"
@@ -87,6 +75,13 @@
         "StyleManager"
         "ColorScheme"
         "NavigationSplitView")))
+
+
+#;(g-export !toast-overlay
+          !split-view
+          !color-scheme-button
+          !content
+          !stack)
 
 
 (define-class <adw-demo-window> (<adw-application-window>)
@@ -164,24 +159,18 @@
               "https://matrix.to/#/#libadwaita:gnome.org")
     (present about)))
 
-(define (show-window app)
+(define (activate-demo app)
   (let* ((cwd (dirname (current-filename)))
          (display (gdk-display-get-default))
          (manager (adw-style-manager-get-default))
-         (icon-theme (gtk-icon-theme-get-for-display display))
-         (css-path (string-append cwd "/css/style.css"))
-         (css-provider (let ((provider (make <gtk-css-provider>)))
-                         (gtk-css-provider-load-from-path provider css-path)
-                         provider)))
+         (icon-theme (gtk-icon-theme-get-for-display display)))
     (add-search-path icon-theme (string-append cwd "/icons"))
-    (gtk-style-context-add-provider-for-display display css-provider 800)
     (let* ((window (make <adw-demo-window>
                      #:application app))
            (color-scheme-button (!color-scheme-button window))
            (expression (make-expression 'string
                                         (transform-to-closure)
                                         '())))
-
       (install-actions app)
 
       (bind expression

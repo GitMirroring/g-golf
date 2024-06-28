@@ -38,6 +38,9 @@ exec guile -e main -s "$0" "$@"
 
   (use-modules (g-golf))
 
+  (for-each (lambda (name)
+              (gi-import-by-name "Gio" name))
+      '("Resource"))
   (g-irepository-require "Adw" #:version "1")
   (for-each (lambda (name)
               (gi-import-by-name "Adw" name))
@@ -57,14 +60,17 @@ exec guile -e main -s "$0" "$@"
                            (member "--async-api" args)))
            (animate
             (lambda ()
-              (let ((app (make <adw-application>
-                           #:application-id "org.gnu.g-golf.adw-1.demo")))
+              (let* ((cwd (dirname (current-filename)))
+                     (demo-path (string-append cwd "/adw1-demo"))
+                     (demo-resource-file (string-append demo-path "/gresources"))
+                     (resource (g-resource-load demo-resource-file))
+                     (app (make <adw-application>
+                            #:application-id "org.gnu.g-golf.adw-1.demo")))
+                (g-resources-register resource)
+                (connect app 'activate activate-demo)
                 (set! *random-state* (random-state-from-platform))
-                (connect app 'activate show-window)
                 (let ((status (g-application-run app '())))
-                  #;(exit status)
-                  'done)))))
-
+                  (exit status))))))
     (cond ((and debug? async-api?)
            (parameterize ((%debug #t) (%async-api #t))
              (animate)))
