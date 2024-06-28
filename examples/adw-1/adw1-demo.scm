@@ -5,7 +5,7 @@ exec guile -e main -s "$0" "$@"
 
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -61,9 +61,8 @@ exec guile -e main -s "$0" "$@"
            (animate
             (lambda ()
               (let* ((cwd (dirname (current-filename)))
-                     (demo-path (string-append cwd "/adw1-demo"))
-                     (demo-resource-file (string-append demo-path "/gresources"))
-                     (resource (g-resource-load demo-resource-file))
+                     (resource-file (string-append cwd "/adw1-demo/gresources"))
+                     (resource (g-resource-load resource-file))
                      (app (make <adw-application>
                             #:application-id "org.gnu.g-golf.adw-1.demo")))
                 (g-resources-register resource)
