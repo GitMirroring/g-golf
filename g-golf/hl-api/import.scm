@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2018 - 2022
+;;;; Copyright (C) 2018 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -84,24 +84,27 @@
 
 (define* (gi-import-by-name namespace name
                             #:key (version #f)
-                            (not-imported-warnings? #f)
+                            (force? #f)
                             (with-methods? #t)
-                            (force? #f))
+                            (constant? #f)
+                            (not-imported-warnings? #f))
   (when (or force?
             (not (gi-namespace-import-exception? namespace)))
     (g-irepository-require namespace #:version version)
     (let ((info (g-irepository-find-by-name namespace name)))
       (if info
           (gi-import-info info
-                          #:not-imported-warnings? not-imported-warnings?
+                          #:force? force?
                           #:with-methods? with-methods?
-                          #:force? force?)
+                          #:constant? constant?
+                          #:not-imported-warnings? not-imported-warnings?)
           (error "No such namespace name: " namespace name)))))
 
 (define* (gi-import-info info
-                         #:key (not-imported-warnings? #f)
+                         #:key (force? #f)
                          (with-methods? #t)
-                         (force? #f))
+                         (constant? #f)
+                         (not-imported-warnings? #f))
   (let ((i-type (g-base-info-get-type info)))
     (unless (memq i-type
                   %gi-base-info-types)
@@ -142,11 +145,18 @@
                      %gi-imported-base-info-types)
          (push! i-type %gi-imported-base-info-types))
        (gi-import-interface info #:with-methods? with-methods? #:force? force?))
+      ;; callbacks are automatically imported on-demand
       #;((callback)
-       (unless (memq i-type
+         (unless (memq i-type
+                       %gi-imported-base-info-types)
+           (push! i-type %gi-imported-base-info-types))
+         (gi-import-callback info))
+      ((constant)
+       (when constant?
+         (unless (memq i-type
                      %gi-imported-base-info-types)
-         (push! i-type %gi-imported-base-info-types))
-       (gi-import-callback info))
+           (push! i-type %gi-imported-base-info-types))
+         (gi-import-constant info)))
       (else
        (if not-imported-warnings?
            (if (procedure? not-imported-warnings?)
