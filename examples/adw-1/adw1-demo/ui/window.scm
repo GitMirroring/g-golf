@@ -115,6 +115,13 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageSplitViews"))))))
 
+(define %tab-view
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Tab View")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageTabView"))))))
+
 (define %style-classes
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
@@ -178,6 +185,7 @@
              (child ,%carousel)
              (child ,%avatar)
              (child ,%split-views)
+             (child ,%tab-view)
              (child ,%style-classes)
              #;(child ,%animations)
              (child ,%dialogs)))))))
