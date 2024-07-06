@@ -61,7 +61,7 @@ exec guile -e main -s "$0" "$@"
            (animate
             (lambda ()
               (let* ((cwd (dirname (current-filename)))
-                     (resource-file (string-append cwd "/adw1-demo/gresources"))
+                     (resource-file (ensure-g-resources cwd))
                      (resource (g-resource-load resource-file))
                      (app (make <adw-application>
                             #:application-id "org.gnu.g-golf.adw-1.demo")))
@@ -81,3 +81,20 @@ exec guile -e main -s "$0" "$@"
              (animate)))
           (else
            (animate)))))
+
+(define* (ensure-g-resources #:optional (cwd (getcwd)))
+  (let* ((dir (string-append cwd "/adw1-demo"))
+         (g-resources (string-append dir "/g-resources"))
+         (g-resources-stat (and (access? g-resources R_OK) (stat g-resources)))
+         (g-resources-xml (string-append dir "/g-resources.xml"))
+         (g-resources-xml-stat (stat g-resources-xml)))
+    (when (or (not g-resources-stat)
+              (< (stat:mtime g-resources-stat)
+                 (stat:mtime g-resources-xml-stat)))
+      (chdir dir)
+      (compile-g-resources "g-resources.xml" "g-resources")
+      (chdir cwd))
+    g-resources))
+
+(define* (compile-g-resources xml-file target)
+  (system* "glib-compile-resources" "--target" target xml-file))

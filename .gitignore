@@ -28,7 +28,7 @@ libg-golf/.libs/
 libg-golf/libg-golf.la
 libg-golf/libg-golf.lo
 libg-golf/libg_golf_la-*.lo
-examples/adw-1/adw1-demo/gresources
+examples/adw-1/adw1-demo/g-resources
 *~
 *.aux
 *.cp
