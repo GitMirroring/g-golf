@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2023
+#### Copyright (C) 2023 - 2024
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -22,15 +22,17 @@
 
 
 EXTRA_DIST = \
-	$(wildcard *.scm)			\
-	$(wildcard *.png)			\
-	$(wildcard adw1-demo/*.scm)		\
-	$(wildcard adw1-demo/*.css)		\
-	$(wildcard adw1-demo/icons/*)		\
-	$(wildcard adw1-demo/ui/*.scm)		\
-	$(wildcard adw1-demo/ui/*.ui)		\
-	adw1-demo/ui/sxml-ui.el			\
-	adw1-demo/ui/Makefile
+	$(wildcard *.scm)		\
+	$(wildcard demo/*.scm)		\
+	$(wildcard demo/*.ui)		\
+	$(wildcard demo/icons/*)	\
+	$(wildcard demo/pages/*)	\
+	demo/adwaita-1-demo		\
+	demo/g-resources.xml		\
+	demo/style.css			\
+	demo/style-dark.css		\
+	demo/sxml-ui.el			\
+	demo/Makefile
 
 # currently empty
-#	$(wildcard adw1-demo/images/*)
+#	$(wildcard demo/images/*)
