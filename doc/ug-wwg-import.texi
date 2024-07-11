@@ -34,7 +34,7 @@ The G-Golf GIR namespace (Typelib) import interfaces.
 
 
 @anchor{gi-import}
-@deffn Procedure gi-import namespace [#:version #f]
+@deffn Procedure gi-import namespace #:key (version #f)
 
 Returns nothing.
 
@@ -66,7 +66,7 @@ of selective import instead, see @ref{gi-import-by-name} here below.
 
 @anchor{gi-import-by-name}
 @deffn Procedure gi-import-by-name namespace name #:key (version  #f) @
-       (with-method #t) (constant? #f)
+       (force? #f) (with-method #t) (constant? #f)
 
 Returns the object returned by @ref{gi-import-info} called upon the
 GIBaseInfo @code{info} named @var{name} in @var{namespace}. The
@@ -76,6 +76,16 @@ error to call this procedure using an invalid @var{namespace} or
 
 The optional @var{#:version} keyword argument may be used to require a
 specific @var{namespace} version, otherwise, the latest will be used.
+
+The optional @var{#:force?} keyword argument is required to import
+object(s) from the GLib and GObject namespaces, as G-Golf won't allow
+any import from those by default (due to bootsrap reasons, a very
+important part of those namespaces are manually imported, see the
+@ref{GLib} and @ref{GObject} sections of the G-Golf Core Reference parts
+of the manual). As a user, you should normally not have to import for
+neither GLib nor GObject (if you think you do, ask for help, either by
+email or on irc), unless you really know what you are doing, this may
+corrupt your g-golf session/environment - you have been warned.
 
 The optional @var{#:with-method} keyword argument (which is #t by
 default) is passed to the @code{gi-import-enum}, @code{gi-import-flags}
