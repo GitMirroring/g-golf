@@ -86,7 +86,7 @@
                             #:key (version #f)
                             (force? #f)
                             (with-methods? #t)
-                            (constant? #f)
+                            (allow-constant? #f)
                             (not-imported-warnings? #f))
   (when (or force?
             (not (gi-namespace-import-exception? namespace)))
@@ -96,14 +96,14 @@
           (gi-import-info info
                           #:force? force?
                           #:with-methods? with-methods?
-                          #:constant? constant?
+                          #:allow-constant? allow-constant?
                           #:not-imported-warnings? not-imported-warnings?)
           (error "No such namespace name: " namespace name)))))
 
 (define* (gi-import-info info
                          #:key (force? #f)
                          (with-methods? #t)
-                         (constant? #f)
+                         (allow-constant? #f)
                          (not-imported-warnings? #f))
   (let ((i-type (g-base-info-get-type info)))
     (unless (memq i-type
@@ -152,7 +152,7 @@
            (push! i-type %gi-imported-base-info-types))
          (gi-import-callback info))
       ((constant)
-       (when constant?
+       (when allow-constant?
          (unless (memq i-type
                      %gi-imported-base-info-types)
            (push! i-type %gi-imported-base-info-types))

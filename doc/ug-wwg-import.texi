@@ -66,7 +66,7 @@ of selective import instead, see @ref{gi-import-by-name} here below.
 
 @anchor{gi-import-by-name}
 @deffn Procedure gi-import-by-name namespace name #:key (version  #f) @
-       (force? #f) (with-method #t) (constant? #f)
+       (force? #f) (with-method #t) (allow-constant? #f)
 
 Returns the object returned by @ref{gi-import-info} called upon the
 GIBaseInfo @code{info} named @var{name} in @var{namespace}. The
@@ -93,14 +93,14 @@ and @code{gi-import-struct}. When @var{#:with-method} is #f, then the
 enum, flags or struct @code{info} will be imported without their
 respective methods.
 
-The optional @var{#:constant?} keyword argument is required to import
-constants, as by default, G-Golf doesn't not import those, from any
-namespace. The reason is there are (far) too many and most are not
-useful for language bindings, but of course there are exception(s), such
-as the @code{Gdk KEY_*} constants, required to add shortcuts to your
-application. Here is an example, an excerpt from the @code{(pages
-tab-view tab-view-demo-window)} module (distributed with G-Golf, in the
-@file{examples/adw-1/demo} directory):
+The optional @var{#:allow-constant?} keyword argument is required to
+import constants, as by default, G-Golf doesn't not import any
+constants, from any namespace. The reason is there are (far) too many
+and most are not useful for language bindings, but of course there are
+exception(s), such as (for example) the @code{Gdk KEY_*} constants,
+required to add shortcuts to your application. Here is an example, an
+excerpt from the @code{(pages tab-view tab-view-demo-window)} module
+(distributed with G-Golf, in the @file{examples/adw-1/demo} directory):
 
 @lisp
 (define (install-shortcuts tab-view-demo-window)
@@ -110,7 +110,8 @@ tab-view tab-view-demo-window)} module (distributed with G-Golf, in the
     (for-each (match-lambda
                 ((key-name modifiers action-name)
                  (let ((key-value
-                        (gi-import-by-name "Gdk" key-name #:constant? #t)))
+                        (gi-import-by-name "Gdk" key-name
+                                           #:allow-constant? #t)))
                    (add-shortcut controller
                                  (make <gtk-shortcut>
                                    #:trigger (make <gtk-keyval-trigger>

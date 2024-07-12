@@ -370,7 +370,7 @@
     (for-each (match-lambda
                 ((key-name modifiers action-name)
                  (let ((key-value
-                        (gi-import-by-name "Gdk" key-name #:constant? #t)))
+                        (gi-import-by-name "Gdk" key-name #:allow-constant? #t)))
                    (add-shortcut controller
                                  (make <gtk-shortcut>
                                    #:trigger (make <gtk-keyval-trigger>
