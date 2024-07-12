@@ -95,13 +95,13 @@ SOURCES = \
 	g-golf/gdk/events.scm			\
 	g-golf/gdk.scm				\
 	g-golf/hl-api/n-decl.scm		\
+	g-golf/hl-api/ccc.scm			\
+	g-golf/hl-api/argument.scm		\
 	g-golf/hl-api/gtype.scm			\
 	g-golf/hl-api/gparam.scm		\
 	g-golf/hl-api/iface.scm			\
 	g-golf/hl-api/gobject.scm		\
 	g-golf/hl-api/events.scm		\
-	g-golf/hl-api/argument.scm		\
-	g-golf/hl-api/ccc.scm			\
 	g-golf/hl-api/callable.scm		\
 	g-golf/hl-api/callback.scm		\
 	g-golf/hl-api/function.scm		\
