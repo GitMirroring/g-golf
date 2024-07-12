@@ -32,8 +32,8 @@ G-Golf needs the following software to run:
 	Makeinfo			>= 6.6
 	[[http://www.gnu.org/software/guile][Guile]]  				>= 2.0.14
 	  [allows 2.2, 3.0 (>= 3.0.7)]
-	Glib-2.0			>= 2.73.0
-	Gobject-2.0			>= 2.73.0
+	GLib-2.0			>= 2.73.0
+	GObject-2.0			>= 2.73.0
 	GObject-Introspection-1.0	>= 1.72.0
 
 *** Test-Suite Dependencies
