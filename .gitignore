@@ -8,7 +8,13 @@ configure
 pre-inst-env
 g-golf-*.tar.gz
 g-golf-*.tar.gz.sig
-Makefile
+/Makefile
+doc/Makefile
+examples/Makefile
+examples/adw-1/Makefile
+examples/gtk-4/Makefile
+libg-golf/Makefile
+test-suite/Makefile
 Makefile.in
 meta/guild
 meta/g-golf-1.0.pc
