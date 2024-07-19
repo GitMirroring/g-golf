@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2022
+;;;; Copyright (C) 2019 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -30,7 +30,7 @@
   #:use-module (ice-9 threads)
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
-  ;; #:use-module (srfi srfi-1)
+  #:use-module ((srfi srfi-1) #:select (member))
   #:use-module (oop goops)
   #:use-module (g-golf support)
   #:use-module (g-golf gi)
@@ -39,7 +39,6 @@
   #:use-module (g-golf hl-api gtype)
   #:use-module (g-golf hl-api gobject)
   #:use-module (g-golf hl-api argument)
-  #:use-module (g-golf hl-api function)
 
   #:duplicates (merge-generics
 		replace
@@ -62,6 +61,7 @@
           !return-type
           !param-types
           !param-args
+          !g-value-ptr?
 
           invoke
           free)
@@ -70,18 +70,25 @@
 (define-class <closure> ()
   (g-closure #:accessor !g-closure)
   (function #:accessor !function #:init-keyword #:function)
-  (return-type #:accessor !return-type #:init-keyword #:return-type)
-  (param-types #:accessor !param-types #:init-keyword #:param-types)
-  (param-args #:accessor !param-args #:init-keyword #:param-args #:init-value #f))
+  (return-type #:accessor !return-type
+               #:init-keyword #:return-type #:init-value #f)
+  (param-types #:accessor !param-types
+               #:init-keyword #:param-types #:init-value #f)
+  (param-args #:accessor !param-args
+              #:init-keyword #:param-args #:init-value #f)
+  (g-value-ptr? #:accessor !g-value-ptr?
+                #:init-keyword #:g-value-ptr? #:init-value #f))
 
 (define-method (initialize (self <closure>) initargs)
-  (let* ((function (or (get-keyword #:function initargs #f)
-                       (error "Missing #:function initarg: " initargs)))
-         (return-type (or (get-keyword #:return-type initargs #f)
-                          (error "Missing #:return-type initarg: " initargs)))
-         (param-types (or (get-keyword #:param-types initargs #f)
-                          (error "Missing #:param-types initarg: " initargs)))
-         (g-closure (g-closure-new-simple (g-closure-size) #f)))
+  ;; This method used to force the #:return-type and #:param-types
+  ;; keywords as well, but this was actually a missunderstanding of how
+  ;; GClosure really work. GObject actually fills the GClosure with
+  ;; those: "... Closures allow the callee to get the types of the
+  ;; callback parameters, which means that language bindings don’t have
+  ;; to write individual glue for each callback type."
+  (let ((function (or (get-keyword #:function initargs #f)
+                      (error "Missing #:function initarg: " initargs)))
+        (g-closure (g-closure-new-simple (g-closure-size) #f)))
     (next-method)
     (set! (!g-closure self) g-closure)
     (gi-closure-cache-set! g-closure self)
@@ -238,31 +245,34 @@
          (closure (gi-closure-cache-ref g-closure))
          (function (!function closure))
          (param-args (!param-args closure))
-         (args
-          (if (= n-param 0)
-              '()
-              (let loop ((i 0)
-                         (g-value param-vals)
-                         (results '()))
-                (if (= i n-param)
-                    (reverse! results)
-                    (loop (+ i 1)
-                          (gi-pointer-inc g-value %g-value-size)
-                          (cons
-                           (g-closure-marshal-g-value-ref g-value
-                                                          (and param-args
-                                                               (list-ref param-args i))
-                                                          param-vals
-                                                          param-args)
-                           results)))))))
-  (if (null-pointer? return-val)
-      (begin
-        (apply function args)
-        (values))
-      (let ((result (apply function args)))
-        (g-value-set! return-val
-                      (g-closure-marshal-g-value-return-val return-val result))
-        (values)))))
+         (g-value-ptr? (!g-value-ptr? closure))
+         (args (if (= n-param 0)
+                   '()
+                   (let loop ((i 0)
+                              (g-value param-vals)
+                              (results '()))
+                     (if (= i n-param)
+                         (reverse! results)
+                         (loop (+ i 1)
+                               (gi-pointer-inc g-value %g-value-size)
+                               (cons
+                                (g-closure-marshal-g-value-ref
+                                 g-value
+                                 (and param-args
+                                      (list-ref param-args i))
+                                 param-vals
+                                 param-args
+                                 (and g-value-ptr?
+                                      (member i g-value-ptr? =)))
+                                results)))))))
+    (if (null-pointer? return-val)
+        (begin
+          (apply function args)
+          (values))
+        (let ((result (apply function args)))
+          (g-value-set! return-val
+                        (g-closure-marshal-g-value-return-val return-val result))
+          (values)))))
 
 #!
 
@@ -290,7 +300,8 @@ stored in the g-value.
 
 !#
 
-(define (g-closure-marshal-g-value-ref g-value param-arg param-vals param-args)
+(define* (g-closure-marshal-g-value-ref g-value param-arg param-vals param-args
+                                        #:optional (g-value-ptr? #f))
   (let ((value (g-value-ref g-value)))
     (case (g-value-type-tag g-value)
       ((boxed)
@@ -301,8 +312,11 @@ stored in the g-value.
             ;; the closure arg is a g-value - i.e. <gtk-drop-target>
             ;; 'drop signal callback second arg - when that happens, we
             ;; must retrieve the scheme value (for that g-value the
-            ;; signal callback 'machinery' is givig us).
-            (g-closure-marshal-g-value-ref value param-arg param-vals param-args))
+            ;; signal callback 'machinery' is givig us) - unless
+            ;; g-value-ptr? is #t
+            (if g-value-ptr?
+                (g-value-ref g-value)
+                (g-closure-marshal-g-value-ref value param-arg param-vals param-args)))
            (else
             value))))
       ((object)

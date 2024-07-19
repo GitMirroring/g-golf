@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -38,7 +38,7 @@
   #:use-module (g-golf glib)
   #:use-module (g-golf gobject)
   #:use-module (g-golf hl-api n-decl)
-  #:use-module (g-golf hl-api events)
+  #:use-module (g-golf hl-api ccc)
 
   #:duplicates (merge-generics
 		replace
@@ -399,14 +399,17 @@
   (when (and (string=? (g-base-info-get-namespace info) "Gdk")
              (string=? (g-base-info-get-name info) "Event")
              (string=? (g-irepository-get-version "Gdk") "3.0"))
-    (let ((%gi-import-by-name (@ (g-golf hl-api import) gi-import-by-name)))
+    (let* ((import-m (resolve-module '(g-golf hl-api import)))
+           (%gi-import-by-name (module-ref import-m 'gi-import-by-name))
+           (events-m (resolve-module '(g-golf hl-api events)))
+           (%gdk-event-class-redefine (module-ref events-m 'gdk-event-class-redefine)))
       (for-each (lambda (item)
                   (%gi-import-by-name "Gdk" item #:version "3.0"))
           '("ModifierType"
             "CrossingMode"
             "NotifyType"
             "keyval_name"))
-    (gdk-event-class-redefine)
+    (%gdk-event-class-redefine)
     (gi-strip-boolean-result-add gdk-event-get-axis
                                  gdk-event-get-button
                                  gdk-event-get-click-count
@@ -426,9 +429,6 @@
                                #:key (with-methods? #t)
                                (force? #f))
   (let* ((namespace (g-base-info-get-namespace info))
-         (with-methods? (if (gi-namespace-import-exception? namespace)
-                            #f
-                            with-methods?))
          (g-type (g-registered-type-info-get-g-type info))
          (g-name (gi-registered-type-info-name info))
          (name (g-name->name g-name)))

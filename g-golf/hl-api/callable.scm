@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2022 - 2023
+;;;; Copyright (C) 2022 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -41,6 +41,7 @@
   #:use-module (g-golf hl-api gobject)
   #:use-module (g-golf hl-api events)
   #:use-module (g-golf hl-api argument)
+  #:use-module (g-golf hl-api closure)
   #:use-module (g-golf hl-api ccc)
   #:use-module (g-golf hl-api utils)
 
@@ -50,7 +51,8 @@
 		warn
 		last)
 
-  #:export (callable-prepare-gi-arguments
+  #:export (preserve-g-value-ptr?
+            callable-prepare-gi-arguments
             scm->gi-argument
             callable-return-value->scm
             callable-arg-out->scm
@@ -357,10 +359,12 @@
   (memq name %maybe-null-exceptions))
 
 (define (callable-prepare-gi-args-in callable args)
-  (when (%debug)
-    (dimfi (!name callable)))
-  (let ((is-method? (!is-method? callable)))
-    (let loop ((arguments (!args-in callable)))
+  (let ((is-method? (!is-method? callable))
+        (g-value-ptr? (preserve-g-value-ptr? callable)))
+    (when (%debug)
+      (dimfi (!name callable)))
+    (let loop ((i 0)
+               (arguments (!args-in callable)))
       (match arguments
         (() 'done)
         ((argument . rest)
@@ -377,7 +381,8 @@
                              args
                              #:may-be-null-acc !may-be-null?
                              #:is-method? is-method?
-                             #:forced-type (!forced-type argument))
+                             #:forced-type (!forced-type argument)
+                             #:g-value-ptr? (assq-ref g-value-ptr? i))
            (when (%debug)
              (dimfi (format #f "~20,,,' @A:" (!name argument)) value
                     #;(gi-argument->scm  (!type-tag argument)
@@ -387,7 +392,8 @@
                                        ;; #:forced-type (!forced-type argument)
                                        #:is-pointer? (!is-pointer? argument)
                                        )))
-           (loop rest)))))))
+           (loop (+ i 1)
+                 rest)))))))
 
 (define* (scm->gi-argument type-tag
                            type-desc
@@ -397,7 +403,8 @@
                            args
                            #:key (may-be-null-acc #f)
                            (is-method? #f)
-                           (forced-type #f))
+                           (forced-type #f)
+                           (g-value-ptr? #f))
   (let ((%g-golf-callback-closure
          (@ (g-golf hl-api callback) g-golf-callback-closure))
         (may-be-null? (may-be-null-acc clb/arg)))
@@ -432,6 +439,19 @@
                 ;; supposed to (always) be a valid pointer to an
                 ;; initialized GValue.
                 (gi-argument-set! gi-argument 'v-pointer value))
+               ((g-closure)
+                ;; FIXME - as till this patch we accepted a pointer (to
+                ;; a GClosure), we'll keep that possibility for now, but
+                ;; later we should only accept procedure ...
+                (gi-argument-set! gi-argument 'v-pointer
+                                  (if value
+                                      (if (procedure? value)
+                                          (!g-closure (make <closure>
+                                                        #:function value
+                                                        #:g-value-ptr? g-value-ptr?))
+                                          value)
+                                      #f)))
+
                (else
                 (gi-argument-set! gi-argument 'v-pointer
                                   (cond ((or (!is-opaque? gi-type)
@@ -962,3 +982,24 @@
         #:may-be-null? #f
         #:arg-pos 0 ;; always the first argument
         #:gi-argument-field 'v-pointer))))
+
+
+;;;
+;;; g-closure preserve g-value ptr
+;;;
+
+;; Below, when that applies, we return an alist, the key being the arg
+;; pos expecting a GClosure (ptr), and the value, the pos of the
+;; GClosure arg(s) for which the g-closure-marshal should preserve the
+;; GValue pointer(s) to call the scheme (user closure) procedure.
+
+(define (preserve-g-value-ptr? callable)
+  (case (!name callable)
+    ((get-property
+      set-property)
+     #t)
+    ((g-object-bind-property-full)
+     '((5 . (1 2))       ;; tranform-to		input output
+       (6 . (1 2))))     ;; transform-from	input output
+    (else
+     #f)))

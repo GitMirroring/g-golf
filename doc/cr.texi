@@ -14,7 +14,7 @@
 
 @menu
 * Overview::
-* Glib::
+* GLib::
 * GObject::
 * GObject Introspection::
 * Support::
@@ -28,8 +28,8 @@
 @include cr-overview.texi
 
 
-@node Glib
-@section Glib
+@node GLib
+@section GLib
 
 @include cr-glib.texi
 

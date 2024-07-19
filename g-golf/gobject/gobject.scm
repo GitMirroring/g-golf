@@ -59,8 +59,8 @@
             g-object-remove-toggle-ref
             g-object-type		;; from libg-golf
             g-object-type-name		;; from libg-golf
-            g-object-get-property
-            g-object-set-property))
+            g-object-get-property-
+            g-object-set-property-))
 
 
 ;;;
@@ -125,12 +125,12 @@
 (define (g-object-type-name object)
   (g-type-name (g-object-type object)))
 
-(define* (g-object-get-property object name g-value)
+(define* (g-object-get-property- object name g-value)
   (g_object_get_property object
 			 (string->pointer name)
 			 g-value))
 
-(define* (g-object-set-property object name g-value)
+(define* (g-object-set-property- object name g-value)
   (g_object_set_property object
 			 (string->pointer name)
 			 g-value))

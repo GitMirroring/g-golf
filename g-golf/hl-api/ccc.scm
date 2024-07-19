@@ -23,8 +23,9 @@
 
 ;;; Commentary:
 
-;; Callable Callback Class definitions - this is to avoid a compilation
-;; problem due to module circular dependency.
+;; <callable>, <callback> and <callback-closure> class definitions -
+;; this is to avoid a compilation problem due to module circular
+;; dependency.
 
 ;; Also, we import (g-golf hl-api argument), otherwise the compilation
 ;; of (g-golf hl-api callable) and (g-golf hl-api function) report
@@ -36,7 +37,6 @@
 (define-module (g-golf hl-api ccc)
   #:use-module (oop goops)
   #:use-module (g-golf support)
-  #:use-module (g-golf hl-api argument)
 
   #:duplicates (merge-generics
 		replace

@@ -55,6 +55,7 @@ SOURCES = \
 	g-golf/glib/gslist.scm			\
 	g-golf/glib/byte-arrays.scm		\
 	g-golf/glib/quarks.scm			\
+	g-golf/glib/simple-xml-subset-parser.scm \
 	g-golf/glib.scm				\
 	g-golf/gobject/type-info.scm		\
 	g-golf/gobject/gobject.scm		\
@@ -94,13 +95,13 @@ SOURCES = \
 	g-golf/gdk/events.scm			\
 	g-golf/gdk.scm				\
 	g-golf/hl-api/n-decl.scm		\
+	g-golf/hl-api/ccc.scm			\
+	g-golf/hl-api/argument.scm		\
 	g-golf/hl-api/gtype.scm			\
 	g-golf/hl-api/gparam.scm		\
 	g-golf/hl-api/iface.scm			\
 	g-golf/hl-api/gobject.scm		\
 	g-golf/hl-api/events.scm		\
-	g-golf/hl-api/argument.scm		\
-	g-golf/hl-api/ccc.scm			\
 	g-golf/hl-api/callable.scm		\
 	g-golf/hl-api/callback.scm		\
 	g-golf/hl-api/function.scm		\

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2021 Free Software Foundation, Inc.
+@c Copyright (C) 2021, 2024 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -34,7 +34,7 @@ The G-Golf GIR namespace (Typelib) import interfaces.
 
 
 @anchor{gi-import}
-@deffn Procedure gi-import namespace [#:version #f]
+@deffn Procedure gi-import namespace #:key (version #f)
 
 Returns nothing.
 
@@ -65,30 +65,62 @@ of selective import instead, see @ref{gi-import-by-name} here below.
 
 
 @anchor{gi-import-by-name}
-@deffn Procedure gi-import-by-name namespace name [#:version #f] @
-       [#:with-method #t]
+@deffn Procedure gi-import-by-name namespace name #:key (version  #f) @
+       (force? #f) (with-method #t) (allow-constant? #f)
 
-Returns the object or constant returned by @ref{gi-import-info} called
-upon the GIBaseInfo @code{info} named @var{name} in @var{namespace}.
-
-Obtains and imports the GIBaseInfo @code{info} named @var{name} in
-@var{namespace}. The @var{namespace} and @var{name} arguments are case
-sensitive. It is an error to call this procedure using an invalid
-@var{namespace} or @var{name}.
+Returns the object returned by @ref{gi-import-info} called upon the
+GIBaseInfo @code{info} named @var{name} in @var{namespace}. The
+@var{namespace} and @var{name} arguments are case sensitive. It is an
+error to call this procedure using an invalid @var{namespace} or
+@var{name}.
 
 The optional @var{#:version} keyword argument may be used to require a
 specific @var{namespace} version, otherwise, the latest will be used.
 
-The optional keyword @var{#:with-method} argument - which is #t by
-default - is passed to the @code{gi-import-enum}, @code{gi-import-flags}
+The optional @var{#:force?} keyword argument is required to import
+object(s) from the GLib and GObject namespaces, as G-Golf won't allow
+any import from those by default (due to bootsrap reasons, a very
+important part of those namespaces are manually imported, see the
+@ref{GLib} and @ref{GObject} sections of the G-Golf Core Reference parts
+of the manual). As a user, you should normally not have to import for
+neither GLib nor GObject (if you think you do, ask for help, either by
+email or on irc), unless you really know what you are doing, this may
+corrupt your g-golf session/environment - you have been warned.
+
+The optional @var{#:with-method} keyword argument (which is #t by
+default) is passed to the @code{gi-import-enum}, @code{gi-import-flags}
 and @code{gi-import-struct}. When @var{#:with-method} is #f, then the
 enum, flags or struct @code{info} will be imported without their
-respective methods. This is likely to only be the case if/when you
-intend to selectively import an enum, flags or struct from GLib or
-GObject, which is what G-Golf itself does, for example, in the top level
-(g-golf) module:
+respective methods.
+
+The optional @var{#:allow-constant?} keyword argument is required to
+import constants, as by default, G-Golf doesn't not import any
+constants, from any namespace. The reason is there are (far) too many
+and most are not useful for language bindings, but of course there are
+exception(s), such as (for example) the @code{Gdk KEY_*} constants,
+required to add shortcuts to your application. Here is an example, an
+excerpt from the @code{(pages tab-view tab-view-demo-window)} module
+(distributed with G-Golf, in the @file{examples/adw-1/demo} directory):
 
 @lisp
-(gi-import-by-name "GLib" "IOChannel" #:with-method #f)
+(define (install-shortcuts tab-view-demo-window)
+  (let ((controller (make <gtk-shortcut-controller>)))
+    (set-scope controller 'managed)
+    (add-controller tab-view-demo-window controller)
+    (for-each (match-lambda
+                ((key-name modifiers action-name)
+                 (let ((key-value
+                        (gi-import-by-name "Gdk" key-name
+                                           #:allow-constant? #t)))
+                   (add-shortcut controller
+                                 (make <gtk-shortcut>
+                                   #:trigger (make <gtk-keyval-trigger>
+                                               #:keyval key-value
+                                               #:modifiers modifiers)
+                                   #:action (make <gtk-named-action>
+                                              #:action-name action-name))))))
+        '(("KEY_n" (control-mask)  "win.window-new")
+          ("KEY_t" (control-mask)  "win.tab-new")
+          ("KEY_w" (control-mask)  "tab.close")))))
 @end lisp
 @end deffn

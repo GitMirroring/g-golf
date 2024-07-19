@@ -26,6 +26,104 @@ warranty.
 
 * Latest News
 
+** Jul 2024
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc.5 is released.
+
+This is the fifth release candidate of the upcoming 0.8.0 release, now
+available for testing.
+
+*** Noteworthy changes in 0.8.0-rc.5
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** New interfaces
+
+g-markup-escape-text
+gi-import-by-name
+  new #:allow-constant? optional keyword argument
+
+GVariant
+GVariantClass
+GVariantType
+
+The GLib Variant, VariantType and VariantClass typelib entries are now
+imported. Testing has been so far somewhat limited, but for what it's
+worth, the AdwDemoPageTabView, added in this release, defines and uses a
+couple of g-variant-new-boolean based simple actions. However, they work
+iif g-simple-action-new-stateful calls pass #f (NULL) as their
+parameter-type arg, and therefore, (as stated by the upstream
+documentation), none of the action activate callback ever receives a
+valid g-variant arg value (it always is #f (NULL)). This needs further
+investigation, but you may (and even may prefer to) implement an hold an
+action state as/in a goops slot, i.e. in the (pages tab-view
+tab-view-demo-page) module, the icon?, loading?, needs-attention?,
+indicator? and muted? slots.
+
+**** Enhancement
+
+***** Template and ui sxml files support
+
+Syntax highlighting support for the comments attribute has been added.
+
+***** g-closure-marshal
+
+(1) <closure> initialize method has been updated to not force the
+#:return-type and #:param-types initialize keyword arguments, as as
+GObject actually fills the GClosure structure with those (unless you are
+testing <closure> and plan to call the invoke g-golf method).
+
+(2) some GObject function/method GClosure arg(s) should preserve the
+GValue pointer when calling the user scheme closure, instead of
+extracting its value - for example, bind-property-full last two args
+expect a BindingTransformFunc GClosure, for which it is essential to
+preserve its second and third GValue arguments, as the user needs to
+actually set either one, the other or both.
+
+Note that wrt (2), there is no way to automatically detect which
+argument(s) of a callback require(s) a GValue pointer preservation prior
+to call the user scheme closure. Therefore, g-golf implements a (simple)
+mechanism to handle those situations, but it has to be maintained
+'manually' - if you come across a similar need, not being covered by the
+existing implementation, let us know, we'll fix it. Those interested may
+search and read both the preserve-g-value-ptr? procedure code as well as
+the preceding comment, which briefly explains how it works, in the
+(g-golf hl-api callable) module.
+
+**** Examples
+
+***** Adwaita Demo
+
+The Adwaita demo has been restructured, and now properly support the
+Dark Style desktop (or application) mode.
+
+The following Adwaita Demo pages have been added:
+
+  AdwDemoPageAvatar
+  AdwDemoPageSplitViews
+  AdwDemoPageTabView
+
+**** Bug fixing
+
+***** <gtype-instance> g-param slots initialization
+
+It was a bug not to call g-inst-g-param-set-property, whether the
+instance initialization was passed an init-kw arg or whether the
+initialization has to use the p-spec default value - fixed.
+
+***** gi-import-registered with-methods? default value
+
+Removing the specialization default value for the with-methods? argument
+when the namespace is part of the namespace import exception list.
+
+The fix allows to automatically (gi) import GLib/GObject typelib
+component(s) that are not part of the manually (ffi) defined subset,
+such as the GVariant type, constructors and methods.
+
+
+* Older News
+
 ** May 2024
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc-4 is released.
@@ -48,9 +146,6 @@ The following Adwaita Demo pages have been added:
   AdwDemoPageClamp
   AdwDemoPageLists
   AdwDemoPageViewSwitcher
-
-
-* Older News
 
 ** April 2024
 

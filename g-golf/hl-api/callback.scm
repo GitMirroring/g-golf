@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2023
+;;;; Copyright (C) 2019 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -155,14 +155,6 @@
        info ffi-cif ffi-closure-callback user-data)
       (g-callable-info-prepare-closure
        info ffi-cif ffi-closure-callback user-data)))
-
-(define (preserve-g-value-ptr? callback)
-  (case (!name callback)
-    ((get-property
-      set-property)
-     #t)
-    (else
-     #f)))
 
 (define (g-golf-callback-closure-marshal ffi-cif
                                          return-value
