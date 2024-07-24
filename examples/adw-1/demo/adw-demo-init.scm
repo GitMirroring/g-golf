@@ -121,6 +121,7 @@
         "ComboRow"
         "EntryRow"
         "ExpanderRow"
+        "SplitButton"
         "ButtonContent"
         "EnumListModel"
         "EnumListItem"

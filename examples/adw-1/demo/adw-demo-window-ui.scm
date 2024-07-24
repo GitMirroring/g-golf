@@ -122,6 +122,13 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageTabView"))))))
 
+(define %buttons-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Buttons")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageButtons"))))))
+
 (define %style-classes-page
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
@@ -186,6 +193,7 @@
              (child ,%avatar-page)
              (child ,%split-views-page)
              (child ,%tab-view-page)
+             (child ,%buttons-page)
              (child ,%style-classes-page)
              #;(child ,%animations-page)
              (child ,%dialogs-page)))))))
