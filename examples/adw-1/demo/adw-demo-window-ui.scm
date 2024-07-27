@@ -136,6 +136,17 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageStyleClasses"))))))
 
+(define %toasts-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Toasts")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageToasts")
+                  (id "toasts-page"))
+         ;; signal - add-toast - adw_toast_overlay_add_toast
+         ;;        - toast-overlay - swapped
+         ))))
+
 #;(define %animations-page
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
@@ -195,6 +206,7 @@
              (child ,%tab-view-page)
              (child ,%buttons-page)
              (child ,%style-classes-page)
+             (child ,%toasts-page)
              #;(child ,%animations-page)
              (child ,%dialogs-page)))))))
 

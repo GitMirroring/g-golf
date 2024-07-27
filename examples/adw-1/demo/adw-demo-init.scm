@@ -115,6 +115,7 @@
         "TabOverview"
         "Toast"
         "ToastOverlay"
+        "ToastPriority"
         "ActionRow"
         "SwitchRow"
         "SpinRow"

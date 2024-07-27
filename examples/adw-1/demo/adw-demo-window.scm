@@ -59,6 +59,7 @@
                        #:child-id "color-scheme-button")
   (content #:accessor !content #:child-id "content")
   (stack #:accessor !stack #:child-id "stack")
+  (toasts-page #:accessor !toasts-page #:child-id "toasts-page")
   ;; class options
   #:template (string-append %adw-demo-path
                             "/adw-demo-window-ui.ui")
@@ -66,9 +67,32 @@
                 "split-view"
                 "color-scheme-button"
                 "content"
-                "stack"))
+                "stack"
+                "toasts-page"))
 
-(define (install-actions app)
+(define-method (initialize (self <adw-demo-window>) initargs)
+  (next-method)
+  (install-actions self))
+
+
+(define (install-actions demo-window)
+  (let ((action-map (make <g-simple-action-group>))
+        (a-undo (make <g-simple-action> #:name "undo")))
+
+    (add-action action-map a-undo)
+    (connect a-undo
+             'activate
+             (lambda (s-action g-variant)
+               (toast/undo demo-window)))
+
+    (insert-action-group demo-window
+                         "toast"
+                         action-map)))
+
+(define (toast/undo demo-window)
+  (undo (!toasts-page demo-window)))
+
+(define (install-app-actions app)
   (let ((a-inspector (make <g-simple-action> #:name "inspector"))
         (a-preferences (make <g-simple-action> #:name "preferences"))
         (a-about (make <g-simple-action> #:name "about")))
@@ -139,7 +163,7 @@
            (expression (make-expression 'string
                                         (transform-to-closure)
                                         '())))
-      (install-actions app)
+      (install-app-actions app)
 
       (bind expression
             color-scheme-button

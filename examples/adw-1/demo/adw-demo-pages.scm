@@ -40,6 +40,7 @@
   #:use-module (pages tab-view tab-view)
   #:use-module (pages buttons buttons)
   #:use-module (pages style-classes style-classes)
+  #:use-module (pages toasts toasts)
   ;; #:use-module (pages animations animations)
   #:use-module (pages dialogs dialogs)
 
@@ -63,6 +64,6 @@
                               (pages tab-view tab-view)
                               (pages buttons buttons)
                               (pages style-classes style-classes)
+                              (pages toasts toasts)
                               #;(pages animations animations)
-                              (pages dialogs dialogs)
-                              ))
+                              (pages dialogs dialogs)))
