@@ -232,11 +232,6 @@
              (lambda (s-action g-variant)
                (tab/indicator tab-view-demo-window s-action g-variant)))
 
-    (set! (!tab-action-group tab-view-demo-window) action-map)
-    (insert-action-group tab-view-demo-window
-                         "tab"
-                         action-map)
-
     (add-action action-map a-close-other)
     (connect a-close-other
              'activate
@@ -259,7 +254,12 @@
     (connect a-close
              'activate
              (lambda (s-action g-variant)
-               (tab/close tab-view-demo-window s-action g-variant)))))
+               (tab/close tab-view-demo-window s-action g-variant)))
+
+    (set! (!tab-action-group tab-view-demo-window) action-map)
+    (insert-action-group tab-view-demo-window
+                         "tab"
+                         action-map)))
 
 (define (tab/move-to-new-window tab-view-demo-window)
   (let ((new-tab-view-demo-window (make <adw-tab-view-demo-window>)))
