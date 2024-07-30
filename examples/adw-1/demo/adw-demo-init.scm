@@ -99,6 +99,7 @@
         "StyleManager"
         "ColorScheme"
         "Bin"
+        "Banner"
         "Avatar"
         "Clamp"
         "Carousel"
