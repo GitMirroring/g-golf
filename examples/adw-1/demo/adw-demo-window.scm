@@ -129,27 +129,28 @@
     "Zander Brown"))
 
 (define (show-about app)
-  (let ((about (make <adw-about-window>
-                 #:transient-for (get-active-window app)
-                 #:application-icon "org.gnome.Adwaita1.Demo"
-                 #:application-name "Adwaita Demo"
-                 #:developer-name "The GNOME Project"
-                 #:version (adw-version)
-                 #:website "https://gitlab.gnome.org/GNOME/libadwaita"
-                 #:issue-url "https://gitlab.gnome.org/GNOME/libadwaita/-/issues/new"
-                 #:debug-info (debug-info)
-                 #:copyright "© 2017–2022 Purism SPC"
-                 #:license-type 'lgpl-2-1
-                 #:developers %developers
-                 #:designers '("GNOME Design Team")
-                 #:artists '("GNOME Design Team")
-                 ;; #:translator-credits "translator-credits"
-                 )))
+  (let* ((active-window (get-active-window app))
+         (about (make <adw-about-dialog>
+                  #:transient-for active-window
+                  #:application-icon "org.gnome.Adwaita1.Demo"
+                  #:application-name "Adwaita Demo"
+                  #:developer-name "The GNOME Project"
+                  #:version (adw-version)
+                  #:website "https://gitlab.gnome.org/GNOME/libadwaita"
+                  #:issue-url "https://gitlab.gnome.org/GNOME/libadwaita/-/issues/new"
+                  #:debug-info (debug-info)
+                  #:copyright "© 2017–2022 Purism SPC"
+                  #:license-type 'lgpl-2-1
+                  #:developers %developers
+                  #:designers '("GNOME Design Team")
+                  #:artists '("GNOME Design Team")
+                  ;; #:translator-credits "translator-credits"
+                  )))
     (add-link about "_Documentation"
               "https://gnome.pages.gitlab.gnome.org/libadwaita/doc/main/")
     (add-link about "_Chat"
               "https://matrix.to/#/#libadwaita:gnome.org")
-    (present about)))
+    (present about active-window)))
 
 (define (activate-demo app)
   (let* ((cwd (dirname (current-filename)))
