@@ -43,6 +43,7 @@
   #:use-module (pages toasts toasts)
   ;; #:use-module (pages animations animations)
   #:use-module (pages dialogs dialogs)
+  #:use-module (pages about about)
   #:use-module (pages banners banners)
 
   #:duplicates (merge-generics
@@ -68,4 +69,5 @@
                               (pages toasts toasts)
                               #;(pages animations animations)
                               (pages dialogs dialogs)
+                              (pages about about)
                               (pages banners banners)))

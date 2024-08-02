@@ -164,6 +164,13 @@
          ;;        - toast-overlay - swapped
          ))))
 
+(define %about-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "About Dialog")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageAbout"))))))
+
 (define %banners-page
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
@@ -219,6 +226,7 @@
              (child ,%toasts-page)
              #;(child ,%animations-page)
              (child ,%dialogs-page)
+             (child ,%about-page)
              (child ,%banners-page)))))))
 
 (define %adw-demo-window
