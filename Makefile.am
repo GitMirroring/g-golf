@@ -43,6 +43,7 @@ SOURCES = \
 	g-golf/support/bytevector.scm		\
 	g-golf/support/ffi.scm			\
 	g-golf/support/sxml.scm			\
+	g-golf/support/color.scm		\
 	g-golf/support.scm			\
 	g-golf/init.scm				\
 	g-golf/glib/version-information.scm	\
