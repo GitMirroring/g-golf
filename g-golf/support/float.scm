@@ -31,12 +31,17 @@
   #:use-module (ice-9 format)
   #:use-module (g-golf support libg-golf)
 
-  #:export (float->int))
+  #:export (float-round
+            float->int))
+
+
+(define* (float-round float #:optional (n-dec 2))
+  (let ((m (expt 10 n-dec)))
+    (/ (round (* m float)) m)))
 
 
 ;;;
-;;; From lig-golf
+;;; from libg-golf
 ;;;
-
 
 (define float->int float_to_int)
