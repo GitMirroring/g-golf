@@ -76,6 +76,26 @@
 
 
 ;;;
+;;; define color
+;;;
+
+(define (define-color name rgb)
+  (let* ((module (resolve-module '(g-golf support color)))
+         (public-i (module-public-interface module))
+         (scm-name (string-replace-all name " " "-")) ;; avoid #{light slate gray}# ...
+         (color-name (string->symbol (string-append "+" scm-name "+")))
+         ;; replace #\Tab with #\Space, split, delete ""
+         (rgb (delete ""
+                      (string-split (string-replace-all rgb "\t" " ")
+                                    #\Space)))
+         (color (append (map string->number rgb) (list 1.0))))
+    (hash-set! %color-dictionary name color)
+    (module-define! module color-name color)
+    (module-add! public-i color-name
+                 (module-variable module color-name))))
+
+
+;;;
 ;;; color parsing
 ;;;
 
@@ -181,29 +201,10 @@ formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\","
                   (list x11-rgb-spec-entry)
                   #f)))))
 
-(define (define-color name rgb)
-  (let* ((module (resolve-module '(g-golf support color)))
-         (public-i (module-public-interface module))
-         (scm-name (string-replace-all name " " "-")) ;; avoid #{light slate gray}# ...
-         (color-name (string->symbol (string-append "+" scm-name "+")))
-         ;; replace #\Tab with #\Space, split, delete ""
-         (rgb (delete ""
-                      (string-split (string-replace-all rgb "\t" " ")
-                                    #\Space)))
-         (color (append (map string->number rgb) (list 1.0))))
-    (hash-set! %color-dictionary name color)
-    (module-define! module color-name color)
-    (module-add! public-i color-name
-                 (module-variable module color-name))))
-
 
 ;;;
 ;;; css4 colors
 ;;;
-
-(define %css4-color-spec
-  '(("rebecca purple" "102 51 153")
-    ("RebeccaPurple" "102 51 153")))
 
 (define (parse-css4-color-spec)
   (for-each
@@ -212,11 +213,22 @@ formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\","
          (define-color name rgb)))
       %css4-color-spec))
 
+(define %css4-color-spec
+  '(("rebecca purple" "102 51 153")
+    ("RebeccaPurple" "102 51 153")))
+
 
 ;;;
 ;;; Tango color palette
 ;;;   http://tango.freedesktop.org
 ;;;
+
+(define (parse-tango-color-spec)
+  (for-each
+      (match-lambda
+        ((name rgb)
+         (define-color name rgb)))
+      %tango-color-spec))
 
 (define %tango-color-spec
   '(("tango butter" "237 212 0")		;; #xedd400
@@ -258,13 +270,6 @@ formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\","
     ("tango trash highlight" "201 209 130")     ;; #xc9d182
     ("tango trash content" "133 142 63")))	;; #x858e3f
 
-(define (parse-tango-color-spec)
-  (for-each
-      (match-lambda
-        ((name rgb)
-         (define-color name rgb)))
-      %tango-color-spec))
-
 
 ;;;
 ;;; DawnBringer 32 color palette
@@ -272,6 +277,13 @@ formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\","
 ;;; Color names taken from
 ;;;   http://privat.bahnhof.se/wb364826/pic/db32.gpl
 ;;;
+
+(define (parse-db32-color-spec)
+  (for-each
+      (match-lambda
+        ((name rgb)
+         (define-color name rgb)))
+      %db32-color-spec))
 
 (define %db32-color-spec
   '(("db32-black" "0 0 0")
@@ -306,13 +318,6 @@ formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\","
     ("db32-plum" "215 123 186")
     ("db32-rain-forest" "143 151 74")
     ("db32-stinger" "138 111 48")))
-
-(define (parse-db32-color-spec)
-  (for-each
-      (match-lambda
-        ((name rgb)
-         (define-color name rgb)))
-      %db32-color-spec))
 
 
 ;;;
