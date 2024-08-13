@@ -294,3 +294,11 @@
                 'info g-object-info
                 'g-struct-fields (gi-struct-field-desc class-struct))
     (gi-import-object-methods g-object-info #:force? #t)))
+
+
+;;;
+;;; populate the color dictionary
+;;;
+
+(eval-when (expand load eval)
+  ((@@ (g-golf support color) populate-color-dictionary)))
