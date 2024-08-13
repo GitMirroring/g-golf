@@ -166,7 +166,7 @@ formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\","
 
 
 ;;;
-;;; x11 rgb colors
+;;; parse x11 rgb colors
 ;;;
 
 (define (parse-x11-rgb-spec)
@@ -203,7 +203,7 @@ formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\","
 
 
 ;;;
-;;; css4 colors
+;;; parse css4 colors
 ;;;
 
 (define (parse-css4-color-spec)
@@ -219,8 +219,9 @@ formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\","
 
 
 ;;;
-;;; Tango color palette
-;;;   http://tango.freedesktop.org
+;;; parse tango colors
+;;;   Tango color palette
+;;;     http://tango.freedesktop.org
 ;;;
 
 (define (parse-tango-color-spec)
@@ -272,10 +273,11 @@ formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\","
 
 
 ;;;
-;;; DawnBringer 32 color palette
-;;;   http://pixeljoint.com/forum/forum_posts.asp?TID=16247
-;;; Color names taken from
-;;;   http://privat.bahnhof.se/wb364826/pic/db32.gpl
+;;; parse db32 colors
+;;;   DawnBringer 32 color palette
+;;;     http://pixeljoint.com/forum/forum_posts.asp?TID=16247
+;;;   Color names taken from
+;;;     http://privat.bahnhof.se/wb364826/pic/db32.gpl
 ;;;
 
 (define (parse-db32-color-spec)
