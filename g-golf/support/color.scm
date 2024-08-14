@@ -79,20 +79,29 @@
 ;;; define color
 ;;;
 
-(define (define-color name rgb)
+(define (define-color name rgb-spec-entry)
   (let* ((module (resolve-module '(g-golf support color)))
          (public-i (module-public-interface module))
          (scm-name (string-replace-all name " " "-")) ;; avoid #{light slate gray}# ...
          (color-name (string->symbol (string-append "+" scm-name "+")))
-         ;; replace #\Tab with #\Space, split, delete ""
-         (rgb (delete ""
-                      (string-split (string-replace-all rgb "\t" " ")
-                                    #\Space)))
-         (color (append (map string->number rgb) (list 1.0))))
+         (color (rgb-spec-entry->color rgb-spec-entry)))
     (hash-set! %color-dictionary name color)
     (module-define! module color-name color)
     (module-add! public-i color-name
                  (module-variable module color-name))))
+
+(define (rgb-spec-entry->color rgb-spec-entry)
+  ;; replace #\Tab with #\Space, split, delete ""
+  (let ((rgb (map string->number
+               (delete ""
+                       (string-split (string-replace-all rgb-spec-entry "\t" " ")
+                                     #\Space)))))
+    (match rgb
+      ((r g b)
+       (list (float-round (/ r 255))
+             (float-round (/ g 255))
+             (float-round (/ b 255))
+             1.0)))))
 
 
 ;;;
