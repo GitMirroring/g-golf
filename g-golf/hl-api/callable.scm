@@ -353,7 +353,8 @@
                          (cons (car args) cble-args)))))))))
 
 (define %maybe-null-exceptions
-  '(child-setup-data-destroy))
+  '(child-setup-data-destroy
+    destroy)) ;; all destroy notify callback can be NULL
 
 (define (maybe-null-exception? name)
   (memq name %maybe-null-exceptions))
@@ -476,7 +477,9 @@
                                    (%g-golf-callback-closure gi-type value)
                                    (if (or may-be-null?
                                            (>= (!destroy clb/arg) 0)
-                                           (maybe-null-exception? name))
+                                           ;; caution, check against the clb/arg name,
+                                           ;; not the type-desc name, which is #f
+                                           (maybe-null-exception? (!name clb/arg)))
                                        #f
                                        (error "Invalid argument: " value)))))))))
       ((array)
