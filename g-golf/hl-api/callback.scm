@@ -97,7 +97,7 @@
 (define-method (initialize (self <callback>) initargs)
   (let ((info (or (get-keyword #:info initargs #f)
                   (error "Missing #:info initarg: " initargs)))
-        (namespace (get-keyword #:name initargs #f))
+        (namespace (get-keyword #:namespace initargs #f))
         (name (get-keyword #:name initargs #f)))
     (if name
         (next-method)
