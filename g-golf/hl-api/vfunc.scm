@@ -310,14 +310,9 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
 
 (define (vfunc-ptr-offset-lookup vf s-class)
   (let ((name (!name vf))
-        (p-class (find gobject-class?
-                       (class-direct-supers s-class))))
+        (p-class (g-object-p-class s-class)))
     (values p-class
             (vfunc-ptr-offset-lookup-1 name p-class))))
-
-(define (g-object-p-class class)
-  (find gobject-class?
-        (class-direct-supers class)))
 
 (define (vfunc-ptr-offset-lookup-1 name class)
   (let loop ((class class))
@@ -330,6 +325,10 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
           (loop (g-object-p-class class)))
          ((type-tag offset flags)
           offset))))))
+
+(define (g-object-p-class class)
+  (find gobject-class?
+        (class-direct-supers class)))
 
 (define (find-vf vf-name args)
   (letrec* ((module (resolve-module '(g-golf hl-api gobject)))
