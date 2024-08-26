@@ -294,22 +294,42 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
 
 (define %next-vfunc
   (lambda args
-    #;(dimfi 'next-vfunc args)
     (match args
       ((vf-name . rest)
        (receive (vf specializer s-class)
            (find-vf vf-name rest)
-         (let* ((name (!name vf))
-                (p-class (find gobject-class?
-                               (class-direct-supers s-class)))
-                (g-struct-fields (!g-struct-fields p-class)))
-           (match (assq-ref g-struct-fields name)
-             ((type-tag offset flags)
-              (let* ((g-class (!g-class p-class))
-                     (bv-ptr (gi-pointer-inc g-class offset))
-                     (vfunc-ptr (bv-ptr-ref bv-ptr))
-                     (procedure (%next-vfunc-proc (!callback vf) vfunc-ptr)))
-                (apply procedure rest))))))))))
+         (receive (p-class offset)
+             (vfunc-ptr-offset-lookup vf s-class)
+           #;(dimfi 'next-vfunc (!name vf) offset)
+           (let* ((g-class (!g-class p-class))
+                  (bv-ptr (gi-pointer-inc g-class offset))
+                  (vfunc-ptr (bv-ptr-ref bv-ptr)))
+             (unless (null-pointer? vfunc-ptr)
+               (apply (%next-vfunc-proc (!callback vf) vfunc-ptr)
+                      rest)))))))))
+
+(define (vfunc-ptr-offset-lookup vf s-class)
+  (let ((name (!name vf))
+        (p-class (find gobject-class?
+                       (class-direct-supers s-class))))
+    (values p-class
+            (vfunc-ptr-offset-lookup-1 name p-class))))
+
+(define (g-object-p-class class)
+  (find gobject-class?
+        (class-direct-supers class)))
+
+(define (vfunc-ptr-offset-lookup-1 name class)
+  (let loop ((class class))
+    (match (!g-struct-fields class)
+      (#f
+       (loop (g-object-p-class class)))
+      (g-struct-fields
+       (match (assq-ref g-struct-fields name)
+         (#f
+          (loop (g-object-p-class class)))
+         ((type-tag offset flags)
+          offset))))))
 
 (define (find-vf vf-name args)
   (letrec* ((module (resolve-module '(g-golf hl-api gobject)))
