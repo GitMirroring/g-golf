@@ -76,8 +76,9 @@
                 "tab-menu"))
 
 ;; i'll make this available later
-#;(define-vfunc (dispose-vfunc (self <adw-tab-view-demo-window>))
+(define-vfunc (dispose-vfunc (self <adw-tab-view-demo-window>))
   (set! (!in-dispose self) #t)
+  (g-object-unref (!g-inst (!tab-action-group self)))
   (next-vfunc))
 
 (define-method (initialize (self <adw-tab-view-demo-window>) initargs)
