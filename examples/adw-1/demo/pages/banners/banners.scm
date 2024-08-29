@@ -111,13 +111,6 @@
 ;;; callback
 ;;;
 
-(define (dismissed-cb demo-page-banners)
-  (let ((self demo-page-banners))
-    (mslot-set! self
-                'undo-toast #f
-                'toast-undo-items 0)
-    (set-toast-action-enabled self "dismiss" #f)))
-
 
 ;;;
 ;;; utils
