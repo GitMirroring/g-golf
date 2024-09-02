@@ -23,8 +23,11 @@
 
 ;;; Commentary:
 
-;; Partially inspired by Chickadee's color module:
-;;   https://git.dthompson.us/chickadee/tree/chickadee/graphics/color.scm
+;; Partially inspired by:
+;; - Chickadee's color module:
+;;     https://git.dthompson.us/chickadee/tree/chickadee/graphics/color.scm
+;; - The Colorways python library
+;;     https://github.com/jeremymadea/colorways
 
 ;; A color is a list of 4 floats in the [0,1] range, each representing
 ;; the value of the RED (r) GREEN (g) BLUE (b) ALPHA (a) channels, in
@@ -53,12 +56,15 @@
   #:use-module (ice-9 match)
   #:use-module ((ice-9 string-fun)
                 #:select ((string-replace-substring . string-replace-all)))
+  #:use-module (srfi srfi-1)
   #:use-module (g-golf support float)
   #:use-module (g-golf support utils)
 
   #:export (rgb-cc->color
             rgba-cc->color
-            string->color))
+            string->color
+
+            color-blend))
 
 
 ;;;
@@ -161,7 +167,7 @@ CC, in the [0,1] range."
 (define (string->color str)
    "Returns the color, for STR, a valid X11/CSS specification color name
 or an hexadecimal color string. Accepted hexadecimal color string
-formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\","
+formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\"."
    (or (hash-ref %color-dictionary str)
        (let* ((start (if (string-prefix? "#" str) 1 0))
               (alpha? (> (string-length str) (+ start 6)))
@@ -175,6 +181,70 @@ formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\","
 
 
 ;;;
+;;; color blending
+;;;
+
+;; Most formulas taken from
+;;   https://en.wikipedia.org/wiki/Blend_modes
+
+;; Note that unless otherwise specified, all color blending procedures
+;; (deliberately) apply their formula to the R G B channels (only), and
+;; return a (newly allocated) color for which the A (alpha) channel is
+;; the base A channel value (untouched).
+
+(define* (color-blend mode base #:optional blend)
+  (case mode
+    ((darken)
+     (blend-darken base blend))
+    ((lighten)
+     (blend-lighten base blend))
+    (else
+     (scm-error 'color-blend-error
+                #f
+                "Unsupported blend mode: ~S"
+                (list mode)
+                #f))))
+
+(define (blend-darken base blend)
+  (let ((blend (if blend blend 0.20)))
+    (match base
+      ((base-r base-g base-b base-a)
+       (if (number? blend)
+           ;; a float (the factor) to apply to darken base
+           ;; using max to avoid -0.0 result(s).
+           (list (max 0.0 (- base-r (* base-r blend)))
+                 (max 0.0 (- base-g (* base-g blend)))
+                 (max 0.0 (- base-b (* base-b blend)))
+                 base-a)
+           (match blend
+             ((blend-r blend-g blend-b blend-a)
+              ;; Returns the minimum value for each channel.
+              (list (min base-r blend-r)
+                    (min base-g blend-g)
+                    (min base-b blend-b)
+                    base-a))))))))
+
+(define (blend-lighten base blend)
+  (let ((blend (if blend blend 0.20)))
+    (match base
+      ((base-r base-g base-b base-a)
+       (if (number? blend)
+           ;; a float (the factor) to apply to lighten base
+           ;; using min to clamp to 1.0 when that applies.
+           (list (min 1.0 (+ base-r (* base-r blend)))
+                 (min 1.0 (+ base-g (* base-g blend)))
+                 (min 1.0 (+ base-b (* base-b blend)))
+                 base-a)
+           (match blend
+             ((blend-r blend-g blend-b blend-a)
+              ;; Returns the minimum value for each channel.
+              (list (max base-r blend-r)
+                    (max base-g blend-g)
+                    (max base-b blend-b)
+                    base-a))))))))
+
+
+;;;
 ;;; parse x11 rgb colors
 ;;;
 
@@ -184,7 +254,7 @@ formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\","
                                 (open-input-file x11-rgb-spec-filename)
                                 (begin
                                   (warning
-                                   "Can't find /etc/X11/rgb.txt, using a fallback version.")
+                                   "Missing /etc/X11/rgb.txt, using a fallback.")
                                   (open-input-string %x11-rgb-spec-fallback)))))
     ;; skip the first line
     (read-line x11-rgb-spec-port)
@@ -196,15 +266,15 @@ formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\","
     (values)))
 
 (define (parse-x11-rgb-spec-entry x11-rgb-spec-entry)
-  ;; some rgb values use \Tab, but all entries use two #\Tab to separate
-  ;; the rgb value from the name.
+  ;; some rgb values use #\Tab, but all entries use two #\Tab to
+  ;; separate the rgb value from the name.
   (let* ((entry (string-replace-all x11-rgb-spec-entry "\t\t" "/"))
          (color (string-split entry #\/)))
     (match color
       ((rgb name)
        (define-color name rgb))
       (else
-       (scm-error 'unknown-rgb-spec-entry-format
+       (scm-error 'parse-x11-rgb-spec-entry-error
                   #f
                   "Unknown rgb spec entry format: ~S"
                   (list x11-rgb-spec-entry)
@@ -230,7 +300,7 @@ formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\","
 ;;;
 ;;; parse tango colors
 ;;;   Tango color palette
-;;;     http://tango.freedesktop.org
+;;;     https://en.wikipedia.org/wiki/Tango_Desktop_Project#Palette
 ;;;
 
 (define (parse-tango-color-spec)
