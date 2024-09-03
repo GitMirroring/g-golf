@@ -237,7 +237,7 @@ formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\"."
                  base-a)
            (match blend
              ((blend-r blend-g blend-b blend-a)
-              ;; Returns the minimum value for each channel.
+              ;; Returns the maximum value for each channel.
               (list (max base-r blend-r)
                     (max base-g blend-g)
                     (max base-b blend-b)
