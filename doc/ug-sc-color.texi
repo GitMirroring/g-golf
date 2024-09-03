@@ -1,0 +1,250 @@
+@c -*-texinfo-*-
+@c This is part of the GNU G-Golf Reference Manual.
+@c Copyright (C) 2024 Free Software Foundation, Inc.
+@c See the file g-golf.texi for copying conditions.
+
+
+@node Color Hollow
+@subsection Color Hollow
+
+Color Hollow. A color management module.
+
+
+@subheading Procedures
+
+@indentedblock
+@table @code
+@item @ref{rgb-cc->color}
+@item @ref{rgba-cc->color}
+@item @ref{string->color}
+@item @ref{color-blend}
+@end table
+@end indentedblock
+
+
+@subheading Description
+
+Welcome to the G-Golf Color Hollow, partially inspired by the
+@uref{@value{UCOLOR-Chickadee}, Chickadee's color module} and the
+@uref{@value{UCOLOR-Colorways}, Colorways python library}.
+
+In G-Golf, a color is a list of 4 floats in the [0 1] range, each
+representing the value of the RED (r), GREEN (g), BLUE (b) and ALPHA (a)
+channels, in that order. For example, an opaque red color instance would
+be '(1.0 0.0 0.0 1.0).
+
+G-Golf offers several ways to obtain the list representation of a
+color, in addition to manually listing the values as showned above:
+
+@enumerate
+@item processing its hexadecimal representation
+
+@lisp
+(rgb-cc->color #x73d216)      ;; cc = color code
+@result{} (0.45 0.82 0.09 1.0)
+
+(rgba-cc->color #x73d216aa)
+@result{} (0.45 0.82 0.09 0.67)
+@end lisp
+
+In the above examples, #x73d216 is the RGB hexadecimal representation of
+the (opaque) color, and #x73d216aa is the RGBA hexadecimal representation
+of the same color with an alpha channel value of 0.67 @footnote{For
+those who wouldn't know, note that both #x73d216 and #x73d216aa
+expressions are evaluated, as '#x' triggers the (predefined) read hash
+extend procedure for 'x', that is, the guile reader for hexadecimal
+values, which returns an integer, the @abbr{cc, color code}.}.
+
+@item calling string->color
+
+@lisp
+(string->color "DeepSkyBlue")
+@result{} (0 3/4 1 1.0)
+
+(string->color "#aabbccdd")
+@result{} (0.67 0.73 0.8 0.87)
+@end lisp
+
+@item refering predefined color symbols
+
+@lisp
++blue+
+@result{} (0 0 1 1.0)
+
++blanched-almond+
+@result{} (1 23/25 4/5 1.0)
+@end lisp
+
+@end enumerate
+
+
+@strong{@sup{_} Predefined Color Symbols}
+
+G-Golf pre-defines color symbols that come from the following color
+dictionaries:
+
+@itemize
+
+@item X11 rgb colors
+
+G-Golf will try to load the @file{/etc/X11/rgb.txt} file, if it exists,
+otherwise, it will use a local fallback version, described as: @emph{!
+$Xorg: rgb.txt,v 1.3 2000/08/17 19:54:00 cpqbld Exp $}.
+
+@item CSS4 additional colors
+
+As far as we can tell, only one color was added to the CSS4 color module
+(mostly composed of the X11 rgb colors), named @samp{rebeccapurple},
+added in 2014 as a tribute to the late daughter of CSS and web standards
+leader, Eric Meyer.
+
+@item Tango color palette
+
+As described @uref{@value{UTANGO-Palette}, here}.
+
+@item DawnBringer 32 color palette
+
+As defined @uref{@value{UDB32-Palette}, here}, names taken from 
+@uref{@value{UDB32-Color-Names}, here}.
+
+@end itemize
+
+Pre-defined color symbols available in G-Golf are defined by taking
+their corresponding color dictionary entry name, substitute any #\Space
+by #\-, pre and postfix using #\+ and call string->symbol upon the
+result. For example:
+
+@example
+  +antique-white+
+  @result{} (49/50 23/25 21/25 1.0)
+
+  +tango-chocolate-dark+
+  @result{} (14/25 7/20 1/100 1.0)
+
+  +db32-elf-green+
+  @result{} (11/50 29/50 43/100 1.0)
+
+  +rebecca-purple+
+  @result{} (2/5 1/5 3/5 1.0)
+@end example  
+
+
+@strong{@sup{_} Color Blending}
+
+Color blending formulas are mostly taken from
+@uref{@value{UBLEND-Modes}, here}. This is a @abbr{wip, Work In
+Progress}, as G-Golf currently only provides a few of the numerous color
+blending modes, to be enhanced in the future.
+
+Unless otherwise specified, color blending procedures (deliberately)
+apply their formula to the R G B channels (only), and return a (newly
+allocated) color for which the A (alpha) channel is the base A channel
+value.
+
+@c The @var{blend} argument is optional, so as to allow the implementation
+@c of an alternative blending mode formula (for the same mode), which
+@c requires a number in the [0 1] range (instead of a color), for which
+@c there is a default value, hence for those modes, the @var{blend}
+@c argument can be omitted.
+
+
+@subheading Procedures
+
+
+@anchor{rgb-cc->color}
+@deffn Procedure rgb-cc->color cc
+
+Returns a color, composed of the Red, Green, Blue values for @var{cc}
+(color code), in the [0,1] range, and 1.0 for the Alpha channel.
+
+@example
+  (rgb-cc->color #x73d216)
+  @result{} (0.45 0.82 0.09 1.0)
+@end example  
+@end deffn
+
+
+@anchor{rgba-cc->color}
+@deffn Procedure rgba-cc->color cc
+
+Returns a color, composed of the Red, Green, Blue, Alpha values for
+@var{cc} (color code), in the [0,1] range.
+
+@example
+  (rgba-cc->color #x73d216aa)
+  @result{} (0.45 0.82 0.09 0.67)
+@end example  
+@end deffn
+
+
+@anchor{string->color}
+@deffn Procedure string->color str
+
+Returns the color, for @var{str}.
+
+A valid @var{str} value is either an existing G-Golf color dictionary
+name entry, or an hexadecimal color string. Accepted hexadecimal color
+string formats are: @samp{#rrggbb}, @samp{rrggbb}, @samp{#rrggbbaa} and
+@samp{rrggbbaa}.
+
+@example
+  (string->color "#73d216aa")
+  @result{} (0.45 0.82 0.09 0.67)
+@end example  
+@end deffn
+
+
+@anchor{color-blend}
+@deffn Procedure color-blend mode base [blend #f]
+
+Returns a (newly allocated) color.
+
+Unless otherwise specified, color blending procedures (deliberately)
+apply their formula to the R G B channels (only), and return a (newly
+allocated) color for which the A (alpha) channel is the base A channel
+value.
+
+The @var{base} argument must be a color. The @var{blend} argument can
+either be a color or a float in the [0 1] range (in which case it can
+also be omited, so as to compute the result of the alternative color
+blending formula using the default value), for example:
+
+@example
+  (color-blend 'darken +red+)
+  @result{} (0.8 0.0 0.0 1.0)
+
+  (color-blend 'darken +red+ 0.3)
+  @result{} (0.7 0.0 0.0 1.0)
+
+  (color-blend 'darken +alice-blue+ +dark-blue+)
+  @result{} (0 0 11/20 1.0)
+@end example
+
+The @var{mode} argument is a symbol. Currently accepted blending
+@var{mode} and alternative color blending formulas are, applied to each
+of the R G B channel values:
+
+@table @code
+@item darken
+@code{darken base} @*
+@result{} (max 0.0 (- chan (* chan 0.2)))
+
+@code{darken base float} @*
+@result{} (max 0.0 (- chan (* chan @var{float})))
+
+@code{darken base blend} @*
+@result{} (min base-chan blend-chan)
+
+@item lighten
+@code{lighten base} @*
+@result{} (min 1.0 (+ chan (* chan 0.2)))
+
+@code{lighten base float} @*
+@result{} (min 1.0 (+ chan (* chan @var{float})))
+
+@code{lighten base blend} @*
+@result{} (min base-chan blend-chan)
+@end table
+
+
+@end deffn

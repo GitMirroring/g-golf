@@ -56,7 +56,9 @@ g_golf_TEXINFOS = \
   ug-ggv-cache.texi		\
   ug-ggv-customization.texi	\
   ug-ggv-vfunc.texi		\
-  ug-ggv-utils.texi		\
+  ug-sc-color.texi		\
+  ug-sc-utils.texi		\
+  ug-sc.texi			\
   cr.texi			\
   cr-overview.texi		\
   cr-ov-structure-and-naming-conventions.texi	\
