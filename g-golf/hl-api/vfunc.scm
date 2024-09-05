@@ -148,15 +148,8 @@
                               (!name vf)))
          (info (!info vf))
          (proc (slot-ref vf 'procedure))
-         (callback (gi-import-vfunc name info))
-         (callback-closure (make <callback-closure>
-                             #:callback callback
-                             #:procedure proc)))
-    (values (g-callable-info-make-closure info
-                                          (!ffi-cif callback)
-                                          %g-golf-callback-closure-marshal
-                                          (scm->pointer callback-closure))
-            callback-closure)))
+         (callback (gi-import-vfunc name info)))
+    (g-golf-callback-closure info proc)))
 
 ;; We need to cache Vfunc callbacks against their VFunc long name, which we
 ;; could build using the info. However, as a VFunc is only imported 'on
