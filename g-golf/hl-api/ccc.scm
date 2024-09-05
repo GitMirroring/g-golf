@@ -83,7 +83,9 @@
           !ffi-cif
 
           !callback		;; callback-closure
-          !procedure)
+          !procedure
+          !ffi-closure
+          !native-ptr)
 
 
 ;;;
@@ -141,4 +143,6 @@
 
 (define-class <callback-closure> ()
   (callback #:accessor !callback #:init-keyword #:callback)
-  (procedure #:accessor !procedure #:init-keyword #:procedure))
+  (procedure #:accessor !procedure #:init-keyword #:procedure)
+  (ffi-closure #:accessor !ffi-closure #:init-keyword #:ffi-closure)
+  (native-ptr #:accessor !native-ptr #:init-keyword #:native-ptr))

@@ -151,10 +151,18 @@
                                       ffi-closure-callback
                                       user-data)
   (if (gi-check-version 1 71 0)
-      (g-callable-info-create-closure
-       info ffi-cif ffi-closure-callback user-data)
-      (g-callable-info-prepare-closure
-       info ffi-cif ffi-closure-callback user-data)))
+      (let ((ffi-closure (g-callable-info-create-closure info
+                                                         ffi-cif
+                                                         ffi-closure-callback
+                                                         user-data)))
+        (values ffi-closure
+                (g-callable-info-get-closure-native-address info ffi-closure)))
+      (let ((ffi-closure (g-callable-info-prepare-closure info
+                                                          ffi-cif
+                                                          ffi-closure-callback
+                                                          user-data)))
+        (values ffi-closure
+                #f))))
 
 (define (g-golf-callback-closure-marshal ffi-cif
                                          return-value
@@ -209,11 +217,17 @@
          (callback-closure (make <callback-closure>
                              #:callback callback
                              #:procedure proc)))
-    (values (g-callable-info-make-closure info
-                                          (!ffi-cif callback)
-                                          %g-golf-callback-closure-marshal
-                                          (scm->pointer callback-closure))
-            callback-closure)))
+    (receive (ffi-closure native-ptr)
+        (g-callable-info-make-closure info
+                                      (!ffi-cif callback)
+                                      %g-golf-callback-closure-marshal
+                                      (scm->pointer callback-closure))
+      (mslot-set! callback-closure
+                  'ffi-closure ffi-closure
+                  'native-ptr native-ptr)
+      (values (or native-ptr	;; *-create-closure
+                  ffi-closure)  ;; *-prepare-closure
+              callback-closure))))
 
 (define (scm->ffi-args-out callback ffi-args r-vals)
   ;; r-vals may contain the callback returned value, if so, it is the
