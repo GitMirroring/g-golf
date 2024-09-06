@@ -61,7 +61,7 @@
           !long-name-prefix
           !gf-long-name?
           !info
-          !callback)
+          !callback-closure)
 
 
 (define-class <vfunc> (<method>)
@@ -71,7 +71,7 @@
   (long-name-prefix #:accessor !long-name-prefix)
   (gf-long-name? #:accessor !gf-long-name?)
   (info #:accessor !info)
-  (callback #:accessor !callback))
+  (callback-closure #:accessor !callback-closure))
 
 (define-method (describe (self <vfunc>))
   (next-method)
@@ -123,8 +123,7 @@
                                     (!g-type specializer))
                                    (g-type-class-peek
                                     (!g-type vfunc-g-object-class-specializer)))))
-      (slot-set! vf
-                 'callback (!callback callback-closure))
+      (set! (!callback-closure vf) callback-closure)
       (match (vfunc-struct-field vf)
         ((type-tag offset flags)
          (bv-ptr-set! (gi-pointer-inc iface/class-struct offset)
@@ -309,7 +308,8 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
                   (bv-ptr (gi-pointer-inc g-class offset))
                   (vfunc-ptr (bv-ptr-ref bv-ptr)))
              (unless (null-pointer? vfunc-ptr)
-               (apply (%next-vfunc-proc (!callback vf) vfunc-ptr)
+               (apply (%next-vfunc-proc (!callback (!callback-closure vf))
+                                        vfunc-ptr)
                       rest)))))))))
 
 (define (vfunc-ptr-offset-lookup vf s-class)
