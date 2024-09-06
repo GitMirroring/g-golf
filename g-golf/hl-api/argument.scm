@@ -72,6 +72,7 @@
           !array-type-desc
           !forced-type
           !string-pointer
+          !callback-closure
           !bv-cache
           !bv-cache-ptr
           !is-pointer?
@@ -108,6 +109,7 @@
   (array-type-desc #:accessor !array-type-desc)
   (forced-type #:accessor !forced-type #:init-keyword #:forced-type)
   (string-pointer #:accessor !string-pointer)
+  (callback-closure #:accessor !callback-closure)
   (bv-cache #:accessor !bv-cache #:init-value #f)
   (bv-cache-ptr #:accessor !bv-cache-ptr #:init-value #f)
   (is-pointer? #:accessor !is-pointer? #:init-keyword #:is-pointer?)

@@ -412,6 +412,7 @@
     ;; clearing references kept from a previous call.
     (mslot-set! clb/arg
                 'string-pointer #f
+                'callback-closure #f
                 'bv-cache #f
                 'bv-cache-ptr #f)
     (case type-tag
@@ -474,7 +475,10 @@
             ((callback)
              (gi-argument-set! gi-argument 'v-pointer
                                (if value
-                                   (%g-golf-callback-closure gi-type value)
+                                   (receive (native-ptr callback-closure)
+                                       (%g-golf-callback-closure gi-type value)
+                                     (set! (!callback-closure clb/arg) callback-closure)
+                                     native-ptr)
                                    (if (or may-be-null?
                                            (>= (!destroy clb/arg) 0)
                                            ;; caution, check against the clb/arg name,

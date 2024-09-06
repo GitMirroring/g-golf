@@ -65,6 +65,7 @@
           !is-enum?
           !array-type-desc
           !string-pointer
+          !callback-closure
           !bv-cache
           !bv-cache-ptr
           !may-return-null?
@@ -108,6 +109,7 @@
   (is-enum? #:accessor !is-enum?)
   (array-type-desc #:accessor !array-type-desc)
   (string-pointer #:accessor !string-pointer)
+  (callback-closure #:accessor !callback-closure)
   (bv-cache #:accessor !bv-cache #:init-value #f)
   (bv-cache-ptr #:accessor !bv-cache-ptr #:init-value #f)
   (may-return-null? #:accessor !may-return-null?)
