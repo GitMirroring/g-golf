@@ -147,9 +147,18 @@
                               '-
                               (!name vf)))
          (info (!info vf))
-         (proc (slot-ref vf 'procedure))
-         (callback (gi-import-vfunc name info)))
-    (g-golf-callback-closure info proc)))
+         (proc (slot-ref vf 'procedure)))
+    (receive (native-ptr callback-closure)
+        (g-golf-callback-closure info proc name)
+      (values native-ptr
+              callback-closure))))
+
+#!
+
+;; g-golf-vfunc-closure now calls g-golf-callback-closure, which calls
+;; gi-import-callback. When enhanced to receive an optional
+;; vfunc-long-name (see the comment below), then gi-import-vfunc is no
+;; longer needed.
 
 ;; We need to cache Vfunc callbacks against their VFunc long name, which we
 ;; could build using the info. However, as a VFunc is only imported 'on
@@ -167,6 +176,8 @@
           ;; required when invoked.
           (gi-callback-inst-cache-set! name callback)
           callback))))
+
+!#
 
 (define %mandatory-long-name-error-msg
   "More then one specializer defines a VFunc (method) for NAME: ~S. In these

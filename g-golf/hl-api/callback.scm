@@ -78,20 +78,21 @@
 #;(g-export )
 
 
-(define (gi-import-callback info)
+(define* (gi-import-callback info #:optional vfunc-long-name)
   (let* ((namespace (g-base-info-get-namespace info))
          (g-name (g-base-info-get-name info))
          (name (g-name->name g-name)))
     (when (%debug)
       (dimfi "      [" 'importing: namespace name "]"))
-    (or (gi-callback-inst-cache-ref name)
+    (or (gi-callback-inst-cache-ref (or vfunc-long-name name))
         (let ((callback (make <callback> #:info info
                               #:namespace namespace
                               #:g-name g-name
                               #:name name)))
           ;; Do not (g-base-info-)unref the callback info - it is
           ;; required when invoked.
-          (gi-callback-inst-cache-set! name callback)
+          (gi-callback-inst-cache-set! (or vfunc-long-name name)
+                                       callback)
           callback))))
 
 (define-method (initialize (self <callback>) initargs)
@@ -212,8 +213,8 @@
                             '*			;; ffi-args
                             '*)))		;; user-data
 
-(define (g-golf-callback-closure info proc)
-  (let* ((callback (gi-import-callback info))
+(define* (g-golf-callback-closure info proc #:optional vfunc-long-name)
+  (let* ((callback (gi-import-callback info vfunc-long-name))
          (callback-closure (make <callback-closure>
                              #:callback callback
                              #:procedure proc)))
