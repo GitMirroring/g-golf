@@ -382,6 +382,10 @@ vfunc, so those newly added properties won't work as expected.
                             '*
                             '*)))
 
+(define (lookup-set-layout-manager-type-procedure)
+  (module-ref (resolve-module '(g-golf hl-api function))
+              'gtk-widget-class-set-layout-manager-type))
+
 (define (lookup-template-procedures-make-g-bytes template)
   (if template
       (let* ((module (resolve-module '(g-golf hl-api function)))
@@ -402,49 +406,56 @@ vfunc, so those newly added properties won't work as expected.
      (match (assq-ref g-object-struct-fields 'set-property)
        ((type offset flags) offset)))))
 
-(define (%class-init-func name properties template child-ids)
-    (if (and (null? properties)
-             (not template))
-        ;; we return #f, g-type-register-static-simple will then select
-        ;; the %class-init-func defined in (g-golf gobject type-info)
-        (values #f #f)
-        (let ((class-init-func-closure
-               (lambda (g-class class-data)
-                 (let ((%name name)
-                       (%properties properties)
-                       (%template template)
-                       (%child-ids child-ids))
-                   (when (%debug)
-                     (dimfi 'class-init-func-closure 'for %name)
-                     (dimfi (format #f "~20,,,' @A:" 'g-class) g-class)
-                     (dimfi (format #f "~20,,,' @A:" 'g-type) (g-type-from-class g-class))
-                     (dimfi (format #f "~20,,,' @A:" 'properties) %properties)
-                     (dimfi (format #f "~20,,,' @A:" 'template) %template)
-                     (dimfi (format #f "~20,,,' @A:" 'child-ids) %child-ids))
-                   (unless (null? %properties)
-                     (receive (get-p-vfunc-offset set-p-vfunc-offset)
-                         (lookup-g-class-get-set-p-vfunc-offset)
-                       (bv-ptr-set! (gi-pointer-inc g-class
-                                                    get-p-vfunc-offset)
-                                    %get-property-func)
-                       (bv-ptr-set! (gi-pointer-inc g-class
-                                                    set-p-vfunc-offset)
-                                    %set-property-func)))
-                   (when %template
-                     (receive (set-template bind-template-child-full g-bytes)
-                         (lookup-template-procedures-make-g-bytes %template)
-                       (set-template g-class g-bytes)
-                       (for-each (lambda (child-id)
-                                   (bind-template-child-full g-class
-                                                             child-id
-                                                             #f
-                                                             0))
-                           %child-ids)))
-                   (values)))))
-          (values class-init-func-closure
-                  (procedure->pointer void
-                                      class-init-func-closure
-                                      (list '* '*))))))
+(define (%class-init-func name properties layout-manager template child-ids)
+  (if (and (null? properties)
+           (not layout-manager)
+           (not template))
+      ;; we return #f, g-type-register-static-simple will then select
+      ;; the %class-init-func defined in (g-golf gobject type-info)
+      (values #f #f)
+      (let ((class-init-func-closure
+             (lambda (g-class class-data)
+               (let ((%name name)
+                     (%properties properties)
+                     (%layout-manager layout-manager)
+                     (%template template)
+                     (%child-ids child-ids))
+                 (when (%debug)
+                   (dimfi 'class-init-func-closure 'for %name)
+                   (dimfi (format #f "~20,,,' @A:" 'g-class) g-class)
+                   (dimfi (format #f "~20,,,' @A:" 'g-type) (g-type-from-class g-class))
+                   (dimfi (format #f "~20,,,' @A:" 'properties) %properties)
+                   (dimfi (format #f "~20,,,' @A:" 'layout-manager) %layout-manager)
+                   (dimfi (format #f "~20,,,' @A:" 'template) %template)
+                   (dimfi (format #f "~20,,,' @A:" 'child-ids) %child-ids))
+                 (unless (null? %properties)
+                   (receive (get-p-vfunc-offset set-p-vfunc-offset)
+                       (lookup-g-class-get-set-p-vfunc-offset)
+                     (bv-ptr-set! (gi-pointer-inc g-class
+                                                  get-p-vfunc-offset)
+                                  %get-property-func)
+                     (bv-ptr-set! (gi-pointer-inc g-class
+                                                  set-p-vfunc-offset)
+                                  %set-property-func)))
+                 (when %layout-manager
+                   (receive (set-layout-manager-type)
+                       (lookup-set-layout-manager-type-procedure)
+                     (set-layout-manager-type g-class (!g-type %layout-manager))))
+                 (when %template
+                   (receive (set-template bind-template-child-full g-bytes)
+                       (lookup-template-procedures-make-g-bytes %template)
+                     (set-template g-class g-bytes)
+                     (for-each (lambda (child-id)
+                                 (bind-template-child-full g-class
+                                                           child-id
+                                                           #f
+                                                           0))
+                         %child-ids)))
+                 (values)))))
+        (values class-init-func-closure
+                (procedure->pointer void
+                                    class-init-func-closure
+                                    (list '* '*))))))
 
 (define (lookup-init-template-func)
   (let* ((init-template-func (gi-cache-ref 'function 'gtk-widget-init-template))
@@ -507,6 +518,7 @@ vfunc, so those newly added properties won't work as expected.
          (p-type (find-parent-g-type dsupers))
          (slots (get-keyword #:slots initargs '()))
          (properties (find-g-param-slots slots))
+         (layout-manager (get-keyword #:layout-manager initargs #f))
          (template (get-keyword #:template initargs #f))
          (child-ids (get-keyword #:child-ids initargs '())))
     (when (%debug)
@@ -521,7 +533,7 @@ vfunc, so those newly added properties won't work as expected.
         (match (g-type-query p-type)
           ((p-type p-name class-size instance-size)
            (receive (class-init-func-closure class-init-func)
-               (%class-init-func name properties template child-ids)
+               (%class-init-func name properties layout-manager template child-ids)
              (let ((g-type (g-type-register-static-simple p-type
                                                           g-name
                                                           class-size
