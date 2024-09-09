@@ -65,7 +65,9 @@
       ;; and create its goops proxy class if it does not exist yet.
       (match r-info-cpl
         ((parent . rest)
-         (g-object-import-with-supers parent `(,<gtype-instance>) module
+         (g-object-import-with-supers parent
+                                      `(,<gtype-instance>)
+                                      module
                                       #:metaclass <gtype-class>
                                       #:with-methods? with-methods?
                                       #:force? force?))))
@@ -153,6 +155,7 @@
                                                                get-value-func-ptr
                                                                (list '*)))
                                       #:metaclass metaclass)))
+             (g-base-info-ref info)
              (module-define! module c-name c-inst)
              (module-add! public-i c-name
                           (module-variable module c-name))
