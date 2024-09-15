@@ -613,7 +613,8 @@
                  (receive (make-bv bv-ref bv-set!)
                      (gi-type-tag->bv-acc type-tag)
                    (if ffi-arg?
-                       (let* ((bv-ptr (dereference-pointer gi-argument))
+                       (let* ((foreign (gi-argument-ref gi-argument 'v-pointer))
+                              (bv-ptr (dereference-pointer foreign))
                               (bv-size (sizeof (primitive-eval type-tag)))
                               (bv (pointer->bytevector bv-ptr bv-size)))
                          (bv-set! bv 0 value))
