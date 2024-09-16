@@ -197,6 +197,7 @@
 @c Additional color palettes
 @c
 
+@set UCSS-Palette https://www.w3.org/TR/css-color-4/#color-keywords
 @set UTANGO-Palette https://en.wikipedia.org/wiki/Tango_Desktop_Project#Palette
 @set UDB32-Palette http://pixeljoint.com/forum/forum_posts.asp?TID=16247
 @set UDB32-Color-Names http://privat.bahnhof.se/wb364826/pic/db32.gpl
