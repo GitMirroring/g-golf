@@ -75,6 +75,6 @@
 
 (define %colors
   (list "red" "orange" "yellow" "green"
-        "blue" "gray" "magenta" "lime green"
-        "yellow" "firebrick" "aquamarine" "purple"
+        "blue" "gray" "magenta" "lime"
+        "yellow" "firebrick" "aqua" "purple"
         "tomato" "pink" "thistle" "maroon"))
