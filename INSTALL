@@ -69,8 +69,8 @@ Adw-1 examples:
 
 G-Golf release are [[http://ftp.gnu.org/gnu/g-golf/][here]].  The latest tarballs are:
 
-	g-golf-0.8.0-rc.5.tar.gz
-	g-golf-0.8.0-rc.5.tar.gz.sig
+	g-golf-0.8.0-rc6.tar.gz
+	g-golf-0.8.0-rc6.tar.gz.sig
 
 	[ GPG Key: A3057AD7
 	[ gpg --keyserver keys.gnupg.net --recv-keys A3057AD7
@@ -79,8 +79,8 @@ Assuming you have satisfied the dependencies, open a terminal and
 proceed with the following steps:
 
 	cd <download-path>
-	tar zxf g-golf-0.8.0-rc.5.tar.gz
-	cd g-golf-0.8.0-rc.5
+	tar zxf g-golf-0.8.0-rc6.tar.gz
+	cd g-golf-0.8.0-rc6
 	./configure [--prefix=/your/prefix] [--with-guile-site]
 	make
 	make install
