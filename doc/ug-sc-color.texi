@@ -91,26 +91,33 @@ dictionaries:
 @c otherwise, it will use a local fallback version, described as: @emph{!
 @c $Xorg: rgb.txt,v 1.3 2000/08/17 19:54:00 cpqbld Exp $}.
 
-@item CSS colors - As described @uref{@value{UCSS-Palette}, here}.
+@c @item CSS colors - As described @uref{@value{UCSS-Palette}, here}.
 
 @c As far as we can tell, only one color was added to the CSS4 color module
 @c (mostly composed of the X11 rgb colors), named @samp{rebeccapurple},
 @c added in 2014 as a tribute to the late daughter of CSS and web standards
 @c leader, Eric Meyer.
 
+@item Pango and Gdk (known) colors - As defined @uref{@value{UPANGO-Palette}, here}.
+
+The file mentioned in the above link is maintained by the GNOME team -
+composed of (sometimes modified) X11 (rgb.txt) and CSS colors - it is
+used by both the Pango and the Gdk libraries.
+
 @item Tango color palette - As described @uref{@value{UTANGO-Palette}, here}.
 
-@item DawnBringer 32 color palette- As defined @uref{@value{UDB32-Palette}, here}, names taken from @uref{@value{UDB32-Color-Names}, here}.
+@item DawnBringer 32 color palette - As defined @uref{@value{UDB32-Palette}, here}, names taken from @uref{@value{UDB32-Color-Names}, here}.
 
 @end itemize
 
 Pre-defined color symbols available in G-Golf are defined by taking
 their corresponding color dictionary entry name, substitute any #\Space
-by #\-, pre and postfix using #\+ and call string->symbol upon the
-result. For example:
+by #\-, call @ref{g-name->name} (which calls
+@ref{g-studly-caps-expand}), then pre and postfix the returned symbol
+name using @code{+}. For example:
 
 @example
-  +antiquewhite+
+  +antique-white+
   @result{} (49/50 23/25 21/25 1.0)
 
   +tango-chocolate-dark+
