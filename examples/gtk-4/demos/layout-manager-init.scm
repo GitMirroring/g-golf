@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2018
+;;;; Copyright (C) 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -26,22 +26,30 @@
 ;;; Code:
 
 
-(define-module (g-golf support float)
-  #:use-module (ice-9 match)
-  #:use-module (ice-9 format)
-  #:use-module (g-golf support libg-golf)
-
-  #:export (float-round
-            float->int))
-
-
-(define* (float-round float #:optional (n-dec 2))
-  (let ((m (expt 10 n-dec)))
-    (/ (round (* m float)) m)))
+(define-module (demos layout-manager-init)
+  #:use-module (oop goops)
+  #:use-module (g-golf)
+  
+  #:duplicates (merge-generics
+		replace
+		warn-override-core
+		warn
+		last))
 
 
-;;;
-;;; from libg-golf
-;;;
-
-(define float->int float_to_int)
+(eval-when (expand load eval)
+  (g-irepository-require "Gtk" #:version "4.0")
+  (for-each (lambda (name)
+              (gi-import-by-name "Gdk" name))
+      '("Rectangle"
+        "FrameClock"))
+  (for-each (lambda (name)
+              (gi-import-by-name "Gtk" name))
+      '("Application"
+        "ApplicationWindow"
+        "Snapshot"
+        "Orientation"
+        "GestureClick"
+        "LayoutManager"
+        "SizeRequestMode"
+        "Requisition")))

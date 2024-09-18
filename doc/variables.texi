@@ -175,6 +175,7 @@
 @c XDG Base Directory Specification
 @set UXDG-BASEDIR-SPEC http://www.freedesktop.org/Standards/basedir-spec
 
+
 @c
 @c GNU
 @c
@@ -183,3 +184,23 @@
 @set UGNU-PHILOSOPHY https://gnu.org/philosophy/free-sw.html
 @set UGNU-EVALUATION https://www.gnu.org/help/evaluation.html
 @set UGNU-HELP https://www.gnu.org/help/help.html
+
+
+@c
+@c Color module inspired by
+@c
+
+@set UCOLOR-Chickadee https://git.dthompson.us/chickadee/tree/chickadee/graphics/color.scm
+@set UCOLOR-Colorways https://github.com/jeremymadea/colorways
+
+@c
+@c Additional color palettes
+@c
+
+@set UPANGO-Palette https://gitlab.gnome.org/GNOME/pango/-/blob/main/tools/rgb.txt
+@set UCSS-Palette https://www.w3.org/TR/css-color-4/#color-keywords
+@set UTANGO-Palette https://en.wikipedia.org/wiki/Tango_Desktop_Project#Palette
+@set UDB32-Palette http://pixeljoint.com/forum/forum_posts.asp?TID=16247
+@set UDB32-Color-Names http://privat.bahnhof.se/wb364826/pic/db32.gpl
+
+@set UBLEND-Modes https://en.wikipedia.org/wiki/Blend_modes

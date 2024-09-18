@@ -60,6 +60,7 @@
   #:use-module (g-golf support bytevector)
   #:use-module (g-golf support ffi)
   #:use-module (g-golf support sxml)
+  #:use-module (g-golf support color)
   #:use-module (g-golf init)
   #:use-module (g-golf glib version-information)
   #:use-module (g-golf glib mem-alloc)
@@ -166,6 +167,7 @@
                               (g-golf support bytevector)
                               (g-golf support ffi)
                               (g-golf support sxml)
+                              (g-golf support color)
 			      (g-golf init)
                               (g-golf glib version-information)
 			      (g-golf glib mem-alloc)
@@ -292,3 +294,11 @@
                 'info g-object-info
                 'g-struct-fields (gi-struct-field-desc class-struct))
     (gi-import-object-methods g-object-info #:force? #t)))
+
+
+;;;
+;;; populate the color dictionary
+;;;
+
+(eval-when (expand load eval)
+  ((@@ (g-golf support color) populate-color-dictionary)))

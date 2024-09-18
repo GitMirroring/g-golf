@@ -1,0 +1,2009 @@
+;; -*- mode: scheme; coding: utf-8 -*-
+
+;;;;
+;;;; Copyright (C) 2024
+;;;; Free Software Foundation, Inc.
+
+;;;; This file is part of GNU G-Golf
+
+;;;; GNU G-Golf is free software; you can redistribute it and/or modify
+;;;; it under the terms of the GNU Lesser General Public License as
+;;;; published by the Free Software Foundation; either version 3 of the
+;;;; License, or (at your option) any later version.
+
+;;;; GNU G-Golf is distributed in the hope that it will be useful, but
+;;;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;;;; Lesser General Public License for more details.
+
+;;;; You should have received a copy of the GNU Lesser General Public
+;;;; License along with GNU G-Golf.  If not, see
+;;;; <https://www.gnu.org/licenses/lgpl.html>.
+;;;;
+
+;;; Commentary:
+
+;; Partially inspired by:
+;; - Chickadee's color module:
+;;     https://git.dthompson.us/chickadee/tree/chickadee/graphics/color.scm
+;; - The Colorways python library
+;;     https://github.com/jeremymadea/colorways
+
+;; A color is a list of 4 floats in the [0,1] range, each representing
+;; the value of the RED (r) GREEN (g) BLUE (b) ALPHA (a) channels, in
+;; that order. For example:
+
+;;	(rgb-cc->color #x73d216)	;; cc = color code
+;;	$3 = (0.45 0.82 0.09 1.0)
+;;   or
+;;      (rgba-cc>color #x73d216aa)
+;;      $4 = (0.45 0.82 0.09 0.67)
+
+;; In the above, #x73d216 is the rgb hexadecimal representation of the
+;; color, and #x73d216aa is the rgba hexadecimal representation of the
+;; same color with an alpha channel value of 0.67.
+
+;; For those who wouldn't know, note that both #x73d216 and #x73d216aa
+;; expressions are evaluated, as '#x' triggers the (predefined) read
+;; hash extend procedure for 'x', that is, the guile reader for
+;; hexadecimal values, which returns an integer, the color code (cc).
+
+;;; Code:
+
+
+(define-module (g-golf support color)
+  #:use-module (ice-9 rdelim)
+  #:use-module (ice-9 match)
+  #:use-module ((ice-9 string-fun)
+                #:select ((string-replace-substring . string-replace-all)))
+  #:use-module (srfi srfi-1)
+  #:use-module (g-golf support float)
+  #:use-module (g-golf support utils)
+
+  #:export (rgb-cc->color
+            rgba-cc->color
+            string->color
+
+            color-blend))
+
+
+;;;
+;;; color dictionary
+;;;
+
+(define %color-dictionary
+  (make-hash-table 1013))
+
+(define (populate-color-dictionary)
+  #;(parse-x11-rgb-spec)
+  #;(parse-css-color-spec)
+  (parse-pango-color-spec)
+  (parse-tango-color-spec)
+  (parse-db32-color-spec))
+
+
+;;;
+;;; define color
+;;;
+
+(define (define-color name rgb-spec-entry)
+  (let* ((module (resolve-module '(g-golf support color)))
+         (public-i (module-public-interface module))
+         (color-name (symbol-append '+
+                                    ;; no camel case
+                                    (g-name->name
+                                     ;; avoid #{light slate gray}#
+                                     (string-replace-all name " " "-"))
+                                    '+))
+         (color (rgb-spec-entry->color rgb-spec-entry)))
+    (hash-set! %color-dictionary name color)
+    (module-define! module color-name color)
+    (module-add! public-i color-name
+                 (module-variable module color-name))))
+
+(define (rgb-spec-entry->color rgb-spec-entry)
+  ;; replace #\Tab with #\Space, split, delete ""
+  (let ((rgb (map string->number
+               (delete ""
+                       (string-split (string-replace-all rgb-spec-entry "\t" " ")
+                                     #\Space)))))
+    (match rgb
+      ((r g b)
+       (list (float-round (/ r 255))
+             (float-round (/ g 255))
+             (float-round (/ b 255))
+             1.0)))))
+
+
+;;;
+;;; color parsing
+;;;
+
+(define (cc-chan cc offset)
+   "Returns the 8-bit color value, in the range [0,1], for CC (a color
+code) and OFFSET (in bits)."
+  (let ((mask (ash #xff offset)))
+    (float-round (/ (ash (logand mask cc)
+	                 (- offset))
+                    255.0))))
+
+(define (rgb-cc->color cc)
+  "Returns a color, composed of the red, green, blue values for CC, in
+the [0,1] range, and 1.0 for the alpha channel."
+  (list (cc-chan cc 16)
+	(cc-chan cc 8)
+	(cc-chan cc 0)
+        1.0))
+
+(define (rgba-cc>color cc)
+  "Returns a color, composed of the red, green, blue, alpha values for
+CC, in the [0,1] range."
+  (list (cc-chan cc 24)
+	(cc-chan cc 16)
+	(cc-chan cc 8)
+        (cc-chan cc 0)))
+
+(define (hex->digit c)
+    (match c
+      (#\0 0)
+      (#\1 1)
+      (#\2 2)
+      (#\3 3)
+      (#\4 4)
+      (#\5 5)
+      (#\6 6)
+      (#\7 7)
+      (#\8 8)
+      (#\9 9)
+      ((or #\a #\A) 10)
+      ((or #\b #\B) 11)
+      ((or #\c #\C) 12)
+      ((or #\d #\D) 13)
+      ((or #\e #\E) 14)
+      ((or #\f #\F) 15)))
+
+(define (string-chan str offset)
+  (let ((c1 (string-ref str offset))
+        (c2 (string-ref str (+ offset 1))))
+    (float-round (/ (+ (* (hex->digit c1) 16)
+                       (hex->digit c2))
+                    255.0))))
+
+(define (string->color str)
+   "Returns the color, for STR, a valid X11/CSS specification color name
+or an hexadecimal color string. Accepted hexadecimal color string
+formats are: \"#rrggbb\", \"rrggbb\", \"#rrggbbaa\" and \"rrggbbaa\"."
+   (or (hash-ref %color-dictionary str)
+       (let* ((start (if (string-prefix? "#" str) 1 0))
+              (alpha? (> (string-length str) (+ start 6)))
+              (red (string-chan str start))
+              (green (string-chan str (+ start 2)))
+              (blue (string-chan str (+ start 4)))
+              (alpha (if alpha?
+                         (string-chan str (+ start 6))
+                         1.0)))
+         (list red green blue alpha))))
+
+
+;;;
+;;; color blending
+;;;
+
+;; Most formulas taken from
+;;   https://en.wikipedia.org/wiki/Blend_modes
+
+;; Note that unless otherwise specified, all color blending procedures
+;; (deliberately) apply their formula to the R G B channels (only), and
+;; return a (newly allocated) color for which the A (alpha) channel is
+;; the base A channel value (untouched).
+
+(define* (color-blend mode base #:optional blend)
+  (case mode
+    ((darken)
+     (blend-darken base blend))
+    ((lighten)
+     (blend-lighten base blend))
+    (else
+     (scm-error 'color-blend-error
+                #f
+                "Unsupported blend mode: ~S"
+                (list mode)
+                #f))))
+
+(define (blend-darken base blend)
+  (let ((blend (if blend blend 0.20)))
+    (match base
+      ((base-r base-g base-b base-a)
+       (if (number? blend)
+           ;; a float (the factor) to apply to darken base
+           ;; using max to avoid -0.0 result(s).
+           (list (max 0.0 (- base-r (* base-r blend)))
+                 (max 0.0 (- base-g (* base-g blend)))
+                 (max 0.0 (- base-b (* base-b blend)))
+                 base-a)
+           (match blend
+             ((blend-r blend-g blend-b blend-a)
+              ;; Returns the minimum value for each channel.
+              (list (min base-r blend-r)
+                    (min base-g blend-g)
+                    (min base-b blend-b)
+                    base-a))))))))
+
+(define (blend-lighten base blend)
+  (let ((blend (if blend blend 0.20)))
+    (match base
+      ((base-r base-g base-b base-a)
+       (if (number? blend)
+           ;; a float (the factor) to apply to lighten base
+           ;; using min to clamp to 1.0 when that applies.
+           (list (min 1.0 (+ base-r (* base-r blend)))
+                 (min 1.0 (+ base-g (* base-g blend)))
+                 (min 1.0 (+ base-b (* base-b blend)))
+                 base-a)
+           (match blend
+             ((blend-r blend-g blend-b blend-a)
+              ;; Returns the maximum value for each channel.
+              (list (max base-r blend-r)
+                    (max base-g blend-g)
+                    (max base-b blend-b)
+                    base-a))))))))
+
+
+;;;
+;;; parse pango colors
+;;;  based on a local copy of the file maintained by the GNOME team
+;;;    https://gitlab.gnome.org/GNOME/pango/-/blob/main/tools/rgb.txt
+
+(define (parse-pango-color-spec)
+  (for-each
+      (match-lambda
+        ((rgb name)
+         (define-color name rgb)))
+      %pango-color-spec))
+
+(define %pango-color-spec
+  '(("255 250 250" "snow")
+    ("248 248 255" "GhostWhite")
+    ("245 245 245" "WhiteSmoke")
+    ("220 220 220" "gainsboro")
+    ("255 250 240" "FloralWhite")
+    ("253 245 230" "OldLace")
+    ("250 240 230" "linen")
+    ("250 235 215" "AntiqueWhite")
+    ("255 239 213" "PapayaWhip")
+    ("255 235 205" "BlanchedAlmond")
+    ("255 228 196" "bisque")
+    ("255 218 185" "PeachPuff")
+    ("255 222 173" "NavajoWhite")
+    ("255 228 181" "moccasin")
+    ("255 248 220" "cornsilk")
+    ("255 255 240" "ivory")
+    ("255 250 205" "LemonChiffon")
+    ("255 245 238" "seashell")
+    ("240 255 240" "honeydew")
+    ("245 255 250" "MintCream")
+    ("240 255 255" "azure")
+    ("240 248 255" "AliceBlue")
+    ("230 230 250" "lavender")
+    ("255 240 245" "LavenderBlush")
+    ("255 228 225" "MistyRose")
+    ("255 255 255" "white")
+    ("  0   0   0" "black")
+    (" 47  79  79" "DarkSlateGray")
+    (" 47  79  79" "DarkSlateGrey")
+    ("105 105 105" "DimGray")
+    ("105 105 105" "DimGrey")
+    ("112 128 144" "SlateGray")
+    ("112 128 144" "SlateGrey")
+    ("119 136 153" "LightSlateGray")
+    ("119 136 153" "LightSlateGrey")
+    ("128 128 128" "gray")
+    ("128 128 128" "grey")
+    ("211 211 211" "LightGrey")
+    ("211 211 211" "LightGray")
+    (" 25  25 112" "MidnightBlue")
+    ("  0   0 128" "navy")
+    ("  0   0 128" "NavyBlue")
+    ("100 149 237" "CornflowerBlue")
+    (" 72  61 139" "DarkSlateBlue")
+    ("106  90 205" "SlateBlue")
+    ("123 104 238" "MediumSlateBlue")
+    ("132 112 255" "LightSlateBlue")
+    ("  0   0 205" "MediumBlue")
+    (" 65 105 225" "RoyalBlue")
+    ("  0   0 255" "blue")
+    (" 30 144 255" "DodgerBlue")
+    ("  0 191 255" "DeepSkyBlue")
+    ("135 206 235" "SkyBlue")
+    ("135 206 250" "LightSkyBlue")
+    (" 70 130 180" "SteelBlue")
+    ("176 196 222" "LightSteelBlue")
+    ("173 216 230" "LightBlue")
+    ("176 224 230" "PowderBlue")
+    ("175 238 238" "PaleTurquoise")
+    ("  0 206 209" "DarkTurquoise")
+    (" 72 209 204" "MediumTurquoise")
+    (" 64 224 208" "turquoise")
+    ("  0 255 255" "cyan")
+    ("224 255 255" "LightCyan")
+    (" 95 158 160" "CadetBlue")
+    ("102 205 170" "MediumAquamarine")
+    ("127 255 212" "aquamarine")
+    ("  0 100   0" "DarkGreen")
+    (" 85 107  47" "DarkOliveGreen")
+    ("143 188 143" "DarkSeaGreen")
+    (" 46 139  87" "SeaGreen")
+    (" 60 179 113" "MediumSeaGreen")
+    (" 32 178 170" "LightSeaGreen")
+    ("152 251 152" "PaleGreen")
+    ("  0 255 127" "SpringGreen")
+    ("124 252   0" "LawnGreen")
+    ("  0 128   0" "green")
+    ("127 255   0" "chartreuse")
+    ("  0 250 154" "MediumSpringGreen")
+    ("173 255  47" "GreenYellow")
+    (" 50 205  50" "LimeGreen")
+    ("154 205  50" "YellowGreen")
+    (" 34 139  34" "ForestGreen")
+    ("107 142  35" "OliveDrab")
+    ("189 183 107" "DarkKhaki")
+    ("240 230 140" "khaki")
+    ("238 232 170" "PaleGoldenrod")
+    ("250 250 210" "LightGoldenrodYellow")
+    ("255 255 224" "LightYellow")
+    ("255 255   0" "yellow")
+    ("255 215   0" "gold")
+    ("238 221 130" "LightGoldenrod")
+    ("218 165  32" "goldenrod")
+    ("184 134  11" "DarkGoldenrod")
+    ("188 143 143" "RosyBrown")
+    ("205  92  92" "IndianRed")
+    ("139  69  19" "SaddleBrown")
+    ("160  82  45" "sienna")
+    ("205 133  63" "peru")
+    ("222 184 135" "burlywood")
+    ("245 245 220" "beige")
+    ("245 222 179" "wheat")
+    ("244 164  96" "SandyBrown")
+    ("210 180 140" "tan")
+    ("210 105  30" "chocolate")
+    ("178  34  34" "firebrick")
+    ("165  42  42" "brown")
+    ("233 150 122" "DarkSalmon")
+    ("250 128 114" "salmon")
+    ("255 160 122" "LightSalmon")
+    ("255 165   0" "orange")
+    ("255 140   0" "DarkOrange")
+    ("255 127  80" "coral")
+    ("240 128 128" "LightCoral")
+    ("255  99  71" "tomato")
+    ("255  69   0" "OrangeRed")
+    ("255   0   0" "red")
+    ("255 105 180" "HotPink")
+    ("255  20 147" "DeepPink")
+    ("255 192 203" "pink")
+    ("255 182 193" "LightPink")
+    ("219 112 147" "PaleVioletRed")
+    ("128   0   0" "maroon")
+    ("199  21 133" "MediumVioletRed")
+    ("208  32 144" "VioletRed")
+    ("255   0 255" "magenta")
+    ("238 130 238" "violet")
+    ("221 160 221" "plum")
+    ("218 112 214" "orchid")
+    ("186  85 211" "MediumOrchid")
+    ("153  50 204" "DarkOrchid")
+    ("148   0 211" "DarkViolet")
+    ("138  43 226" "BlueViolet")
+    ("128   0 128" "purple")
+    ("147 112 219" "MediumPurple")
+    ("216 191 216" "thistle")
+    ("255 250 250" "snow1")
+    ("238 233 233" "snow2")
+    ("205 201 201" "snow3")
+    ("139 137 137" "snow4")
+    ("255 245 238" "seashell1")
+    ("238 229 222" "seashell2")
+    ("205 197 191" "seashell3")
+    ("139 134 130" "seashell4")
+    ("255 239 219" "AntiqueWhite1")
+    ("238 223 204" "AntiqueWhite2")
+    ("205 192 176" "AntiqueWhite3")
+    ("139 131 120" "AntiqueWhite4")
+    ("255 228 196" "bisque1")
+    ("238 213 183" "bisque2")
+    ("205 183 158" "bisque3")
+    ("139 125 107" "bisque4")
+    ("255 218 185" "PeachPuff1")
+    ("238 203 173" "PeachPuff2")
+    ("205 175 149" "PeachPuff3")
+    ("139 119 101" "PeachPuff4")
+    ("255 222 173" "NavajoWhite1")
+    ("238 207 161" "NavajoWhite2")
+    ("205 179 139" "NavajoWhite3")
+    ("139 121 94" "NavajoWhite4")
+    ("255 250 205" "LemonChiffon1")
+    ("238 233 191" "LemonChiffon2")
+    ("205 201 165" "LemonChiffon3")
+    ("139 137 112" "LemonChiffon4")
+    ("255 248 220" "cornsilk1")
+    ("238 232 205" "cornsilk2")
+    ("205 200 177" "cornsilk3")
+    ("139 136 120" "cornsilk4")
+    ("255 255 240" "ivory1")
+    ("238 238 224" "ivory2")
+    ("205 205 193" "ivory3")
+    ("139 139 131" "ivory4")
+    ("240 255 240" "honeydew1")
+    ("224 238 224" "honeydew2")
+    ("193 205 193" "honeydew3")
+    ("131 139 131" "honeydew4")
+    ("255 240 245" "LavenderBlush1")
+    ("238 224 229" "LavenderBlush2")
+    ("205 193 197" "LavenderBlush3")
+    ("139 131 134" "LavenderBlush4")
+    ("255 228 225" "MistyRose1")
+    ("238 213 210" "MistyRose2")
+    ("205 183 181" "MistyRose3")
+    ("139 125 123" "MistyRose4")
+    ("240 255 255" "azure1")
+    ("224 238 238" "azure2")
+    ("193 205 205" "azure3")
+    ("131 139 139" "azure4")
+    ("131 111 255" "SlateBlue1")
+    ("122 103 238" "SlateBlue2")
+    ("105  89 205" "SlateBlue3")
+    (" 71  60 139" "SlateBlue4")
+    (" 72 118 255" "RoyalBlue1")
+    (" 67 110 238" "RoyalBlue2")
+    (" 58  95 205" "RoyalBlue3")
+    (" 39  64 139" "RoyalBlue4")
+    ("  0   0 255" "blue1")
+    ("  0   0 238" "blue2")
+    ("  0   0 205" "blue3")
+    ("  0   0 139" "blue4")
+    (" 30 144 255" "DodgerBlue1")
+    (" 28 134 238" "DodgerBlue2")
+    (" 24 116 205" "DodgerBlue3")
+    (" 16  78 139" "DodgerBlue4")
+    (" 99 184 255" "SteelBlue1")
+    (" 92 172 238" "SteelBlue2")
+    (" 79 148 205" "SteelBlue3")
+    (" 54 100 139" "SteelBlue4")
+    ("  0 191 255" "DeepSkyBlue1")
+    ("  0 178 238" "DeepSkyBlue2")
+    ("  0 154 205" "DeepSkyBlue3")
+    ("  0 104 139" "DeepSkyBlue4")
+    ("135 206 255" "SkyBlue1")
+    ("126 192 238" "SkyBlue2")
+    ("108 166 205" "SkyBlue3")
+    (" 74 112 139" "SkyBlue4")
+    ("176 226 255" "LightSkyBlue1")
+    ("164 211 238" "LightSkyBlue2")
+    ("141 182 205" "LightSkyBlue3")
+    (" 96 123 139" "LightSkyBlue4")
+    ("198 226 255" "SlateGray1")
+    ("185 211 238" "SlateGray2")
+    ("159 182 205" "SlateGray3")
+    ("108 123 139" "SlateGray4")
+    ("202 225 255" "LightSteelBlue1")
+    ("188 210 238" "LightSteelBlue2")
+    ("162 181 205" "LightSteelBlue3")
+    ("110 123 139" "LightSteelBlue4")
+    ("191 239 255" "LightBlue1")
+    ("178 223 238" "LightBlue2")
+    ("154 192 205" "LightBlue3")
+    ("104 131 139" "LightBlue4")
+    ("224 255 255" "LightCyan1")
+    ("209 238 238" "LightCyan2")
+    ("180 205 205" "LightCyan3")
+    ("122 139 139" "LightCyan4")
+    ("187 255 255" "PaleTurquoise1")
+    ("174 238 238" "PaleTurquoise2")
+    ("150 205 205" "PaleTurquoise3")
+    ("102 139 139" "PaleTurquoise4")
+    ("152 245 255" "CadetBlue1")
+    ("142 229 238" "CadetBlue2")
+    ("122 197 205" "CadetBlue3")
+    (" 83 134 139" "CadetBlue4")
+    ("  0 245 255" "turquoise1")
+    ("  0 229 238" "turquoise2")
+    ("  0 197 205" "turquoise3")
+    ("  0 134 139" "turquoise4")
+    ("  0 255 255" "cyan1")
+    ("  0 238 238" "cyan2")
+    ("  0 205 205" "cyan3")
+    ("  0 139 139" "cyan4")
+    ("151 255 255" "DarkSlateGray1")
+    ("141 238 238" "DarkSlateGray2")
+    ("121 205 205" "DarkSlateGray3")
+    (" 82 139 139" "DarkSlateGray4")
+    ("127 255 212" "aquamarine1")
+    ("118 238 198" "aquamarine2")
+    ("102 205 170" "aquamarine3")
+    (" 69 139 116" "aquamarine4")
+    ("193 255 193" "DarkSeaGreen1")
+    ("180 238 180" "DarkSeaGreen2")
+    ("155 205 155" "DarkSeaGreen3")
+    ("105 139 105" "DarkSeaGreen4")
+    (" 84 255 159" "SeaGreen1")
+    (" 78 238 148" "SeaGreen2")
+    (" 67 205 128" "SeaGreen3")
+    (" 46 139 87" "SeaGreen4")
+    ("154 255 154" "PaleGreen1")
+    ("144 238 144" "PaleGreen2")
+    ("124 205 124" "PaleGreen3")
+    (" 84 139 84" "PaleGreen4")
+    ("  0 255 127" "SpringGreen1")
+    ("  0 238 118" "SpringGreen2")
+    ("  0 205 102" "SpringGreen3")
+    ("  0 139 69" "SpringGreen4")
+    ("  0 255  0" "green1")
+    ("  0 238  0" "green2")
+    ("  0 205  0" "green3")
+    ("  0 139  0" "green4")
+    ("127 255  0" "chartreuse1")
+    ("118 238  0" "chartreuse2")
+    ("102 205  0" "chartreuse3")
+    (" 69 139  0" "chartreuse4")
+    ("192 255 62" "OliveDrab1")
+    ("179 238 58" "OliveDrab2")
+    ("154 205 50" "OliveDrab3")
+    ("105 139 34" "OliveDrab4")
+    ("202 255 112" "DarkOliveGreen1")
+    ("188 238 104" "DarkOliveGreen2")
+    ("162 205 90" "DarkOliveGreen3")
+    ("110 139 61" "DarkOliveGreen4")
+    ("255 246 143" "khaki1")
+    ("238 230 133" "khaki2")
+    ("205 198 115" "khaki3")
+    ("139 134 78" "khaki4")
+    ("255 236 139" "LightGoldenrod1")
+    ("238 220 130" "LightGoldenrod2")
+    ("205 190 112" "LightGoldenrod3")
+    ("139 129 76" "LightGoldenrod4")
+    ("255 255 224" "LightYellow1")
+    ("238 238 209" "LightYellow2")
+    ("205 205 180" "LightYellow3")
+    ("139 139 122" "LightYellow4")
+    ("255 255  0" "yellow1")
+    ("238 238  0" "yellow2")
+    ("205 205  0" "yellow3")
+    ("139 139  0" "yellow4")
+    ("255 215  0" "gold1")
+    ("238 201  0" "gold2")
+    ("205 173  0" "gold3")
+    ("139 117  0" "gold4")
+    ("255 193 37" "goldenrod1")
+    ("238 180 34" "goldenrod2")
+    ("205 155 29" "goldenrod3")
+    ("139 105 20" "goldenrod4")
+    ("255 185 15" "DarkGoldenrod1")
+    ("238 173 14" "DarkGoldenrod2")
+    ("205 149 12" "DarkGoldenrod3")
+    ("139 101  8" "DarkGoldenrod4")
+    ("255 193 193" "RosyBrown1")
+    ("238 180 180" "RosyBrown2")
+    ("205 155 155" "RosyBrown3")
+    ("139 105 105" "RosyBrown4")
+    ("255 106 106" "IndianRed1")
+    ("238  99 99" "IndianRed2")
+    ("205  85 85" "IndianRed3")
+    ("139  58 58" "IndianRed4")
+    ("255 130 71" "sienna1")
+    ("238 121 66" "sienna2")
+    ("205 104 57" "sienna3")
+    ("139  71 38" "sienna4")
+    ("255 211 155" "burlywood1")
+    ("238 197 145" "burlywood2")
+    ("205 170 125" "burlywood3")
+    ("139 115 85" "burlywood4")
+    ("255 231 186" "wheat1")
+    ("238 216 174" "wheat2")
+    ("205 186 150" "wheat3")
+    ("139 126 102" "wheat4")
+    ("255 165 79" "tan1")
+    ("238 154 73" "tan2")
+    ("205 133 63" "tan3")
+    ("139  90 43" "tan4")
+    ("255 127 36" "chocolate1")
+    ("238 118 33" "chocolate2")
+    ("205 102 29" "chocolate3")
+    ("139  69 19" "chocolate4")
+    ("255  48 48" "firebrick1")
+    ("238  44 44" "firebrick2")
+    ("205  38 38" "firebrick3")
+    ("139  26 26" "firebrick4")
+    ("255  64 64" "brown1")
+    ("238  59 59" "brown2")
+    ("205  51 51" "brown3")
+    ("139  35 35" "brown4")
+    ("255 140 105" "salmon1")
+    ("238 130 98" "salmon2")
+    ("205 112 84" "salmon3")
+    ("139  76 57" "salmon4")
+    ("255 160 122" "LightSalmon1")
+    ("238 149 114" "LightSalmon2")
+    ("205 129 98" "LightSalmon3")
+    ("139  87 66" "LightSalmon4")
+    ("255 165  0" "orange1")
+    ("238 154  0" "orange2")
+    ("205 133  0" "orange3")
+    ("139  90  0" "orange4")
+    ("255 127  0" "DarkOrange1")
+    ("238 118  0" "DarkOrange2")
+    ("205 102  0" "DarkOrange3")
+    ("139  69  0" "DarkOrange4")
+    ("255 114 86" "coral1")
+    ("238 106 80" "coral2")
+    ("205  91 69" "coral3")
+    ("139  62 47" "coral4")
+    ("255  99 71" "tomato1")
+    ("238  92 66" "tomato2")
+    ("205  79 57" "tomato3")
+    ("139  54 38" "tomato4")
+    ("255  69  0" "OrangeRed1")
+    ("238  64  0" "OrangeRed2")
+    ("205  55  0" "OrangeRed3")
+    ("139  37  0" "OrangeRed4")
+    ("255   0  0" "red1")
+    ("238   0  0" "red2")
+    ("205   0  0" "red3")
+    ("139   0  0" "red4")
+    ("255  20 147" "DeepPink1")
+    ("238  18 137" "DeepPink2")
+    ("205  16 118" "DeepPink3")
+    ("139  10 80" "DeepPink4")
+    ("255 110 180" "HotPink1")
+    ("238 106 167" "HotPink2")
+    ("205  96 144" "HotPink3")
+    ("139  58  98" "HotPink4")
+    ("255 181 197" "pink1")
+    ("238 169 184" "pink2")
+    ("205 145 158" "pink3")
+    ("139  99 108" "pink4")
+    ("255 174 185" "LightPink1")
+    ("238 162 173" "LightPink2")
+    ("205 140 149" "LightPink3")
+    ("139  95 101" "LightPink4")
+    ("255 130 171" "PaleVioletRed1")
+    ("238 121 159" "PaleVioletRed2")
+    ("205 104 137" "PaleVioletRed3")
+    ("139  71 93" "PaleVioletRed4")
+    ("255  52 179" "maroon1")
+    ("238  48 167" "maroon2")
+    ("205  41 144" "maroon3")
+    ("139  28 98" "maroon4")
+    ("255  62 150" "VioletRed1")
+    ("238  58 140" "VioletRed2")
+    ("205  50 120" "VioletRed3")
+    ("139  34 82" "VioletRed4")
+    ("255   0 255" "magenta1")
+    ("238   0 238" "magenta2")
+    ("205   0 205" "magenta3")
+    ("139   0 139" "magenta4")
+    ("255 131 250" "orchid1")
+    ("238 122 233" "orchid2")
+    ("205 105 201" "orchid3")
+    ("139  71 137" "orchid4")
+    ("255 187 255" "plum1")
+    ("238 174 238" "plum2")
+    ("205 150 205" "plum3")
+    ("139 102 139" "plum4")
+    ("224 102 255" "MediumOrchid1")
+    ("209  95 238" "MediumOrchid2")
+    ("180  82 205" "MediumOrchid3")
+    ("122  55 139" "MediumOrchid4")
+    ("191  62 255" "DarkOrchid1")
+    ("178  58 238" "DarkOrchid2")
+    ("154  50 205" "DarkOrchid3")
+    ("104  34 139" "DarkOrchid4")
+    ("155  48 255" "purple1")
+    ("145  44 238" "purple2")
+    ("125  38 205" "purple3")
+    (" 85  26 139" "purple4")
+    ("171 130 255" "MediumPurple1")
+    ("159 121 238" "MediumPurple2")
+    ("137 104 205" "MediumPurple3")
+    (" 93  71 139" "MediumPurple4")
+    ("255 225 255" "thistle1")
+    ("238 210 238" "thistle2")
+    ("205 181 205" "thistle3")
+    ("139 123 139" "thistle4")
+    ("  0   0   0" "gray0")
+    ("  0   0   0" "grey0")
+    ("  3   3   3" "gray1")
+    ("  3   3   3" "grey1")
+    ("  5   5   5" "gray2")
+    ("  5   5   5" "grey2")
+    ("  8   8   8" "gray3")
+    ("  8   8   8" "grey3")
+    (" 10  10  10" "gray4")
+    (" 10  10  10" "grey4")
+    (" 13  13  13" "gray5")
+    (" 13  13  13" "grey5")
+    (" 15  15  15" "gray6")
+    (" 15  15  15" "grey6")
+    (" 18  18  18" "gray7")
+    (" 18  18  18" "grey7")
+    (" 20  20  20" "gray8")
+    (" 20  20  20" "grey8")
+    (" 23  23  23" "gray9")
+    (" 23  23  23" "grey9")
+    (" 26  26  26" "gray10")
+    (" 26  26  26" "grey10")
+    (" 28  28  28" "gray11")
+    (" 28  28  28" "grey11")
+    (" 31  31  31" "gray12")
+    (" 31  31  31" "grey12")
+    (" 33  33  33" "gray13")
+    (" 33  33  33" "grey13")
+    (" 36  36  36" "gray14")
+    (" 36  36  36" "grey14")
+    (" 38  38  38" "gray15")
+    (" 38  38  38" "grey15")
+    (" 41  41  41" "gray16")
+    (" 41  41  41" "grey16")
+    (" 43  43  43" "gray17")
+    (" 43  43  43" "grey17")
+    (" 46  46  46" "gray18")
+    (" 46  46  46" "grey18")
+    (" 48  48  48" "gray19")
+    (" 48  48  48" "grey19")
+    (" 51  51  51" "gray20")
+    (" 51  51  51" "grey20")
+    (" 54  54  54" "gray21")
+    (" 54  54  54" "grey21")
+    (" 56  56  56" "gray22")
+    (" 56  56  56" "grey22")
+    (" 59  59  59" "gray23")
+    (" 59  59  59" "grey23")
+    (" 61  61  61" "gray24")
+    (" 61  61  61" "grey24")
+    (" 64  64  64" "gray25")
+    (" 64  64  64" "grey25")
+    (" 66  66  66" "gray26")
+    (" 66  66  66" "grey26")
+    (" 69  69  69" "gray27")
+    (" 69  69  69" "grey27")
+    (" 71  71  71" "gray28")
+    (" 71  71  71" "grey28")
+    (" 74  74  74" "gray29")
+    (" 74  74  74" "grey29")
+    (" 77  77  77" "gray30")
+    (" 77  77  77" "grey30")
+    (" 79  79  79" "gray31")
+    (" 79  79  79" "grey31")
+    (" 82  82  82" "gray32")
+    (" 82  82  82" "grey32")
+    (" 84  84  84" "gray33")
+    (" 84  84  84" "grey33")
+    (" 87  87  87" "gray34")
+    (" 87  87  87" "grey34")
+    (" 89  89  89" "gray35")
+    (" 89  89  89" "grey35")
+    (" 92  92  92" "gray36")
+    (" 92  92  92" "grey36")
+    (" 94  94  94" "gray37")
+    (" 94  94  94" "grey37")
+    (" 97  97  97" "gray38")
+    (" 97  97  97" "grey38")
+    (" 99  99  99" "gray39")
+    (" 99  99  99" "grey39")
+    ("102 102 102" "gray40")
+    ("102 102 102" "grey40")
+    ("105 105 105" "gray41")
+    ("105 105 105" "grey41")
+    ("107 107 107" "gray42")
+    ("107 107 107" "grey42")
+    ("110 110 110" "gray43")
+    ("110 110 110" "grey43")
+    ("112 112 112" "gray44")
+    ("112 112 112" "grey44")
+    ("115 115 115" "gray45")
+    ("115 115 115" "grey45")
+    ("117 117 117" "gray46")
+    ("117 117 117" "grey46")
+    ("120 120 120" "gray47")
+    ("120 120 120" "grey47")
+    ("122 122 122" "gray48")
+    ("122 122 122" "grey48")
+    ("125 125 125" "gray49")
+    ("125 125 125" "grey49")
+    ("127 127 127" "gray50")
+    ("127 127 127" "grey50")
+    ("130 130 130" "gray51")
+    ("130 130 130" "grey51")
+    ("133 133 133" "gray52")
+    ("133 133 133" "grey52")
+    ("135 135 135" "gray53")
+    ("135 135 135" "grey53")
+    ("138 138 138" "gray54")
+    ("138 138 138" "grey54")
+    ("140 140 140" "gray55")
+    ("140 140 140" "grey55")
+    ("143 143 143" "gray56")
+    ("143 143 143" "grey56")
+    ("145 145 145" "gray57")
+    ("145 145 145" "grey57")
+    ("148 148 148" "gray58")
+    ("148 148 148" "grey58")
+    ("150 150 150" "gray59")
+    ("150 150 150" "grey59")
+    ("153 153 153" "gray60")
+    ("153 153 153" "grey60")
+    ("156 156 156" "gray61")
+    ("156 156 156" "grey61")
+    ("158 158 158" "gray62")
+    ("158 158 158" "grey62")
+    ("161 161 161" "gray63")
+    ("161 161 161" "grey63")
+    ("163 163 163" "gray64")
+    ("163 163 163" "grey64")
+    ("166 166 166" "gray65")
+    ("166 166 166" "grey65")
+    ("168 168 168" "gray66")
+    ("168 168 168" "grey66")
+    ("171 171 171" "gray67")
+    ("171 171 171" "grey67")
+    ("173 173 173" "gray68")
+    ("173 173 173" "grey68")
+    ("176 176 176" "gray69")
+    ("176 176 176" "grey69")
+    ("179 179 179" "gray70")
+    ("179 179 179" "grey70")
+    ("181 181 181" "gray71")
+    ("181 181 181" "grey71")
+    ("184 184 184" "gray72")
+    ("184 184 184" "grey72")
+    ("186 186 186" "gray73")
+    ("186 186 186" "grey73")
+    ("189 189 189" "gray74")
+    ("189 189 189" "grey74")
+    ("191 191 191" "gray75")
+    ("191 191 191" "grey75")
+    ("194 194 194" "gray76")
+    ("194 194 194" "grey76")
+    ("196 196 196" "gray77")
+    ("196 196 196" "grey77")
+    ("199 199 199" "gray78")
+    ("199 199 199" "grey78")
+    ("201 201 201" "gray79")
+    ("201 201 201" "grey79")
+    ("204 204 204" "gray80")
+    ("204 204 204" "grey80")
+    ("207 207 207" "gray81")
+    ("207 207 207" "grey81")
+    ("209 209 209" "gray82")
+    ("209 209 209" "grey82")
+    ("212 212 212" "gray83")
+    ("212 212 212" "grey83")
+    ("214 214 214" "gray84")
+    ("214 214 214" "grey84")
+    ("217 217 217" "gray85")
+    ("217 217 217" "grey85")
+    ("219 219 219" "gray86")
+    ("219 219 219" "grey86")
+    ("222 222 222" "gray87")
+    ("222 222 222" "grey87")
+    ("224 224 224" "gray88")
+    ("224 224 224" "grey88")
+    ("227 227 227" "gray89")
+    ("227 227 227" "grey89")
+    ("229 229 229" "gray90")
+    ("229 229 229" "grey90")
+    ("232 232 232" "gray91")
+    ("232 232 232" "grey91")
+    ("235 235 235" "gray92")
+    ("235 235 235" "grey92")
+    ("237 237 237" "gray93")
+    ("237 237 237" "grey93")
+    ("240 240 240" "gray94")
+    ("240 240 240" "grey94")
+    ("242 242 242" "gray95")
+    ("242 242 242" "grey95")
+    ("245 245 245" "gray96")
+    ("245 245 245" "grey96")
+    ("247 247 247" "gray97")
+    ("247 247 247" "grey97")
+    ("250 250 250" "gray98")
+    ("250 250 250" "grey98")
+    ("252 252 252" "gray99")
+    ("252 252 252" "grey99")
+    ("255 255 255" "gray100")
+    ("255 255 255" "grey100")
+    ("169 169 169" "DarkGrey")
+    ("169 169 169" "DarkGray")
+    ("0     0 139" "DarkBlue")
+    ("0   139 139" "DarkCyan")
+    ("139   0 139" "DarkMagenta")
+    ("139   0   0" "DarkRed")
+    ("144 238 144" "LightGreen")
+    ("0   255 255" "aqua")
+    ("192 192 192" "silver")
+    ("75    0 130" "indigo")
+    ("128 128   0" "olive")
+    ("0   255   0" "lime")
+    ("255   0 255" "fuchsia")
+    ("220  20  60" "crimson")
+    ("0   128 128" "teal")
+    ("102  51 153" "rebeccapurple")))
+
+
+;;;
+;;; parse tango colors
+;;;   Tango color palette
+;;;     https://en.wikipedia.org/wiki/Tango_Desktop_Project#Palette
+;;;
+
+(define (parse-tango-color-spec)
+  (for-each
+      (match-lambda
+        ((name rgb)
+         (define-color name rgb)))
+      %tango-color-spec))
+
+(define %tango-color-spec
+  '(("tango butter" "237 212 0")		;; #xedd400
+    ("tango butter light" "252 206 79")		;; #xfce94f
+    ("tango butter dark" "196 160 0")		;; #xc4a000
+
+    ("tango orange" "245 121 0")		;; #xf57900
+    ("tango orange light" "252 175 62")		;; #xfcaf3e
+    ("tango orange dark" "206 92 0")		;; #xce5c00
+
+    ("tango chocolate" "193 125 17")		;; #xc17d11
+    ("tango chocolate light" "233 185 110")	;; #xe9b96e
+    ("tango chocolate dark" "143 89 2")		;; #x8f5902
+
+    ("tango chameleon" "115 210 22")		;; #x73d216
+    ("tango chameleon light" "138 226 52")	;; #x8ae234
+    ("tango chameleon dark" "78 154 6")		;; #x4e9a06
+
+    ("tango sky blue" "52 101 164")		;; #x3465a4
+    ("tango sky blue light" "114 159 207")	;; #x729fcf
+    ("tango sky blue dark" "32 74 135")		;; #x204a87
+
+    ("tango plum" "117 80 123")			;; #x75507b
+    ("tango plum light" "173 127 168")		;; #xad7fa8
+    ("tango plum dark" "92 53 102")		;; #x5c3566
+
+    ("tango scarlet red" "204 0 0") 		;; #xcc0000
+    ("tango scarlet red light" "239 41 41")	;; #xef2929
+    ("tango scarlet red dark" "164 0 0")	;; #xa40000
+
+    ("tango aluminium 1" "238 238 236")         ;; #xeeeeec
+    ("tango aluminium 2" "211 215 207")         ;; #xd3d7cf
+    ("tango aluminium 3" "186 189 182")         ;; #xbabdb6
+    ("tango aluminium 4" "136 138 133")         ;; #x888a85
+    ("tango aluminium 5" "85 87 83")            ;; #x555753
+    ("tango aluminium 6" "46 52 54")       	;; #x2e3436
+
+    ("tango trash outline" "73 81 6")           ;; #x495106
+    ("tango trash highlight" "201 209 130")     ;; #xc9d182
+    ("tango trash content" "133 142 63")))	;; #x858e3f
+
+
+;;;
+;;; parse db32 colors
+;;;   DawnBringer 32 color palette
+;;;     http://pixeljoint.com/forum/forum_posts.asp?TID=16247
+;;;   Color names taken from
+;;;     http://privat.bahnhof.se/wb364826/pic/db32.gpl
+;;;
+
+(define (parse-db32-color-spec)
+  (for-each
+      (match-lambda
+        ((name rgb)
+         (define-color name rgb)))
+      %db32-color-spec))
+
+(define %db32-color-spec
+  '(("db32-black" "0 0 0")
+    ("db32-valhalla" "34 32 52")
+    ("db32-loulou" "69 40 60")
+    ("db32-oiled-cedar" "102 57 49")
+    ("db32-rope" "143 86 59")
+    ("db32-tahiti-gold" "223 113 38")
+    ("db32-twine" "217 160 102")
+    ("db32-pancho" "238 195 154")
+    ("db32-golden-fizz" "251 242 54")
+    ("db32-atlantis" "153 229 80")
+    ("db32-christi" "106 190 48")
+    ("db32-elf-green" "55 148 110")
+    ("db32-dell" "75 105 47")
+    ("db32-verdigris" "82 75 36")
+    ("db32-opal" "50 60 57")
+    ("db32-deep-koamaru" "63 63 116")
+    ("db32-venice-blue" "48 96 130")
+    ("db32-royal-blue" "91 110 225")
+    ("db32-cornflower" "99 155 255")
+    ("db32-viking" "95 205 228")
+    ("db32-light-steel-blue" "203 219 252")
+    ("db32-white" "255 255 255")
+    ("db32-heather" "155 173 183")
+    ("db32-topaz" "132 126 135")
+    ("db32-dim-gray" "105 106 106")
+    ("db32-smokey-ash" "89 86 82")
+    ("db32-clairvoyant" "118 66 138")
+    ("db32-brown" "172 50 50")
+    ("db32-mandy" "217 87 99")
+    ("db32-plum" "215 123 186")
+    ("db32-rain-forest" "143 151 74")
+    ("db32-stinger" "138 111 48")))
+
+
+#!
+
+Finally, i got an answer from the GNOME team, that what is used by
+Gdk (and pango) is actually this file:
+
+  https://gitlab.gnome.org/GNOME/pango/-/blob/main/tools/rgb.txt?ref_type=heads
+
+That is now what g-golf will use as well, but let's just keep the
+earlier def, based on the css4 color keyword and debian testing
+/etc/rgb.txt, in case ...
+
+
+;;;
+;;; parse css colors
+;;;   https://www.w3.org/TR/css-color-4/#color-keywords
+;;;
+
+(define (parse-css-color-spec)
+  (for-each
+      (match-lambda
+        ((name hex rgb)
+         (define-color name rgb)))
+      %css-color-spec))
+
+(define %css-color-spec
+  '(("aliceblue" "#F0F8FF" "240 248 255")
+    ("antiquewhite" "#FAEBD7" "250 235 215")
+    ("aqua" "#00FFFF" "0 255 255")
+    ("aquamarine" "#7FFFD4" "127 255 212")
+    ("azure" "#F0FFFF" "240 255 255")
+    ("beige" "#F5F5DC" "245 245 220")
+    ("bisque" "#FFE4C4" "255 228 196")
+    ("black" "#000000" "0 0 0")
+    ("blanchedalmond" "#FFEBCD" "255 235 205")
+    ("blue" "#0000FF" "0 0 255")
+    ("blueviolet" "#8A2BE2" "138 43 226")
+    ("brown" "#A52A2A" "165 42 42")
+    ("burlywood" "#DEB887" "222 184 135")
+    ("cadetblue" "#5F9EA0" "95 158 160")
+    ("chartreuse" "#7FFF00" "127 255 0")
+    ("chocolate" "#D2691E" "210 105 30")
+    ("coral" "#FF7F50" "255 127 80")
+    ("cornflowerblue" "#6495ED" "100 149 237")
+    ("cornsilk" "#FFF8DC" "255 248 220")
+    ("crimson" "#DC143C" "220 20 60")
+    ("cyan" "#00FFFF" "0 255 255")
+    ("darkblue" "#00008B" "0 0 139")
+    ("darkcyan" "#008B8B" "0 139 139")
+    ("darkgoldenrod" "#B8860B" "184 134 11")
+    ("darkgray" "#A9A9A9" "169 169 169")
+    ("darkgreen" "#006400" "0 100 0")
+    ("darkgrey" "#A9A9A9" "169 169 169")
+    ("darkkhaki" "#BDB76B" "189 183 107")
+    ("darkmagenta" "#8B008B" "139 0 139")
+    ("darkolivegreen" "#556B2F" "85 107 47")
+    ("darkorange" "#FF8C00" "255 140 0")
+    ("darkorchid" "#9932CC" "153 50 204")
+    ("darkred" "#8B0000" "139 0 0")
+    ("darksalmon" "#E9967A" "233 150 122")
+    ("darkseagreen" "#8FBC8F" "143 188 143")
+    ("darkslateblue" "#483D8B" "72 61 139")
+    ("darkslategray" "#2F4F4F" "47 79 79")
+    ("darkslategrey" "#2F4F4F" "47 79 79")
+    ("darkturquoise" "#00CED1" "0 206 209")
+    ("darkviolet" "#9400D3" "148 0 211")
+    ("deeppink" "#FF1493" "255 20 147")
+    ("deepskyblue" "#00BFFF" "0 191 255")
+    ("dimgray" "#696969" "105 105 105")
+    ("dimgrey" "#696969" "105 105 105")
+    ("dodgerblue" "#1E90FF" "30 144 255")
+    ("firebrick" "#B22222" "178 34 34")
+    ("floralwhite" "#FFFAF0" "255 250 240")
+    ("forestgreen" "#228B22" "34 139 34")
+    ("fuchsia" "#FF00FF" "255 0 255")
+    ("gainsboro" "#DCDCDC" "220 220 220")
+    ("ghostwhite" "#F8F8FF" "248 248 255")
+    ("gold" "#FFD700" "255 215 0")
+    ("goldenrod" "#DAA520" "218 165 32")
+    ("gray" "#808080" "128 128 128")
+    ("green" "#008000" "0 128 0")
+    ("greenyellow" "#ADFF2F" "173 255 47")
+    ("grey" "#808080" "128 128 128")
+    ("honeydew" "#F0FFF0" "240 255 240")
+    ("hotpink" "#FF69B4" "255 105 180")
+    ("indianred" "#CD5C5C" "205 92 92")
+    ("indigo" "#4B0082" "75 0 130")
+    ("ivory" "#FFFFF0" "255 255 240")
+    ("khaki" "#F0E68C" "240 230 140")
+    ("lavender" "#E6E6FA" "230 230 250")
+    ("lavenderblush" "#FFF0F5" "255 240 245")
+    ("lawngreen" "#7CFC00" "124 252 0")
+    ("lemonchiffon" "#FFFACD" "255 250 205")
+    ("lightblue" "#ADD8E6" "173 216 230")
+    ("lightcoral" "#F08080" "240 128 128")
+    ("lightcyan" "#E0FFFF" "224 255 255")
+    ("lightgoldenrodyellow" "#FAFAD2" "250 250 210")
+    ("lightgray" "#D3D3D3" "211 211 211")
+    ("lightgreen" "#90EE90" "144 238 144")
+    ("lightgrey" "#D3D3D3" "211 211 211")
+    ("lightpink" "#FFB6C1" "255 182 193")
+    ("lightsalmon" "#FFA07A" "255 160 122")
+    ("lightseagreen" "#20B2AA" "32 178 170")
+    ("lightskyblue" "#87CEFA" "135 206 250")
+    ("lightslategray" "#778899" "119 136 153")
+    ("lightslategrey" "#778899" "119 136 153")
+    ("lightsteelblue" "#B0C4DE" "176 196 222")
+    ("lightyellow" "#FFFFE0" "255 255 224")
+    ("lime" "#00FF00" "0 255 0")
+    ("limegreen" "#32CD32" "50 205 50")
+    ("linen" "#FAF0E6" "250 240 230")
+    ("magenta" "#FF00FF" "255 0 255")
+    ("maroon" "#800000" "128 0 0")
+    ("mediumaquamarine" "#66CDAA" "102 205 170")
+    ("mediumblue" "#0000CD" "0 0 205")
+    ("mediumorchid" "#BA55D3" "186 85 211")
+    ("mediumpurple" "#9370DB" "147 112 219")
+    ("mediumseagreen" "#3CB371" "60 179 113")
+    ("mediumslateblue" "#7B68EE" "123 104 238")
+    ("mediumspringgreen" "#00FA9A" "0 250 154")
+    ("mediumturquoise" "#48D1CC" "72 209 204")
+    ("mediumvioletred" "#C71585" "199 21 133")
+    ("midnightblue" "#191970" "25 25 112")
+    ("mintcream" "#F5FFFA" "245 255 250")
+    ("mistyrose" "#FFE4E1" "255 228 225")
+    ("moccasin" "#FFE4B5" "255 228 181")
+    ("navajowhite" "#FFDEAD" "255 222 173")
+    ("navy" "#000080" "0 0 128")
+    ("oldlace" "#FDF5E6" "253 245 230")
+    ("olive" "#808000" "128 128 0")
+    ("olivedrab" "#6B8E23" "107 142 35")
+    ("orange" "#FFA500" "255 165 0")
+    ("orangered" "#FF4500" "255 69 0")
+    ("orchid" "#DA70D6" "218 112 214")
+    ("palegoldenrod" "#EEE8AA" "238 232 170")
+    ("palegreen" "#98FB98" "152 251 152")
+    ("paleturquoise" "#AFEEEE" "175 238 238")
+    ("palevioletred" "#DB7093" "219 112 147")
+    ("papayawhip" "#FFEFD5" "255 239 213")
+    ("peachpuff" "#FFDAB9" "255 218 185")
+    ("peru" "#CD853F" "205 133 63")
+    ("pink" "#FFC0CB" "255 192 203")
+    ("plum" "#DDA0DD" "221 160 221")
+    ("powderblue" "#B0E0E6" "176 224 230")
+    ("purple" "#800080" "128 0 128")
+    ("rebeccapurple" "#663399" "102 51 153")
+    ("red" "#FF0000" "255 0 0")
+    ("rosybrown" "#BC8F8F" "188 143 143")
+    ("royalblue" "#4169E1" "65 105 225")
+    ("saddlebrown" "#8B4513" "139 69 19")
+    ("salmon" "#FA8072" "250 128 114")
+    ("sandybrown" "#F4A460" "244 164 96")
+    ("seagreen" "#2E8B57" "46 139 87")
+    ("seashell" "#FFF5EE" "255 245 238")
+    ("sienna" "#A0522D" "160 82 45")
+    ("silver" "#C0C0C0" "192 192 192")
+    ("skyblue" "#87CEEB" "135 206 235")
+    ("slateblue" "#6A5ACD" "106 90 205")
+    ("slategray" "#708090" "112 128 144")
+    ("slategrey" "#708090" "112 128 144")
+    ("snow" "#FFFAFA" "255 250 250")
+    ("springgreen" "#00FF7F" "0 255 127")
+    ("steelblue" "#4682B4" "70 130 180")
+    ("tan" "#D2B48C" "210 180 140")
+    ("teal" "#008080" "0 128 128")
+    ("thistle" "#D8BFD8" "216 191 216")
+    ("tomato" "#FF6347" "255 99 71")
+    ("turquoise" "#40E0D0" "64 224 208")
+    ("violet" "#EE82EE" "238 130 238")
+    ("wheat" "#F5DEB3" "245 222 179")
+    ("white" "#FFFFFF" "255 255 255")
+    ("whitesmoke" "#F5F5F5" "245 245 245")
+    ("yellow" "#FFFF00" "255 255 0")
+    ("yellowgreen" "#9ACD32" "154 205 50")))
+
+
+;;;
+;;; parse x11 rgb colors
+;;;
+
+(define (parse-x11-rgb-spec)
+  (let* ((x11-rgb-spec-filename "/etc/X11/rgb.txt")
+         (x11-rgb-spec-port (if (access? x11-rgb-spec-filename R_OK)
+                                (open-input-file x11-rgb-spec-filename)
+                                (begin
+                                  (warning
+                                   "Missing /etc/X11/rgb.txt, using a fallback.")
+                                  (open-input-string %x11-rgb-spec-fallback)))))
+    ;; skip the first line
+    (read-line x11-rgb-spec-port)
+    (do ((line (read-line x11-rgb-spec-port)
+               (read-line x11-rgb-spec-port)))
+        ((eof-object? line)
+         (close-port x11-rgb-spec-port))
+      (parse-x11-rgb-spec-entry line))
+    (values)))
+
+(define (parse-x11-rgb-spec-entry x11-rgb-spec-entry)
+  ;; some rgb values use #\Tab, but all entries use two #\Tab to
+  ;; separate the rgb value from the name.
+  (let* ((entry (string-replace-all x11-rgb-spec-entry "\t\t" "/"))
+         (color (string-split entry #\/)))
+    (match color
+      ((rgb name)
+       (define-color name rgb))
+      (else
+       (scm-error 'parse-x11-rgb-spec-entry-error
+                  #f
+                  "Unknown rgb spec entry format: ~S"
+                  (list x11-rgb-spec-entry)
+                  #f)))))
+
+
+;;;
+;;; rgb.txt fallback
+;;;
+
+(define %x11-rgb-spec-fallback
+  "! $Xorg: rgb.txt,v 1.3 2000/08/17 19:54:00 cpqbld Exp $
+255 250 250		snow
+248 248 255		ghost white
+248 248 255		GhostWhite
+245 245 245		white smoke
+245 245 245		WhiteSmoke
+220 220 220		gainsboro
+255 250 240		floral white
+255 250 240		FloralWhite
+253 245 230		old lace
+253 245 230		OldLace
+250 240 230		linen
+250 235 215		antique white
+250 235 215		AntiqueWhite
+255 239 213		papaya whip
+255 239 213		PapayaWhip
+255 235 205		blanched almond
+255 235 205		BlanchedAlmond
+255 228 196		bisque
+255 218 185		peach puff
+255 218 185		PeachPuff
+255 222 173		navajo white
+255 222 173		NavajoWhite
+255 228 181		moccasin
+255 248 220		cornsilk
+255 255 240		ivory
+255 250 205		lemon chiffon
+255 250 205		LemonChiffon
+255 245 238		seashell
+240 255 240		honeydew
+245 255 250		mint cream
+245 255 250		MintCream
+240 255 255		azure
+240 248 255		alice blue
+240 248 255		AliceBlue
+230 230 250		lavender
+255 240 245		lavender blush
+255 240 245		LavenderBlush
+255 228 225		misty rose
+255 228 225		MistyRose
+255 255 255		white
+  0   0   0		black
+ 47  79  79		dark slate gray
+ 47  79  79		DarkSlateGray
+ 47  79  79		dark slate grey
+ 47  79  79		DarkSlateGrey
+105 105 105		dim gray
+105 105 105		DimGray
+105 105 105		dim grey
+105 105 105		DimGrey
+112 128 144		slate gray
+112 128 144		SlateGray
+112 128 144		slate grey
+112 128 144		SlateGrey
+119 136 153		light slate gray
+119 136 153		LightSlateGray
+119 136 153		light slate grey
+119 136 153		LightSlateGrey
+190 190 190		gray
+190 190 190		grey
+211 211 211		light grey
+211 211 211		LightGrey
+211 211 211		light gray
+211 211 211		LightGray
+ 25  25 112		midnight blue
+ 25  25 112		MidnightBlue
+  0   0 128		navy
+  0   0 128		navy blue
+  0   0 128		NavyBlue
+100 149 237		cornflower blue
+100 149 237		CornflowerBlue
+ 72  61 139		dark slate blue
+ 72  61 139		DarkSlateBlue
+106  90 205		slate blue
+106  90 205		SlateBlue
+123 104 238		medium slate blue
+123 104 238		MediumSlateBlue
+132 112 255		light slate blue
+132 112 255		LightSlateBlue
+  0   0 205		medium blue
+  0   0 205		MediumBlue
+ 65 105 225		royal blue
+ 65 105 225		RoyalBlue
+  0   0 255		blue
+ 30 144 255		dodger blue
+ 30 144 255		DodgerBlue
+  0 191 255		deep sky blue
+  0 191 255		DeepSkyBlue
+135 206 235		sky blue
+135 206 235		SkyBlue
+135 206 250		light sky blue
+135 206 250		LightSkyBlue
+ 70 130 180		steel blue
+ 70 130 180		SteelBlue
+176 196 222		light steel blue
+176 196 222		LightSteelBlue
+173 216 230		light blue
+173 216 230		LightBlue
+176 224 230		powder blue
+176 224 230		PowderBlue
+175 238 238		pale turquoise
+175 238 238		PaleTurquoise
+  0 206 209		dark turquoise
+  0 206 209		DarkTurquoise
+ 72 209 204		medium turquoise
+ 72 209 204		MediumTurquoise
+ 64 224 208		turquoise
+  0 255 255		cyan
+224 255 255		light cyan
+224 255 255		LightCyan
+ 95 158 160		cadet blue
+ 95 158 160		CadetBlue
+102 205 170		medium aquamarine
+102 205 170		MediumAquamarine
+127 255 212		aquamarine
+  0 100   0		dark green
+  0 100   0		DarkGreen
+ 85 107  47		dark olive green
+ 85 107  47		DarkOliveGreen
+143 188 143		dark sea green
+143 188 143		DarkSeaGreen
+ 46 139  87		sea green
+ 46 139  87		SeaGreen
+ 60 179 113		medium sea green
+ 60 179 113		MediumSeaGreen
+ 32 178 170		light sea green
+ 32 178 170		LightSeaGreen
+152 251 152		pale green
+152 251 152		PaleGreen
+  0 255 127		spring green
+  0 255 127		SpringGreen
+124 252   0		lawn green
+124 252   0		LawnGreen
+  0 255   0		green
+127 255   0		chartreuse
+  0 250 154		medium spring green
+  0 250 154		MediumSpringGreen
+173 255  47		green yellow
+173 255  47		GreenYellow
+ 50 205  50		lime green
+ 50 205  50		LimeGreen
+154 205  50		yellow green
+154 205  50		YellowGreen
+ 34 139  34		forest green
+ 34 139  34		ForestGreen
+107 142  35		olive drab
+107 142  35		OliveDrab
+189 183 107		dark khaki
+189 183 107		DarkKhaki
+240 230 140		khaki
+238 232 170		pale goldenrod
+238 232 170		PaleGoldenrod
+250 250 210		light goldenrod yellow
+250 250 210		LightGoldenrodYellow
+255 255 224		light yellow
+255 255 224		LightYellow
+255 255   0		yellow
+255 215   0 		gold
+238 221 130		light goldenrod
+238 221 130		LightGoldenrod
+218 165  32		goldenrod
+184 134  11		dark goldenrod
+184 134  11		DarkGoldenrod
+188 143 143		rosy brown
+188 143 143		RosyBrown
+205  92  92		indian red
+205  92  92		IndianRed
+139  69  19		saddle brown
+139  69  19		SaddleBrown
+160  82  45		sienna
+205 133  63		peru
+222 184 135		burlywood
+245 245 220		beige
+245 222 179		wheat
+244 164  96		sandy brown
+244 164  96		SandyBrown
+210 180 140		tan
+210 105  30		chocolate
+178  34  34		firebrick
+165  42  42		brown
+233 150 122		dark salmon
+233 150 122		DarkSalmon
+250 128 114		salmon
+255 160 122		light salmon
+255 160 122		LightSalmon
+255 165   0		orange
+255 140   0		dark orange
+255 140   0		DarkOrange
+255 127  80		coral
+240 128 128		light coral
+240 128 128		LightCoral
+255  99  71		tomato
+255  69   0		orange red
+255  69   0		OrangeRed
+255   0   0		red
+255 105 180		hot pink
+255 105 180		HotPink
+255  20 147		deep pink
+255  20 147		DeepPink
+255 192 203		pink
+255 182 193		light pink
+255 182 193		LightPink
+219 112 147		pale violet red
+219 112 147		PaleVioletRed
+176  48  96		maroon
+199  21 133		medium violet red
+199  21 133		MediumVioletRed
+208  32 144		violet red
+208  32 144		VioletRed
+255   0 255		magenta
+238 130 238		violet
+221 160 221		plum
+218 112 214		orchid
+186  85 211		medium orchid
+186  85 211		MediumOrchid
+153  50 204		dark orchid
+153  50 204		DarkOrchid
+148   0 211		dark violet
+148   0 211		DarkViolet
+138  43 226		blue violet
+138  43 226		BlueViolet
+160  32 240		purple
+147 112 219		medium purple
+147 112 219		MediumPurple
+216 191 216		thistle
+255 250 250		snow1
+238 233 233		snow2
+205 201 201		snow3
+139 137 137		snow4
+255 245 238		seashell1
+238 229 222		seashell2
+205 197 191		seashell3
+139 134 130		seashell4
+255 239 219		AntiqueWhite1
+238 223 204		AntiqueWhite2
+205 192 176		AntiqueWhite3
+139 131 120		AntiqueWhite4
+255 228 196		bisque1
+238 213 183		bisque2
+205 183 158		bisque3
+139 125 107		bisque4
+255 218 185		PeachPuff1
+238 203 173		PeachPuff2
+205 175 149		PeachPuff3
+139 119 101		PeachPuff4
+255 222 173		NavajoWhite1
+238 207 161		NavajoWhite2
+205 179 139		NavajoWhite3
+139 121	 94		NavajoWhite4
+255 250 205		LemonChiffon1
+238 233 191		LemonChiffon2
+205 201 165		LemonChiffon3
+139 137 112		LemonChiffon4
+255 248 220		cornsilk1
+238 232 205		cornsilk2
+205 200 177		cornsilk3
+139 136 120		cornsilk4
+255 255 240		ivory1
+238 238 224		ivory2
+205 205 193		ivory3
+139 139 131		ivory4
+240 255 240		honeydew1
+224 238 224		honeydew2
+193 205 193		honeydew3
+131 139 131		honeydew4
+255 240 245		LavenderBlush1
+238 224 229		LavenderBlush2
+205 193 197		LavenderBlush3
+139 131 134		LavenderBlush4
+255 228 225		MistyRose1
+238 213 210		MistyRose2
+205 183 181		MistyRose3
+139 125 123		MistyRose4
+240 255 255		azure1
+224 238 238		azure2
+193 205 205		azure3
+131 139 139		azure4
+131 111 255		SlateBlue1
+122 103 238		SlateBlue2
+105  89 205		SlateBlue3
+ 71  60 139		SlateBlue4
+ 72 118 255		RoyalBlue1
+ 67 110 238		RoyalBlue2
+ 58  95 205		RoyalBlue3
+ 39  64 139		RoyalBlue4
+  0   0 255		blue1
+  0   0 238		blue2
+  0   0 205		blue3
+  0   0 139		blue4
+ 30 144 255		DodgerBlue1
+ 28 134 238		DodgerBlue2
+ 24 116 205		DodgerBlue3
+ 16  78 139		DodgerBlue4
+ 99 184 255		SteelBlue1
+ 92 172 238		SteelBlue2
+ 79 148 205		SteelBlue3
+ 54 100 139		SteelBlue4
+  0 191 255		DeepSkyBlue1
+  0 178 238		DeepSkyBlue2
+  0 154 205		DeepSkyBlue3
+  0 104 139		DeepSkyBlue4
+135 206 255		SkyBlue1
+126 192 238		SkyBlue2
+108 166 205		SkyBlue3
+ 74 112 139		SkyBlue4
+176 226 255		LightSkyBlue1
+164 211 238		LightSkyBlue2
+141 182 205		LightSkyBlue3
+ 96 123 139		LightSkyBlue4
+198 226 255		SlateGray1
+185 211 238		SlateGray2
+159 182 205		SlateGray3
+108 123 139		SlateGray4
+202 225 255		LightSteelBlue1
+188 210 238		LightSteelBlue2
+162 181 205		LightSteelBlue3
+110 123 139		LightSteelBlue4
+191 239 255		LightBlue1
+178 223 238		LightBlue2
+154 192 205		LightBlue3
+104 131 139		LightBlue4
+224 255 255		LightCyan1
+209 238 238		LightCyan2
+180 205 205		LightCyan3
+122 139 139		LightCyan4
+187 255 255		PaleTurquoise1
+174 238 238		PaleTurquoise2
+150 205 205		PaleTurquoise3
+102 139 139		PaleTurquoise4
+152 245 255		CadetBlue1
+142 229 238		CadetBlue2
+122 197 205		CadetBlue3
+ 83 134 139		CadetBlue4
+  0 245 255		turquoise1
+  0 229 238		turquoise2
+  0 197 205		turquoise3
+  0 134 139		turquoise4
+  0 255 255		cyan1
+  0 238 238		cyan2
+  0 205 205		cyan3
+  0 139 139		cyan4
+151 255 255		DarkSlateGray1
+141 238 238		DarkSlateGray2
+121 205 205		DarkSlateGray3
+ 82 139 139		DarkSlateGray4
+127 255 212		aquamarine1
+118 238 198		aquamarine2
+102 205 170		aquamarine3
+ 69 139 116		aquamarine4
+193 255 193		DarkSeaGreen1
+180 238 180		DarkSeaGreen2
+155 205 155		DarkSeaGreen3
+105 139 105		DarkSeaGreen4
+ 84 255 159		SeaGreen1
+ 78 238 148		SeaGreen2
+ 67 205 128		SeaGreen3
+ 46 139	 87		SeaGreen4
+154 255 154		PaleGreen1
+144 238 144		PaleGreen2
+124 205 124		PaleGreen3
+ 84 139	 84		PaleGreen4
+  0 255 127		SpringGreen1
+  0 238 118		SpringGreen2
+  0 205 102		SpringGreen3
+  0 139	 69		SpringGreen4
+  0 255	  0		green1
+  0 238	  0		green2
+  0 205	  0		green3
+  0 139	  0		green4
+127 255	  0		chartreuse1
+118 238	  0		chartreuse2
+102 205	  0		chartreuse3
+ 69 139	  0		chartreuse4
+192 255	 62		OliveDrab1
+179 238	 58		OliveDrab2
+154 205	 50		OliveDrab3
+105 139	 34		OliveDrab4
+202 255 112		DarkOliveGreen1
+188 238 104		DarkOliveGreen2
+162 205	 90		DarkOliveGreen3
+110 139	 61		DarkOliveGreen4
+255 246 143		khaki1
+238 230 133		khaki2
+205 198 115		khaki3
+139 134	 78		khaki4
+255 236 139		LightGoldenrod1
+238 220 130		LightGoldenrod2
+205 190 112		LightGoldenrod3
+139 129	 76		LightGoldenrod4
+255 255 224		LightYellow1
+238 238 209		LightYellow2
+205 205 180		LightYellow3
+139 139 122		LightYellow4
+255 255	  0		yellow1
+238 238	  0		yellow2
+205 205	  0		yellow3
+139 139	  0		yellow4
+255 215	  0		gold1
+238 201	  0		gold2
+205 173	  0		gold3
+139 117	  0		gold4
+255 193	 37		goldenrod1
+238 180	 34		goldenrod2
+205 155	 29		goldenrod3
+139 105	 20		goldenrod4
+255 185	 15		DarkGoldenrod1
+238 173	 14		DarkGoldenrod2
+205 149	 12		DarkGoldenrod3
+139 101	  8		DarkGoldenrod4
+255 193 193		RosyBrown1
+238 180 180		RosyBrown2
+205 155 155		RosyBrown3
+139 105 105		RosyBrown4
+255 106 106		IndianRed1
+238  99	 99		IndianRed2
+205  85	 85		IndianRed3
+139  58	 58		IndianRed4
+255 130	 71		sienna1
+238 121	 66		sienna2
+205 104	 57		sienna3
+139  71	 38		sienna4
+255 211 155		burlywood1
+238 197 145		burlywood2
+205 170 125		burlywood3
+139 115	 85		burlywood4
+255 231 186		wheat1
+238 216 174		wheat2
+205 186 150		wheat3
+139 126 102		wheat4
+255 165	 79		tan1
+238 154	 73		tan2
+205 133	 63		tan3
+139  90	 43		tan4
+255 127	 36		chocolate1
+238 118	 33		chocolate2
+205 102	 29		chocolate3
+139  69	 19		chocolate4
+255  48	 48		firebrick1
+238  44	 44		firebrick2
+205  38	 38		firebrick3
+139  26	 26		firebrick4
+255  64	 64		brown1
+238  59	 59		brown2
+205  51	 51		brown3
+139  35	 35		brown4
+255 140 105		salmon1
+238 130	 98		salmon2
+205 112	 84		salmon3
+139  76	 57		salmon4
+255 160 122		LightSalmon1
+238 149 114		LightSalmon2
+205 129	 98		LightSalmon3
+139  87	 66		LightSalmon4
+255 165	  0		orange1
+238 154	  0		orange2
+205 133	  0		orange3
+139  90	  0		orange4
+255 127	  0		DarkOrange1
+238 118	  0		DarkOrange2
+205 102	  0		DarkOrange3
+139  69	  0		DarkOrange4
+255 114	 86		coral1
+238 106	 80		coral2
+205  91	 69		coral3
+139  62	 47		coral4
+255  99	 71		tomato1
+238  92	 66		tomato2
+205  79	 57		tomato3
+139  54	 38		tomato4
+255  69	  0		OrangeRed1
+238  64	  0		OrangeRed2
+205  55	  0		OrangeRed3
+139  37	  0		OrangeRed4
+255   0	  0		red1
+238   0	  0		red2
+205   0	  0		red3
+139   0	  0		red4
+215   7  81		DebianRed
+255  20 147		DeepPink1
+238  18 137		DeepPink2
+205  16 118		DeepPink3
+139  10	 80		DeepPink4
+255 110 180		HotPink1
+238 106 167		HotPink2
+205  96 144		HotPink3
+139  58  98		HotPink4
+255 181 197		pink1
+238 169 184		pink2
+205 145 158		pink3
+139  99 108		pink4
+255 174 185		LightPink1
+238 162 173		LightPink2
+205 140 149		LightPink3
+139  95 101		LightPink4
+255 130 171		PaleVioletRed1
+238 121 159		PaleVioletRed2
+205 104 137		PaleVioletRed3
+139  71	 93		PaleVioletRed4
+255  52 179		maroon1
+238  48 167		maroon2
+205  41 144		maroon3
+139  28	 98		maroon4
+255  62 150		VioletRed1
+238  58 140		VioletRed2
+205  50 120		VioletRed3
+139  34	 82		VioletRed4
+255   0 255		magenta1
+238   0 238		magenta2
+205   0 205		magenta3
+139   0 139		magenta4
+255 131 250		orchid1
+238 122 233		orchid2
+205 105 201		orchid3
+139  71 137		orchid4
+255 187 255		plum1
+238 174 238		plum2
+205 150 205		plum3
+139 102 139		plum4
+224 102 255		MediumOrchid1
+209  95 238		MediumOrchid2
+180  82 205		MediumOrchid3
+122  55 139		MediumOrchid4
+191  62 255		DarkOrchid1
+178  58 238		DarkOrchid2
+154  50 205		DarkOrchid3
+104  34 139		DarkOrchid4
+155  48 255		purple1
+145  44 238		purple2
+125  38 205		purple3
+ 85  26 139		purple4
+171 130 255		MediumPurple1
+159 121 238		MediumPurple2
+137 104 205		MediumPurple3
+ 93  71 139		MediumPurple4
+255 225 255		thistle1
+238 210 238		thistle2
+205 181 205		thistle3
+139 123 139		thistle4
+  0   0   0		gray0
+  0   0   0		grey0
+  3   3   3		gray1
+  3   3   3		grey1
+  5   5   5		gray2
+  5   5   5		grey2
+  8   8   8		gray3
+  8   8   8		grey3
+ 10  10  10 		gray4
+ 10  10  10 		grey4
+ 13  13  13 		gray5
+ 13  13  13 		grey5
+ 15  15  15 		gray6
+ 15  15  15 		grey6
+ 18  18  18 		gray7
+ 18  18  18 		grey7
+ 20  20  20 		gray8
+ 20  20  20 		grey8
+ 23  23  23 		gray9
+ 23  23  23 		grey9
+ 26  26  26 		gray10
+ 26  26  26 		grey10
+ 28  28  28 		gray11
+ 28  28  28 		grey11
+ 31  31  31 		gray12
+ 31  31  31 		grey12
+ 33  33  33 		gray13
+ 33  33  33 		grey13
+ 36  36  36 		gray14
+ 36  36  36 		grey14
+ 38  38  38 		gray15
+ 38  38  38 		grey15
+ 41  41  41 		gray16
+ 41  41  41 		grey16
+ 43  43  43 		gray17
+ 43  43  43 		grey17
+ 46  46  46 		gray18
+ 46  46  46 		grey18
+ 48  48  48 		gray19
+ 48  48  48 		grey19
+ 51  51  51 		gray20
+ 51  51  51 		grey20
+ 54  54  54 		gray21
+ 54  54  54 		grey21
+ 56  56  56 		gray22
+ 56  56  56 		grey22
+ 59  59  59 		gray23
+ 59  59  59 		grey23
+ 61  61  61 		gray24
+ 61  61  61 		grey24
+ 64  64  64 		gray25
+ 64  64  64 		grey25
+ 66  66  66 		gray26
+ 66  66  66 		grey26
+ 69  69  69 		gray27
+ 69  69  69 		grey27
+ 71  71  71 		gray28
+ 71  71  71 		grey28
+ 74  74  74 		gray29
+ 74  74  74 		grey29
+ 77  77  77 		gray30
+ 77  77  77 		grey30
+ 79  79  79 		gray31
+ 79  79  79 		grey31
+ 82  82  82 		gray32
+ 82  82  82 		grey32
+ 84  84  84 		gray33
+ 84  84  84 		grey33
+ 87  87  87 		gray34
+ 87  87  87 		grey34
+ 89  89  89 		gray35
+ 89  89  89 		grey35
+ 92  92  92 		gray36
+ 92  92  92 		grey36
+ 94  94  94 		gray37
+ 94  94  94 		grey37
+ 97  97  97 		gray38
+ 97  97  97 		grey38
+ 99  99  99 		gray39
+ 99  99  99 		grey39
+102 102 102 		gray40
+102 102 102 		grey40
+105 105 105 		gray41
+105 105 105 		grey41
+107 107 107 		gray42
+107 107 107 		grey42
+110 110 110 		gray43
+110 110 110 		grey43
+112 112 112 		gray44
+112 112 112 		grey44
+115 115 115 		gray45
+115 115 115 		grey45
+117 117 117 		gray46
+117 117 117 		grey46
+120 120 120 		gray47
+120 120 120 		grey47
+122 122 122 		gray48
+122 122 122 		grey48
+125 125 125 		gray49
+125 125 125 		grey49
+127 127 127 		gray50
+127 127 127 		grey50
+130 130 130 		gray51
+130 130 130 		grey51
+133 133 133 		gray52
+133 133 133 		grey52
+135 135 135 		gray53
+135 135 135 		grey53
+138 138 138 		gray54
+138 138 138 		grey54
+140 140 140 		gray55
+140 140 140 		grey55
+143 143 143 		gray56
+143 143 143 		grey56
+145 145 145 		gray57
+145 145 145 		grey57
+148 148 148 		gray58
+148 148 148 		grey58
+150 150 150 		gray59
+150 150 150 		grey59
+153 153 153 		gray60
+153 153 153 		grey60
+156 156 156 		gray61
+156 156 156 		grey61
+158 158 158 		gray62
+158 158 158 		grey62
+161 161 161 		gray63
+161 161 161 		grey63
+163 163 163 		gray64
+163 163 163 		grey64
+166 166 166 		gray65
+166 166 166 		grey65
+168 168 168 		gray66
+168 168 168 		grey66
+171 171 171 		gray67
+171 171 171 		grey67
+173 173 173 		gray68
+173 173 173 		grey68
+176 176 176 		gray69
+176 176 176 		grey69
+179 179 179 		gray70
+179 179 179 		grey70
+181 181 181 		gray71
+181 181 181 		grey71
+184 184 184 		gray72
+184 184 184 		grey72
+186 186 186 		gray73
+186 186 186 		grey73
+189 189 189 		gray74
+189 189 189 		grey74
+191 191 191 		gray75
+191 191 191 		grey75
+194 194 194 		gray76
+194 194 194 		grey76
+196 196 196 		gray77
+196 196 196 		grey77
+199 199 199 		gray78
+199 199 199 		grey78
+201 201 201 		gray79
+201 201 201 		grey79
+204 204 204 		gray80
+204 204 204 		grey80
+207 207 207 		gray81
+207 207 207 		grey81
+209 209 209 		gray82
+209 209 209 		grey82
+212 212 212 		gray83
+212 212 212 		grey83
+214 214 214 		gray84
+214 214 214 		grey84
+217 217 217 		gray85
+217 217 217 		grey85
+219 219 219 		gray86
+219 219 219 		grey86
+222 222 222 		gray87
+222 222 222 		grey87
+224 224 224 		gray88
+224 224 224 		grey88
+227 227 227 		gray89
+227 227 227 		grey89
+229 229 229 		gray90
+229 229 229 		grey90
+232 232 232 		gray91
+232 232 232 		grey91
+235 235 235 		gray92
+235 235 235 		grey92
+237 237 237 		gray93
+237 237 237 		grey93
+240 240 240 		gray94
+240 240 240 		grey94
+242 242 242 		gray95
+242 242 242 		grey95
+245 245 245 		gray96
+245 245 245 		grey96
+247 247 247 		gray97
+247 247 247 		grey97
+250 250 250 		gray98
+250 250 250 		grey98
+252 252 252 		gray99
+252 252 252 		grey99
+255 255 255 		gray100
+255 255 255 		grey100
+169 169 169		dark grey
+169 169 169		DarkGrey
+169 169 169		dark gray
+169 169 169		DarkGray
+0     0 139		dark blue
+0     0 139		DarkBlue
+0   139 139		dark cyan
+0   139 139		DarkCyan
+139   0 139		dark magenta
+139   0 139		DarkMagenta
+139   0   0		dark red
+139   0   0		DarkRed
+144 238 144		light green
+144 238 144		LightGreen")
+
+!#

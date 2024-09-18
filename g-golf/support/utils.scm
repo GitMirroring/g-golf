@@ -64,8 +64,12 @@
             syntax-name->method-name
 
             gi-type-tag->ffi
-            gi-type-tag->init-val))
+            gi-type-tag->init-val
 
+            nil))	;; [1]
+
+;; [1] we need a way to inform g-golf-callback-closure-marshal to not
+;; set an ffi-arg-out to any value.
 
 (define %stow #f)
 (define stow-ref #f)
@@ -513,3 +517,5 @@ TYPE-TAG."
      %null-pointer)
     (else
      0)))
+
+(define nil 'nil)

@@ -51,6 +51,7 @@
   #:use-module (g-golf support bytevector)
   #:use-module (g-golf support ffi)
   #:use-module (g-golf support sxml)
+  #:use-module (g-golf support color)
 
   #:duplicates (merge-generics
 		replace
@@ -75,4 +76,5 @@
                               (g-golf support union)
                               (g-golf support bytevector)
                               (g-golf support ffi)
-                              (g-golf support sxml)))
+                              (g-golf support sxml)
+                              (g-golf support color)))

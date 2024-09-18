@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2022 - 2023 Free Software Foundation, Inc.
+@c Copyright (C) 2022 - 2024 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -13,11 +13,9 @@
 * Customization Square:: G-Golf customization functionality.
 * VFunc Alley:: VFunc G-Golf support.
 @c * Template Avenue:: Template G-Golf support.
-* Utils Arcade:: G-Golf utilities.
 @end menu
 
 
 @include ug-ggv-cache.texi
 @include ug-ggv-customization.texi
 @include ug-ggv-vfunc.texi
-@include ug-ggv-utils.texi

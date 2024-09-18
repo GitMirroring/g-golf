@@ -26,6 +26,101 @@ warranty.
 
 * Latest News
 
+** Sep 2024
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc6 is released.
+
+This is the sixth release candidate of the upcoming 0.8.0 release, now
+available for testing.
+
+*** Noteworthy changes in 0.8.0-rc6
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** New interfaces
+
+***** New (g-golf support color) module
+
+A color management module has been added. Documented under the Support
+Canyon -> Color Hollow section.
+
+***** Adding derived class custom layout-manager support
+
+Derived class now support a #:layout-manager define-class option.
+
+***** nil
+
+Users need a way to inform g-golf to not process some callback ffi 'out
+argument(s) (which can't be by using #f, as this mught be a valid ffi
+'out arg value). To solve this, g-golf now defines a global nil variable
+(defined as 'nil). See the newly added layout manager demo for a
+concrete example of such a need and usage.
+
+**** Examples
+
+***** Gtk-4 - Layout Manager
+
+The upstream gtk4-demo layout-manager (transition) example has been
+ported to g-golf.
+
+***** Adwaita Demo
+
+The following Adwaita Demo pages have been added:
+
+  AdwDemoPageButtons
+  AdwDemoPageToasts
+  AdwDemoPageBanners
+  AdwDemoPageAbout
+
+**** Bug fixing
+
+***** <vfunc>
+
+<vfunc> instances must hold a reference to the <closure-callback>
+instance (not the <callback> instance).
+
+***** next-vfunc
+
+Fixed to retreive the vfunc pointer offset from one of the
+class-direct-supers, recursively if needed, then grab and unlesss NULL,
+call the immediate direct super vfunc.
+
+***** g-golf-vfunc-closure
+
+Enhanced to accept and (use if passed) an optional argument,
+vfunc-long-name, as vfunc callback instances must be cached against
+their long name, i.e. gdk-paintable-get-flags, gdk-paintable-snapshot
+... (not get-flags, snapshot ...).
+
+***** g-callable-info-make-closure
+
+When calling g-callable-info-create-closure (fixed to work with the new
+libffi api), we also need to call (and return the result of)
+g-callable-info-get-closure-native-address, as the native-ptr.
+
+***** ffi 'out arg values
+
+scm->gi-argument has been enhanced to properly ignore ffi 'out args for
+which the value is nil.
+
+scm->gi-argument has been fixed, when that applies, to properly set the
+(dereferenced) foreign (ffi 'out arg) pointer to its value.
+
+***** g-object-import-with-supers
+
+For some still misterious reason, when automatically importing an object
+dependency, such as, for example, importing GtkApplication will trigger
+the import of (among many others ofc) the GtkLayoutManager, unless we
+call g-base-info-ref upon the info, those info maybe gc'ed.
+
+Although this should actually never happen, as g-golf doesn't unref any
+GIObjectInfo instances (but it did 'misteriously' happen), to be on the
+safe side of things, g-golf (core) now calls g-base-info-ref upon the
+result of calling g-object-info-get-parent.
+
+* Older News
+
 ** Jul 2024
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc.5 is released.
@@ -120,9 +215,6 @@ when the namespace is part of the namespace import exception list.
 The fix allows to automatically (gi) import GLib/GObject typelib
 component(s) that are not part of the manually (ffi) defined subset,
 such as the GVariant type, constructors and methods.
-
-
-* Older News
 
 ** May 2024
 

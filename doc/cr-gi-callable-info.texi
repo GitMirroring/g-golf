@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2023 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2024 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -28,6 +28,7 @@ GICallableInfo — Struct representing a callable.
 @item @ref{g-callable-info-is-method}
 @item @ref{g-callable-info-may-return-null}
 @item @ref{g-callable-info-create-closure}
+@item @ref{g-callable-info-get-closure-native-address}
 @end table
 @end indentedblock
 
@@ -217,6 +218,18 @@ Returns the ffi-closure or @code{#f} on error.
 
 The return value should be freed by calling
 @code{g-callable-info-destroy-closure}.
+@end deffn
+
+
+@anchor{g-callable-info-get-closure-native-address}
+@deffn Procedure g-callable-info-get-closure-native-address info @
+                 ffi-closure
+
+Returns a pointer.
+
+Obtain and return the callable code from @var{ffi-closure} prepared by
+@ref{g-callable-info-create-closure}. The return value should be freed
+by calling @code{g-callable-info-destroy-closure}.
 @end deffn
 
 

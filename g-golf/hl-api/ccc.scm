@@ -65,6 +65,7 @@
           !is-enum?
           !array-type-desc
           !string-pointer
+          !callback-closure
           !bv-cache
           !bv-cache-ptr
           !may-return-null?
@@ -83,7 +84,9 @@
           !ffi-cif
 
           !callback		;; callback-closure
-          !procedure)
+          !procedure
+          !ffi-closure
+          !native-ptr)
 
 
 ;;;
@@ -106,6 +109,7 @@
   (is-enum? #:accessor !is-enum?)
   (array-type-desc #:accessor !array-type-desc)
   (string-pointer #:accessor !string-pointer)
+  (callback-closure #:accessor !callback-closure)
   (bv-cache #:accessor !bv-cache #:init-value #f)
   (bv-cache-ptr #:accessor !bv-cache-ptr #:init-value #f)
   (may-return-null? #:accessor !may-return-null?)
@@ -141,4 +145,6 @@
 
 (define-class <callback-closure> ()
   (callback #:accessor !callback #:init-keyword #:callback)
-  (procedure #:accessor !procedure #:init-keyword #:procedure))
+  (procedure #:accessor !procedure #:init-keyword #:procedure)
+  (ffi-closure #:accessor !ffi-closure #:init-keyword #:ffi-closure)
+  (native-ptr #:accessor !native-ptr #:init-keyword #:native-ptr))

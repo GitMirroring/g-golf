@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2018
+;;;; Copyright (C) 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -26,22 +26,26 @@
 ;;; Code:
 
 
-(define-module (g-golf support float)
-  #:use-module (ice-9 match)
-  #:use-module (ice-9 format)
-  #:use-module (g-golf support libg-golf)
+(define-module (pages buttons buttons)
+  #:use-module (oop goops)
+  #:use-module (g-golf)
+  #:use-module (adw-demo-init)
 
-  #:export (float-round
-            float->int))
+  #:duplicates (merge-generics
+		replace
+		warn-override-core
+		warn
+		last)
+
+  #:export (<adw-demo-page-buttons>))
 
 
-(define* (float-round float #:optional (n-dec 2))
-  (let ((m (expt 10 n-dec)))
-    (/ (round (* m float)) m)))
+#;(g-export )
 
 
-;;;
-;;; from libg-golf
-;;;
-
-(define float->int float_to_int)
+(define-class <adw-demo-page-buttons> (<adw-bin>)
+  ;; slot(s)
+  ;; child-id slot(s)
+  ;; class options
+  #:template (string-append %adw-demo-path
+                            "/pages/buttons/buttons-ui.ui"))

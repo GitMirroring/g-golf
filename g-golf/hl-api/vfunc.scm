@@ -61,7 +61,7 @@
           !long-name-prefix
           !gf-long-name?
           !info
-          !callback)
+          !callback-closure)
 
 
 (define-class <vfunc> (<method>)
@@ -71,7 +71,7 @@
   (long-name-prefix #:accessor !long-name-prefix)
   (gf-long-name? #:accessor !gf-long-name?)
   (info #:accessor !info)
-  (callback #:accessor !callback))
+  (callback-closure #:accessor !callback-closure))
 
 (define-method (describe (self <vfunc>))
   (next-method)
@@ -123,8 +123,7 @@
                                     (!g-type specializer))
                                    (g-type-class-peek
                                     (!g-type vfunc-g-object-class-specializer)))))
-      (slot-set! vf
-                 'callback (!callback callback-closure))
+      (set! (!callback-closure vf) callback-closure)
       (match (vfunc-struct-field vf)
         ((type-tag offset flags)
          (bv-ptr-set! (gi-pointer-inc iface/class-struct offset)
@@ -147,16 +146,18 @@
                               '-
                               (!name vf)))
          (info (!info vf))
-         (proc (slot-ref vf 'procedure))
-         (callback (gi-import-vfunc name info))
-         (callback-closure (make <callback-closure>
-                             #:callback callback
-                             #:procedure proc)))
-    (values (g-callable-info-make-closure info
-                                          (!ffi-cif callback)
-                                          %g-golf-callback-closure-marshal
-                                          (scm->pointer callback-closure))
-            callback-closure)))
+         (proc (slot-ref vf 'procedure)))
+    (receive (native-ptr callback-closure)
+        (g-golf-callback-closure info proc name)
+      (values native-ptr
+              callback-closure))))
+
+#!
+
+;; g-golf-vfunc-closure now calls g-golf-callback-closure, which calls
+;; gi-import-callback. When enhanced to receive an optional
+;; vfunc-long-name (see the comment below), then gi-import-vfunc is no
+;; longer needed.
 
 ;; We need to cache Vfunc callbacks against their VFunc long name, which we
 ;; could build using the info. However, as a VFunc is only imported 'on
@@ -174,6 +175,8 @@
           ;; required when invoked.
           (gi-callback-inst-cache-set! name callback)
           callback))))
+
+!#
 
 (define %mandatory-long-name-error-msg
   "More then one specializer defines a VFunc (method) for NAME: ~S. In these
@@ -294,22 +297,42 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
 
 (define %next-vfunc
   (lambda args
-    #;(dimfi 'next-vfunc args)
     (match args
       ((vf-name . rest)
        (receive (vf specializer s-class)
            (find-vf vf-name rest)
-         (let* ((name (!name vf))
-                (p-class (find gobject-class?
-                               (class-direct-supers s-class)))
-                (g-struct-fields (!g-struct-fields p-class)))
-           (match (assq-ref g-struct-fields name)
-             ((type-tag offset flags)
-              (let* ((g-class (!g-class p-class))
-                     (bv-ptr (gi-pointer-inc g-class offset))
-                     (vfunc-ptr (bv-ptr-ref bv-ptr))
-                     (procedure (%next-vfunc-proc (!callback vf) vfunc-ptr)))
-                (apply procedure rest))))))))))
+         (receive (p-class offset)
+             (vfunc-ptr-offset-lookup vf s-class)
+           #;(dimfi 'next-vfunc (!name vf) offset)
+           (let* ((g-class (!g-class p-class))
+                  (bv-ptr (gi-pointer-inc g-class offset))
+                  (vfunc-ptr (bv-ptr-ref bv-ptr)))
+             (unless (null-pointer? vfunc-ptr)
+               (apply (%next-vfunc-proc (!callback (!callback-closure vf))
+                                        vfunc-ptr)
+                      rest)))))))))
+
+(define (vfunc-ptr-offset-lookup vf s-class)
+  (let ((name (!name vf))
+        (p-class (g-object-p-class s-class)))
+    (values p-class
+            (vfunc-ptr-offset-lookup-1 name p-class))))
+
+(define (vfunc-ptr-offset-lookup-1 name class)
+  (let loop ((class class))
+    (match (!g-struct-fields class)
+      (#f
+       (loop (g-object-p-class class)))
+      (g-struct-fields
+       (match (assq-ref g-struct-fields name)
+         (#f
+          (loop (g-object-p-class class)))
+         ((type-tag offset flags)
+          offset))))))
+
+(define (g-object-p-class class)
+  (find gobject-class?
+        (class-direct-supers class)))
 
 (define (find-vf vf-name args)
   (letrec* ((module (resolve-module '(g-golf hl-api gobject)))

@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2023
+;;;; Copyright (C) 2016 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -48,7 +48,9 @@
             g-callable-info-invoke
             g-callable-info-is-method
 	    g-callable-info-may-return-null
-            g-callable-info-create-closure))
+            g-callable-info-create-closure
+            g-callable-info-get-closure-native-address))
+
 
 
 ;;;
@@ -140,32 +142,6 @@
 
 
 ;;;
-;;; Up-on Condition Bindings
-;;;
-
-(define g-callable-info-create-closure
-  (if (gi-check-version 1 71 0)
-      (lambda (info ffi-cif ffi-closure-callback user-data)
-        (gi->scm (g_callable_info_create_closure info
-                                                 ffi-cif
-                                                 ffi-closure-callback
-                                                 user-data)
-                 'pointer))
-      #f))
-
-(define g_callable_info_create_closure
-  (if (gi-check-version 1 71 0)
-      (pointer->procedure '* ;; *ffi-closure
-                          (dynamic-func "g_callable_info_create_closure"
-				        %libgirepository)
-                          (list '*	;; *callback-info
-                                '*	;; *ffi-cif
-                                '*	;; *ffi-closure-callback
-                                '*))	;; user-data
-      #f))
-
-
-;;;
 ;;; GI Bindings
 ;;;
 
@@ -231,3 +207,46 @@
                       (dynamic-func "g_callable_info_may_return_null"
 				    %libgirepository)
                       (list '*)))
+
+
+;;;
+;;; Up-on Condition Bindings
+;;;
+
+(define g-callable-info-create-closure
+  (if (gi-check-version 1 71 0)
+      (lambda (info ffi-cif ffi-closure-callback user-data)
+        (gi->scm (g_callable_info_create_closure info
+                                                 ffi-cif
+                                                 ffi-closure-callback
+                                                 user-data)
+                 'pointer))
+      #f))
+
+(define g_callable_info_create_closure
+  (if (gi-check-version 1 71 0)
+      (pointer->procedure '* ;; *ffi-closure
+                          (dynamic-func "g_callable_info_create_closure"
+				        %libgirepository)
+                          (list '*	;; *callback-info
+                                '*	;; *ffi-cif
+                                '*	;; *ffi-closure-callback
+                                '*))	;; user-data
+      #f))
+
+(define g-callable-info-get-closure-native-address
+  (if (gi-check-version 1 71 0)
+      (lambda (info ffi-closure)
+        (gi->scm (g_callable_info_get_closure_native_address info
+                                                             ffi-closure)
+                 'pointer))
+      #f))
+
+(define g_callable_info_get_closure_native_address
+    (if (gi-check-version 1 71 0)
+      (pointer->procedure '* ;; *ffi-closure
+                          (dynamic-func "g_callable_info_get_closure_native_address"
+				        %libgirepository)
+                          (list '*	;; *callback-info
+                                '*))	;; *ffi-closure
+      #f))

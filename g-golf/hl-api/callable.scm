@@ -353,7 +353,9 @@
                          (cons (car args) cble-args)))))))))
 
 (define %maybe-null-exceptions
-  '(child-setup-data-destroy))
+  '(child-setup-data-destroy
+    destroy
+    notify)) ;; all destroy notify callback can be NULL
 
 (define (maybe-null-exception? name)
   (memq name %maybe-null-exceptions))
@@ -383,34 +385,35 @@
                              #:is-method? is-method?
                              #:forced-type (!forced-type argument)
                              #:g-value-ptr? (assq-ref g-value-ptr? i))
-           (when (%debug)
-             (dimfi (format #f "~20,,,' @A:" (!name argument)) value
-                    #;(gi-argument->scm  (!type-tag argument)
-                                       (!type-desc argument)
-                                       gi-argument-
-                                       arguments
-                                       ;; #:forced-type (!forced-type argument)
-                                       #:is-pointer? (!is-pointer? argument)
-                                       )))
            (loop (+ i 1)
                  rest)))))))
 
 (define* (scm->gi-argument type-tag
                            type-desc
-                           gi-argument
+                           gi-argument	;; or an ffi-arg
                            value	;; the scheme value
                            clb/arg	;; a <callable> or an <argument> instance
                            args
-                           #:key (may-be-null-acc #f)
+                           #:key
+                           (ffi-arg? #f)
+                           (may-be-null-acc #f)
                            (is-method? #f)
                            (forced-type #f)
                            (g-value-ptr? #f))
+  (when (%debug)
+    (dimfi 'scm->gi-argument)
+    (dimfi (format #f "~20,,,' @A:" (!name clb/arg)) value)
+    (dimfi (format #f "~20,,,' @A:" 'type-tag) type-tag)
+    (dimfi (format #f "~20,,,' @A:" 'type-desc) type-desc)
+    (dimfi (format #f "~20,,,' @A:" 'forced-type) forced-type)
+    (dimfi (format #f "~20,,,' @A:" 'ffi-arg?) ffi-arg?))
   (let ((%g-golf-callback-closure
          (@ (g-golf hl-api callback) g-golf-callback-closure))
         (may-be-null? (may-be-null-acc clb/arg)))
     ;; clearing references kept from a previous call.
     (mslot-set! clb/arg
                 'string-pointer #f
+                'callback-closure #f
                 'bv-cache #f
                 'bv-cache-ptr #f)
     (case type-tag
@@ -473,10 +476,15 @@
             ((callback)
              (gi-argument-set! gi-argument 'v-pointer
                                (if value
-                                   (%g-golf-callback-closure gi-type value)
+                                   (receive (native-ptr callback-closure)
+                                       (%g-golf-callback-closure gi-type value)
+                                     (set! (!callback-closure clb/arg) callback-closure)
+                                     native-ptr)
                                    (if (or may-be-null?
                                            (>= (!destroy clb/arg) 0)
-                                           (maybe-null-exception? name))
+                                           ;; caution, check against the clb/arg name,
+                                           ;; not the type-desc name, which is #f
+                                           (maybe-null-exception? (!name clb/arg)))
                                        #f
                                        (error "Invalid argument: " value)))))))))
       ((array)
@@ -604,17 +612,23 @@
                   gtype)
                  (receive (make-bv bv-ref bv-set!)
                      (gi-type-tag->bv-acc type-tag)
-                 (let* ((bv-cache (!bv-cache clb/arg))
-                        (bv-cache-ptr (!bv-cache-ptr clb/arg))
-                        (bv (or bv-cache (make-bv 1 0)))
-                        (bv-ptr (or bv-cache-ptr
-                                    (bytevector->pointer bv))))
-                   (unless bv-cache
-                     (mslot-set! clb/arg
-                                 'bv-cache bv
-                                 'bv-cache-ptr bv-ptr))
-                   (bv-set! bv 0 value)
-                   (gi-argument-set! gi-argument 'v-pointer bv-ptr))))
+                   (if ffi-arg?
+                       (let* ((foreign (gi-argument-ref gi-argument 'v-pointer))
+                              (bv-ptr (dereference-pointer foreign))
+                              (bv-size (sizeof (primitive-eval type-tag)))
+                              (bv (pointer->bytevector bv-ptr bv-size)))
+                         (bv-set! bv 0 value))
+                       (let* ((bv-cache (!bv-cache clb/arg))
+                              (bv-cache-ptr (!bv-cache-ptr clb/arg))
+                              (bv (or bv-cache (make-bv 1 0)))
+                              (bv-ptr (or bv-cache-ptr
+                                          (bytevector->pointer bv))))
+                         (unless bv-cache
+                           (mslot-set! clb/arg
+                                       'bv-cache bv
+                                       'bv-cache-ptr bv-ptr))
+                         (bv-set! bv 0 value)
+                         (gi-argument-set! gi-argument 'v-pointer bv-ptr)))))
                 ((void)
                  ;; Till proved wrong, we'll consider those opaque
                  ;; pointers.

@@ -75,9 +75,9 @@
                 "tab-overview"
                 "tab-menu"))
 
-;; i'll make this available later
-#;(define-vfunc (dispose-vfunc (self <adw-tab-view-demo-window>))
+(define-vfunc (dispose-vfunc (self <adw-tab-view-demo-window>))
   (set! (!in-dispose self) #t)
+  (unref (!tab-action-group self))
   (next-vfunc))
 
 (define-method (initialize (self <adw-tab-view-demo-window>) initargs)
@@ -232,11 +232,6 @@
              (lambda (s-action g-variant)
                (tab/indicator tab-view-demo-window s-action g-variant)))
 
-    (set! (!tab-action-group tab-view-demo-window) action-map)
-    (insert-action-group tab-view-demo-window
-                         "tab"
-                         action-map)
-
     (add-action action-map a-close-other)
     (connect a-close-other
              'activate
@@ -259,7 +254,12 @@
     (connect a-close
              'activate
              (lambda (s-action g-variant)
-               (tab/close tab-view-demo-window s-action g-variant)))))
+               (tab/close tab-view-demo-window s-action g-variant)))
+
+    (set! (!tab-action-group tab-view-demo-window) action-map)
+    (insert-action-group tab-view-demo-window
+                         "tab"
+                         action-map)))
 
 (define (tab/move-to-new-window tab-view-demo-window)
   (let ((new-tab-view-demo-window (make <adw-tab-view-demo-window>)))

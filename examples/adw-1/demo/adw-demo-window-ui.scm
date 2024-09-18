@@ -122,12 +122,30 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageTabView"))))))
 
+(define %buttons-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Buttons")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageButtons"))))))
+
 (define %style-classes-page
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
                   (translatable "yes")) "Style Classes")
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageStyleClasses"))))))
+
+(define %toasts-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Toasts")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageToasts")
+                  (id "toasts-page"))
+         ;; signal - add-toast - adw_toast_overlay_add_toast
+         ;;        - toast-overlay - swapped
+         ))))
 
 #;(define %animations-page
   '(object (@ (class "GtkStackPage"))
@@ -142,6 +160,23 @@
                   (translatable "yes")) "Dialogs")
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageDialogs"))
+         ;; signal - add-toast - adw_toast_overlay_add_toast
+         ;;        - toast-overlay - swapped
+         ))))
+
+(define %about-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "About Dialog")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageAbout"))))))
+
+(define %banners-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Banners")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageBanners"))
          ;; signal - add-toast - adw_toast_overlay_add_toast
          ;;        - toast-overlay - swapped
          ))))
@@ -186,9 +221,13 @@
              (child ,%avatar-page)
              (child ,%split-views-page)
              (child ,%tab-view-page)
+             (child ,%buttons-page)
              (child ,%style-classes-page)
+             (child ,%toasts-page)
              #;(child ,%animations-page)
-             (child ,%dialogs-page)))))))
+             (child ,%dialogs-page)
+             (child ,%about-page)
+             (child ,%banners-page)))))))
 
 (define %adw-demo-window
   `(interface

@@ -78,26 +78,27 @@
 #;(g-export )
 
 
-(define (gi-import-callback info)
+(define* (gi-import-callback info #:optional vfunc-long-name)
   (let* ((namespace (g-base-info-get-namespace info))
          (g-name (g-base-info-get-name info))
          (name (g-name->name g-name)))
     (when (%debug)
       (dimfi "      [" 'importing: namespace name "]"))
-    (or (gi-callback-inst-cache-ref name)
+    (or (gi-callback-inst-cache-ref (or vfunc-long-name name))
         (let ((callback (make <callback> #:info info
                               #:namespace namespace
                               #:g-name g-name
                               #:name name)))
           ;; Do not (g-base-info-)unref the callback info - it is
           ;; required when invoked.
-          (gi-callback-inst-cache-set! name callback)
+          (gi-callback-inst-cache-set! (or vfunc-long-name name)
+                                       callback)
           callback))))
 
 (define-method (initialize (self <callback>) initargs)
   (let ((info (or (get-keyword #:info initargs #f)
                   (error "Missing #:info initarg: " initargs)))
-        (namespace (get-keyword #:name initargs #f))
+        (namespace (get-keyword #:namespace initargs #f))
         (name (get-keyword #:name initargs #f)))
     (if name
         (next-method)
@@ -151,10 +152,18 @@
                                       ffi-closure-callback
                                       user-data)
   (if (gi-check-version 1 71 0)
-      (g-callable-info-create-closure
-       info ffi-cif ffi-closure-callback user-data)
-      (g-callable-info-prepare-closure
-       info ffi-cif ffi-closure-callback user-data)))
+      (let ((ffi-closure (g-callable-info-create-closure info
+                                                         ffi-cif
+                                                         ffi-closure-callback
+                                                         user-data)))
+        (values ffi-closure
+                (g-callable-info-get-closure-native-address info ffi-closure)))
+      (let ((ffi-closure (g-callable-info-prepare-closure info
+                                                          ffi-cif
+                                                          ffi-closure-callback
+                                                          user-data)))
+        (values ffi-closure
+                #f))))
 
 (define (g-golf-callback-closure-marshal ffi-cif
                                          return-value
@@ -185,6 +194,7 @@
                                  (car r-vals) ;; by design
                                  callback
                                  args ;; required, but won't be used
+                                 #:ffi-arg? #t
                                  #:may-be-null-acc !may-return-null?
                                  #:is-method? (!is-method? callback)
                                  #:forced-type return-type)))))
@@ -204,16 +214,22 @@
                             '*			;; ffi-args
                             '*)))		;; user-data
 
-(define (g-golf-callback-closure info proc)
-  (let* ((callback (gi-import-callback info))
+(define* (g-golf-callback-closure info proc #:optional vfunc-long-name)
+  (let* ((callback (gi-import-callback info vfunc-long-name))
          (callback-closure (make <callback-closure>
                              #:callback callback
                              #:procedure proc)))
-    (values (g-callable-info-make-closure info
-                                          (!ffi-cif callback)
-                                          %g-golf-callback-closure-marshal
-                                          (scm->pointer callback-closure))
-            callback-closure)))
+    (receive (ffi-closure native-ptr)
+        (g-callable-info-make-closure info
+                                      (!ffi-cif callback)
+                                      %g-golf-callback-closure-marshal
+                                      (scm->pointer callback-closure))
+      (mslot-set! callback-closure
+                  'ffi-closure ffi-closure
+                  'native-ptr native-ptr)
+      (values (or native-ptr	;; *-create-closure
+                  ffi-closure)  ;; *-prepare-closure
+              callback-closure))))
 
 (define (scm->ffi-args-out callback ffi-args r-vals)
   ;; r-vals may contain the callback returned value, if so, it is the
@@ -231,28 +247,32 @@
       ((arg-out . args-out-tail)
        (match r-vals
          ((value . r-vals-tail)
-          (scm->gi-argument (!type-tag arg-out)
-                            (!type-desc arg-out)
-                            ffi-out-arg
-                            value
-                            arg-out
-                            r-vals ;; required, but won't be used
-                            #:may-be-null-acc !may-be-null?
-                            #:is-method? #f ;; args-in off-by-one 'only'
-                            #:forced-type (!forced-type arg-out))
-          (when (%debug)
-            (dimfi (format #f "~20,,,' @A:" (!name arg-out)) value
-                   (format #f " [ out arg - ffi val (check) ~A"
-                           (gi-argument->scm (!type-tag arg-out)
-                                             (!type-desc arg-out)
-                                             ffi-out-arg
-                                             arg-out
-                                             #:forced-type (!forced-type arg-out)
-                                             #:is-pointer? (!is-pointer? arg-out)))
-                   "]"))
-          (loop (gi-pointer-inc ffi-out-arg)
-                args-out-tail
-                r-vals-tail)))))))
+          (case value
+	    ((nil) 'nothing)	;; do not set the out arg to any value
+            (else
+             (scm->gi-argument (!type-tag arg-out)
+                               (!type-desc arg-out)
+                               ffi-out-arg
+                               value
+                               arg-out
+                               r-vals ;; required, but won't be used
+                               #:ffi-arg? #t
+                               #:may-be-null-acc !may-be-null?
+                               #:is-method? #f ;; args-in off-by-one 'only'
+                               #:forced-type (!forced-type arg-out))
+             (when (%debug)
+               (dimfi (format #f "~20,,,' @A:" (!name arg-out)) value
+                      (format #f " [ out arg - ffi val (check) ~A"
+                              (gi-argument->scm (!type-tag arg-out)
+                                                (!type-desc arg-out)
+                                                ffi-out-arg
+                                                arg-out
+                                                #:forced-type (!forced-type arg-out)
+                                                #:is-pointer? (!is-pointer? arg-out)))
+                      "]"))
+             (loop (gi-pointer-inc ffi-out-arg)
+                   args-out-tail
+                   r-vals-tail)))))))))
 
 
 ;;;
