@@ -28,6 +28,27 @@ warranty.
 
 ** Sep 2024
 
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc7 is released.
+
+This is the seventh release candidate of the upcoming 0.8.0 release, now
+available for testing.
+
+*** Noteworthy changes in 0.8.0-rc7
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** Fixing the 0.8.0-rc6 release tarball malformed issue
+
+This release merely fixes a missing examples/gtk-4/Makefile.am
+(sub)target entry, so the tarball also distributes the newly added
+examples/gtk-4/demos/*.scm files.
+
+
+* Older News
+
+** Sep 2024
+
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc6 is released.
 
 This is the sixth release candidate of the upcoming 0.8.0 release, now
@@ -118,8 +139,6 @@ Although this should actually never happen, as g-golf doesn't unref any
 GIObjectInfo instances (but it did 'misteriously' happen), to be on the
 safe side of things, g-golf (core) now calls g-base-info-ref upon the
 result of calling g-object-info-get-parent.
-
-* Older News
 
 ** Jul 2024
 
