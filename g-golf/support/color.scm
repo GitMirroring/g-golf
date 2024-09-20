@@ -54,8 +54,6 @@
 (define-module (g-golf support color)
   #:use-module (ice-9 rdelim)
   #:use-module (ice-9 match)
-  #:use-module ((ice-9 string-fun)
-                #:select ((string-replace-substring . string-replace-all)))
   #:use-module (srfi srfi-1)
   #:use-module (g-golf support float)
   #:use-module (g-golf support utils)
