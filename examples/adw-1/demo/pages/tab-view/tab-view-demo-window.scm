@@ -365,7 +365,7 @@
 
 (define (install-shortcuts tab-view-demo-window)
   (let ((controller (make <gtk-shortcut-controller>)))
-    (set-scope controller 'managed)
+    (set-scope controller 'local)
     (add-controller tab-view-demo-window controller)
     (for-each (match-lambda
                 ((key-name modifiers action-name)
