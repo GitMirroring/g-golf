@@ -53,9 +53,9 @@
         "ApplicationWindow"
         "ListBox"
         "Label"
-        "Shortcut"
         "ShortcutController"
         "ShortcutScope"
-        "CallbackAction"
+        "Shortcut"
         "KeyvalTrigger"
-        "NamedAction")))
+        ;; "NamedAction"
+        "CallbackAction")))
