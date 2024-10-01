@@ -57,6 +57,7 @@ SOURCES = \
 	g-golf/glib/byte-arrays.scm		\
 	g-golf/glib/quarks.scm			\
 	g-golf/glib/simple-xml-subset-parser.scm \
+	g-golf/glib/date-and-time-functions.scm \
 	g-golf/glib.scm				\
 	g-golf/gobject/type-info.scm		\
 	g-golf/gobject/gobject.scm		\

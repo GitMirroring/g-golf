@@ -1,0 +1,53 @@
+@c -*-texinfo-*-
+@c This is part of the GNU G-Golf Reference Manual.
+@c Copyright (C) 2024 Free Software Foundation, Inc.
+@c See the file g-golf.texi for copying conditions.
+
+
+@c @defindex tl
+
+
+@node Date and Time Functions
+@subsection Date and Time Functions
+
+G-Golf GLib Date and Time Functions API.@*
+Date and Time Functions — calendrical calculations and miscellaneous time stuff
+
+
+@subheading Procedures
+
+@indentedblock
+@table @code
+@item @ref{g-get-monotonic-time}
+@end table
+@end indentedblock
+
+
+@subheading Description
+
+The upstream description (which G-Golf usually copies and presents
+'unchanged') talks about the GDate data structure representation and
+api. As from this section, G-Golf only binds the g-get-monotonic-time,
+we skip it entirely.
+
+
+@subheading Procedures
+
+
+@anchor{g-get-monotonic-time}
+@deffn Procedure g-get-monotonic-time
+
+Returns the monotonic time, in microseconds.
+
+Queries the system monotonic time, if available.
+
+On POSIX systems with clock_gettime() and CLOCK_MONOTONIC this call is a
+very shallow wrapper for that. Otherwise, we make a best effort that
+probably involves returning the wall clock time (with at least
+microsecond accuracy, subject to the limitations of the OS kernel).
+
+Note that, on Windows, "limitations of the OS kernel" is a rather
+substantial statement. Depending on the configuration of the system, the
+wall clock time is updated as infrequently as 64 times a second (which
+is approximately every 16ms).
+@end deffn
