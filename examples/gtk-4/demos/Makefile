@@ -1,6 +1,5 @@
-
 ####
-#### Copyright (C) 2021 - 2024
+#### Copyright (C) 2024
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -21,13 +20,35 @@
 ####
 
 
-EXTRA_DIST = \
-	$(wildcard *.scm)		\
-	$(wildcard demos/*.scm)		\
-	$(wildcard demos/Makefile)	\
-	$(wildcard demos/*.c)		\
-	$(wildcard demos/*.h)		\
-	$(wildcard *.png)		\
-	$(wildcard images/*.png)	\
-	$(wildcard ui/*.ui)		\
-	$(wildcard css/*.css)
+CC = gcc
+
+PKGCONFIG = $(shell which pkg-config)
+
+CFLAGS = \
+  -fPIC	$(shell $(PKGCONFIG) --cflags glib-2.0 gtk4)
+
+LIBS = \
+  -lm $(shell $(PKGCONFIG) --libs glib-2.0 gtk4)
+
+TARGET  = libfpt.so
+
+SOURCES = \
+	singular_value_decomposition.c	\
+	four_point_transform.c
+
+HEADERS = \
+	singular_value_decomposition.h	\
+	four_point_transform.h
+
+OBJECTS = $(SOURCES:.c=.o)
+
+
+all: $(TARGET)
+
+$(TARGET): $(OBJECTS)
+	$(CC) $(CFLAGS) -shared -o $(TARGET) $(OBJECTS) $(LIBS)
+
+
+clean:
+	rm -f $(OBJECTS)
+	rm -f libfpt.so

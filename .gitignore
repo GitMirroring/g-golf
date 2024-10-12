@@ -34,6 +34,9 @@ libg-golf/.libs/
 libg-golf/libg-golf.la
 libg-golf/libg-golf.lo
 libg-golf/libg_golf_la-*.lo
+examples/gtk-4/demos/four_point_transform.o
+examples/gtk-4/demos/singular_value_decomposition.o
+examples/gtk-4/demos/libfpt.so
 examples/adw-1/demo/g-resources
 *~
 *.aux
