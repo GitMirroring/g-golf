@@ -113,6 +113,7 @@
          (class (class-of renderer)))
     (case (class-name class)
       ((<gsk-vulkan-renderer>) "Vulkan")
+      ((<gsk-ngl-renderer>) "NGL")
       ((<gsk-gl-renderer>) "GL")
       ((<gsk-cairo-renderer>) "Cairo")
       (else
