@@ -52,4 +52,6 @@
         "GestureClick"
         "LayoutManager"
         "SizeRequestMode"
-        "Requisition")))
+        "Requisition"
+        "Box"
+        "Label")))
