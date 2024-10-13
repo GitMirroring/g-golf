@@ -95,7 +95,8 @@
 (define (install-app-actions app)
   (let ((a-inspector (make <g-simple-action> #:name "inspector"))
         (a-preferences (make <g-simple-action> #:name "preferences"))
-        (a-about (make <g-simple-action> #:name "about")))
+        (a-about (make <g-simple-action> #:name "about"))
+        (a-quit (make <g-simple-action> #:name "quit")))
 
     (add-action app a-inspector)
     (connect a-inspector
@@ -116,7 +117,14 @@
     (connect a-about
              'activate
              (lambda (s-action g-variant)
-               (show-about app)))))
+               (app/show-about app)))
+
+    (add-action app a-quit)
+    (connect a-quit
+             'activate
+             (lambda (s-action g-variant)
+               (app/quit app)))
+    (set-accels-for-action app "app.quit" '("<Ctrl>Q"))))
 
 (define %developers
   '("Adrien Plazas"
@@ -128,7 +136,7 @@
     "Manuel Genovés"
     "Zander Brown"))
 
-(define (show-about app)
+(define (app/show-about app)
   (let* ((active-window (get-active-window app))
          (about (make <adw-about-dialog>
                   #:transient-for active-window
@@ -151,6 +159,9 @@
     (add-link about "_Chat"
               "https://matrix.to/#/#libadwaita:gnome.org")
     (present about active-window)))
+
+(define (app/quit app)
+  (exit))
 
 (define (activate-demo app)
   (let* ((cwd (dirname (current-filename)))
