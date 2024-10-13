@@ -72,8 +72,13 @@
 
 (define-method (initialize (self <adw-demo-window>) initargs)
   (next-method)
-  (install-actions self))
+  (install-actions self)
+  (install-shortcuts self))
 
+
+;;;
+;;; install actions
+;;;
 
 (define (install-actions demo-window)
   (let ((action-map (make <g-simple-action-group>))
@@ -125,6 +130,34 @@
              (lambda (s-action g-variant)
                (app/quit app)))
     (set-accels-for-action app "app.quit" '("<Ctrl>Q"))))
+
+
+;;;
+;;; install shortcuts
+;;;
+
+(define (install-shortcuts demo-window)
+  (let ((controller (make <gtk-shortcut-controller>
+                      #:name "demo-window-shortcuts")))
+    (set-scope controller 'local)
+    (add-controller demo-window controller)
+    (for-each (match-lambda
+                ((key-name modifiers action-name)
+                 (let ((key-value
+                        (gi-import-by-name "Gdk" key-name #:allow-constant? #t)))
+                   (add-shortcut controller
+                                 (make <gtk-shortcut>
+                                   #:trigger (make <gtk-keyval-trigger>
+                                               #:keyval key-value
+                                               #:modifiers modifiers)
+                                   #:action (make <gtk-named-action>
+                                              #:action-name action-name))))))
+        '(("KEY_w" (control-mask)  "window.close")))))
+
+
+;;;
+;;;
+;;;
 
 (define %developers
   '("Adrien Plazas"
