@@ -46,12 +46,26 @@
 (define (activate-demo app)
   (let ((window (make <gtk-application-window>
                   #:title "Layout Manager — Transformation"
-                  #:default-width 600
-                  #:default-height 620
                   #:application app))
-        (demo-widget (make <demo-widget-2>)))
+        (box (make <gtk-box>
+               #:margin-top 6
+               #:margin-start 6
+               #:margin-bottom 6
+               #:margin-end 6
+               #:orientation 'vertical))
+        (demo-widget (make <demo-widget-2>
+                       #:width-request 600
+                       #:height-request 600))
+        (label  (make <gtk-label>
+                  #:label "<span size=\"x-large\"><span color=\"maroon\">Use the </span><span color=\"blue\">&#x2190; &#x2191; &#x2192; &#x2193;</span> <span color=\"maroon\">keys to rotate the sphere</span></span>"
+                  #:halign 'center
+                  #:valign 'center
+                  #:use-markup #t)))
+
     (populate-demo-widget demo-widget)
-    (set-child window demo-widget)
+    (set-child window box)
+    (append box demo-widget)
+    (append box label)
     (present window)))
 
 (define (populate-demo-widget demo-widget)

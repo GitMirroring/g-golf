@@ -72,7 +72,9 @@
         "ShortcutScope"
         "KeyvalTrigger"
         "NamedAction"
-        "Image")))
+        "Image"
+        "Box"
+        "Label")))
 
 (define %libfpt #f)
 (define perspective_3d #f)
