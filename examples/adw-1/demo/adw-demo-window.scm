@@ -139,7 +139,7 @@
                   #:website "https://gitlab.gnome.org/GNOME/libadwaita"
                   #:issue-url "https://gitlab.gnome.org/GNOME/libadwaita/-/issues/new"
                   #:debug-info (debug-info)
-                  #:copyright "© 2017–2022 Purism SPC"
+                  #:copyright "© 2017–2022 Purism SPC\n© 2023-2024 GNOME Foundation Inc."
                   #:license-type 'lgpl-2-1
                   #:developers %developers
                   #:designers '("GNOME Design Team")
