@@ -113,10 +113,9 @@
     (connect a-preferences
              'activate
              (lambda (s-action g-variant)
-               (let ((window (get-active-window app))
-                     (pref-win (make <adw-demo-preferences-window>)))
-                 (set-transient-for pref-win window)
-                 (present pref-win))))
+               (let ((active-window (get-active-window app))
+                     (prefs-dialog (make <adw-demo-preferences-dialog>)))
+                 (present prefs-dialog active-window))))
 
     (add-action app a-about)
     (connect a-about

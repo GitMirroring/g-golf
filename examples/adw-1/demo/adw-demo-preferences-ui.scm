@@ -1,7 +1,7 @@
 ;; -*- mode: sxml-ui; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -31,7 +31,8 @@
 
 (define %prefs-group-1-1
   '(object (@ (class "AdwPreferencesGroup"))
-     (property (@ (name "description")) "Preferences are organized in pages, this example has the following pages:")
+     (property (@ (name "description")
+                  (translatable "yes")) "Preferences are organized in pages, this example has the following pages:")
      (property (@ (name "title")
                   (translatable "yes")) Pages)
      (child
@@ -47,7 +48,8 @@
 
 (define %prefs-group-1-2
   '(object (@ (class "AdwPreferencesGroup"))
-     (property (@ (name "description")) "Preferences are grouped together, a group can have a title and a description. Descriptions will be wrapped if they are too long. This page has the following groups:")
+     (property (@ (name "description")
+                  (translatable "yes")) "Preferences are grouped together, a group can have a title and a description. Descriptions will be wrapped if they are too long. This page has the following groups:")
      (property (@ (name "title")
                   (translatable "yes")) Groups)
      (child
@@ -103,7 +105,8 @@
 
 (define %prefs-group-1-5
   '(object (@ (class "AdwPreferencesGroup"))
-     (property (@ (name "description")) "Preferences windows can have subpages.")
+     (property (@ (name "description")
+                  (translatable "yes")) "Preferences windows can have subpages")
      (property (@ (name "title")
                   (translatable "yes")) Subpages)
      (child
@@ -129,7 +132,8 @@
 
 (define %prefs-group-2-1
   '(object (@ (class "AdwPreferencesGroup"))
-     (property (@ (name "description")) "Preferences can be searched, do so using one of the following ways:")
+     (property (@ (name "description")
+                  (translatable "yes")) "Preferences can be searched, do so using one of the following ways:")
      (property (@ (name "title")
                   (translatable "yes")) Searching)
      (child
@@ -153,46 +157,53 @@
                         (translatable "yes")) "Directly Type Your Search")))))
 
 (define %subpage-1
-  '(object (@ (class "AdwStatusPage")
+  '(object (@ (class "AdwNavigationPage")
               (id "subpage-1"))
-     (property (@ (name "title")
-                  (translatable "yes")) "This is a Subpage")
+     (property (@ (name "title")) Subpage)
      (property (@ (name "child"))
-       (object (@ (class "GtkButton")
-                  (id "subpage-1-bt"))
-         (property (@ (name "label")
-                      (translatable "yes")) "Return to Preferences")
-         (property (@ (name "halign")) center)
-         ;; signal - clicked - return-to-preferences-cb - swapped
-         (style
-             (class (@ (name "suggested-action")))
-           (class (@ (name "pill"))))))))
+       (object (@ (class "AdwToolbarView"))
+         (child (@ (type "top"))
+           (object (@ (class "AdwHeaderBar"))))
+         (property (@ (name "content"))
+           (object (@ (class "AdwStatusPage"))
+             (property (@ (name "title")
+                          (translatable "yes")) "This Is a Subpage")
+             (property (@ (name "child"))
+               (object (@ (class "GtkButton")
+                          (id "subpage-1-bt"))
+                 (property (@ (name "label")
+                              (translatable "yes")) "Open Another Subpage")
+                 (property (@ (name "can-shrink")) True)
+                 (property (@ (name "halign")) center)
+                 ;; signal - clicked - subpage2-activate-cb - swapped
+                 (style
+                   (class (@ (name "pill"))))))))))))
 
 (define %subpage-2
-  '(object (@ (class "AdwStatusPage")
+  '(object (@ (class "AdwNavigationPage")
               (id "subpage-2"))
-     (property (@ (name "title")
-                  (translatable "yes")) "This is Another Subpage")
+     (property (@ (name "title")) "Another Subpage")
      (property (@ (name "child"))
-       (object (@ (class "GtkButton")
-                  (id "subpage-2-bt"))
-         (property (@ (name "label")
-                      (translatable "yes")) "Return to Preferences")
-         (property (@ (name "halign")) center)
-         ;; signal - clicked - return-to-preferences-cb - swapped
-         (style
-             (class (@ (name "suggested-action")))
-           (class (@ (name "pill"))))))))
+       (object (@ (class "AdwToolbarView"))
+         (child (@ (type "top"))
+           (object (@ (class "AdwHeaderBar"))))
+         (property (@ (name "content"))
+           (object (@ (class "AdwStatusPage"))
+             (property (@ (name "title")
+                          (translatable "yes")) "This Is Another Subpage")))))))
 
 (define %sxml
   `(interface
     (requires (@ (version "4.0") (lib "gtk")))
     (requires (@ (version "1.0") (lib "libadwaita")))
-    (template (@ (class "AdwDemoPreferencesWindow")
-                 (parent "AdwPreferencesWindow"))
-      (property (@ (name "can-navigate-back")) True)
+    (template (@ (class "AdwDemoPreferencesDialog")
+                 (parent "AdwPreferencesDialog"))
+      (property (@ (name "content-height")) 1000)
+      (property (@ (name "search-enabled")) True)
       (child
           (object (@ (class "AdwPreferencesPage"))
+            (property (@ (name "description")
+                         (translatable "yes")) "Preferences pages can have a description")
             (property (@ (name "icon-name")) preferences-window-layout-symbolic)
             (property (@ (name "title")) L_ayout)
             (property (@ (name "use-underline")) True)
