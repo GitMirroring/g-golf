@@ -68,27 +68,41 @@
                     (toast-overlay (slot-ref demo-window 'toast-overlay)))
                (add-toast toast-overlay toast))))
   
-  (install-actions self))
+  (connect (!button-label-row self)
+           'notify::text
+           (lambda (. args)
+             (update-button-cb self)))
+
+  (connect (!button-label-row self)
+           'notify::editable
+           (lambda (. args)
+             (update-button-cb self)))
+
+  (install-actions self)
+  ;; the following shouldn't be necessary, as things are properly set in
+  ;; the banners-ui.scm module, both the banners editable text and the
+  ;; editable property binding, but for some misterious reasons, unless
+  ;; I actually do this call, the banners button is not visible.
+  (set-button-label (!banner self)
+                    (get-text (!button-label-row self))))
+
+
+;;;
+;;; install actions
+;;;
 
 (define-method (add-toast (self <adw-demo-page-banners>) toast)
   (emit self 'add-toast toast))
 
 (define (install-actions demo-page-banners)
   (let ((action-map (make <g-simple-action-group>))
-        (a-activate (make <g-simple-action> #:name "activate"))
-        (a-toggle-button (make <g-simple-action> #:name "toggle-button")))
+        (a-activate (make <g-simple-action> #:name "activate")))
 
     (add-action action-map a-activate)
     (connect a-activate
              'activate
              (lambda (s-action g-variant)
                (banner/activate demo-page-banners)))
-
-    (add-action action-map a-toggle-button)
-    (connect a-toggle-button
-             'activate
-             (lambda (s-action g-variant)
-               (banner/toggle-button demo-page-banners)))
 
     (insert-action-group demo-page-banners
                          "banner"
@@ -98,18 +112,19 @@
   (add-toast demo-page-banners
              (make <adw-toast> #:title "Banner action triggered")))
 
-(define (banner/toggle-button demo-page-banners)
-  (let* ((self demo-page-banners)
-         (button-label (get-button-label (!banner demo-page-banners))))
-    (if (string-null? button-label)
-        (set-button-label (!banner self)
-                          (get-text (!button-label-row self)))
-        (set-button-label (!banner self) #f))))
-
 
 ;;;
 ;;; callback
 ;;;
+
+(define (update-button-cb demo-page-banners)
+  (let* ((self demo-page-banners)
+         (button-label-row (!button-label-row self))
+         (editable? (get-editable button-label-row)))
+    (if editable?
+        (set-button-label (!banner self)
+                          (get-text button-label-row))
+        (set-button-label (!banner self) #f))))
 
 
 ;;;

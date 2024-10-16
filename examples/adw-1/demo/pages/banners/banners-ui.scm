@@ -57,12 +57,13 @@
                   (bind-source "label-switch")
                   (bind-property "active")
                   (bind-flags "sync-create")))
+     ;; signal - notify::text - update-button-cb - swapped
+     ;; signal - notify::editable - update-button-cb - swapped
      (child
          (object (@ (class "GtkSwitch")
                     (id "label-switch"))
            (property (@ (name "valign")) center)
-           (property (@ (name "active")) True)
-           (property (@ (name "action-name")) banner.toggle-button)))))
+           (property (@ (name "active")) True)))))
 
 
 (define %banners-page
@@ -84,10 +85,6 @@
                            (bind-flags "sync-create|bidirectional")))
               (property (@ (name "title")
                            (bind-source "title-row")
-                           (bind-property "text")
-                           (bind-flags "sync-create")))
-              (property (@ (name "button-label")
-                           (bind-source "button-label-row")
                            (bind-property "text")
                            (bind-flags "sync-create")))
               (property (@ (name "action-name")) banner.activate)))
