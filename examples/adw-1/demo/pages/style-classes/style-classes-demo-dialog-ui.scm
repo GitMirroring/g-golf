@@ -276,48 +276,6 @@
 
 (define %button-box-2
   '(object (@ (class "GtkBox")
-              (id "button-box-2"))
-     (property (@ (name "spacing")) 6)
-     (property (@ (name "homogeneous")) True)
-     (child
-         (object (@ (class "GtkBox"))
-           (property (@ (name "spacing")) 6)
-           (property (@ (name "homogeneous")) True)
-           (child
-               (object (@ (class "GtkButton"))
-                 (property (@ (name "label")
-                              (translatable "yes")) Custom)
-                 (property (@ (name "name")) custom-button-1)
-                 (property (@ (name "can-shrink")) True)))
-           (child
-               (object (@ (class "GtkButton"))
-                 (property (@ (name "label")
-                              (translatable "yes")) Custom)
-                 (property (@ (name "name")) custom-button-2)
-                 (property (@ (name "can-shrink")) True)))))
-     (child
-         (object (@ (class "GtkBox"))
-           (property (@ (name "spacing")) 6)
-           (property (@ (name "homogeneous")) True)
-           (child
-               (object (@ (class "GtkButton"))
-                 (property (@ (name "label")
-                              (translatable "yes")) Custom)
-                 (property (@ (name "name")) custom-button-3)
-                 (property (@ (name "tooltip-text")) opaque)
-                 (property (@ (name "can-shrink")) True)
-                 (style (class (@ (name "opaque"))))))
-           (child
-               (object (@ (class "GtkButton"))
-                 (property (@ (name "label")
-                              (translatable "yes")) Custom)
-                 (property (@ (name "name")) custom-button-4)
-                 (property (@ (name "tooltip-text")) opaque)
-                 (property (@ (name "can-shrink")) True)
-                 (style (class (@ (name "opaque"))))))))))
-
-(define %button-box-3
-  '(object (@ (class "GtkBox")
               (id "button-box-3"))
      (property (@ (name "spacing")) 6)
      (property (@ (name "margin-top")) 12)
@@ -383,8 +341,7 @@ The \"opaque\" style class allows to create buttons with custom colors that look
            (property (@ (name "spacing")) 6)
            (property (@ (name "orientation")) vertical)
            (child ,%button-box-1)
-           (child ,%button-box-2)
-           (child ,%button-box-3)))))
+           (child ,%button-box-2)))))
 
 
 (define %entry-box-1
@@ -1087,8 +1044,6 @@ The \"raised\" style class can be used to make a button inside a toolbar use def
           (object (@ (class "AdwBreakpoint"))
             (condition "max-width: 500sp")
             (setter (@ (object "button-box-1")
-                       (property "orientation")) vertical)
-            (setter (@ (object "button-box-2")
                        (property "orientation")) vertical)
             (setter (@ (object "entry-box-1")
                        (property "orientation")) vertical)
