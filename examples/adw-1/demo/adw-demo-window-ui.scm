@@ -154,12 +154,12 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageAnimations"))))))
 
-(define %dialogs-page
+(define %alerts-page
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
-                  (translatable "yes")) "Dialogs")
+                  (translatable "yes")) "Alert Dialog")
      (property (@ (name "child"))
-       (object (@ (class "AdwDemoPageDialogs"))
+       (object (@ (class "AdwDemoPageAlerts"))
          ;; signal - add-toast - adw_toast_overlay_add_toast
          ;;        - toast-overlay - swapped
          ))))
@@ -232,7 +232,7 @@
              (child ,%style-classes-page)
              (child ,%toasts-page)
              #;(child ,%animations-page)
-             (child ,%dialogs-page)
+             (child ,%alerts-page)
              (child ,%about-page)
              (child ,%banners-page)
              (child ,%bottom-sheets-page)))))))

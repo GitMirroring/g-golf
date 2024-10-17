@@ -29,22 +29,22 @@
 (use-modules (g-golf support sxml))
 
 
-(define %dialogs
+(define %alerts
   `(interface
     (requires (@ (version "4.0") (lib "gtk")))
     (requires (@ (version "1.0") (lib "libadwaita")))
-    (template (@ (class "AdwDemoPageDialogs")
+    (template (@ (class "AdwDemoPageAlerts")
                  (parent "AdwBin"))
       (property (@ (name "child"))
         (object (@ (class "AdwStatusPage"))
           (property (@ (name "icon-name")) widget-dialog-symbolic)
           (property (@ (name "title")
-                       (translatable "yes")) Dialogs)
+                       (translatable "yes")) "Alert Dialog")
           (property (@ (name "description")
-                       (translatable "yes")) "Adaptive dialog widgets.")
+                       (translatable "yes")) "Adaptive alert dialog")
           (property (@ (name "child"))
             (object (@ (class "GtkButton")
-                       (id dialogs-button))
+                       (id alert-dialog-button))
               (property (@ (name "label")
                            (translatable "yes")) "Alert Dialog")
               (property (@ (name "halign")) center)
@@ -52,4 +52,4 @@
 
 
 (define (make-ui)
-  (sxml->ui %dialogs))
+  (sxml->ui %alerts))
