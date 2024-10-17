@@ -45,6 +45,7 @@
   #:use-module (pages dialogs dialogs)
   #:use-module (pages about about)
   #:use-module (pages banners banners)
+  #:use-module (pages bottom-sheets bottom-sheets)
 
   #:duplicates (merge-generics
 		replace
@@ -70,4 +71,5 @@
                               #;(pages animations animations)
                               (pages dialogs dialogs)
                               (pages about about)
-                              (pages banners banners)))
+                              (pages banners banners)
+                              (pages bottom-sheets bottom-sheets)))

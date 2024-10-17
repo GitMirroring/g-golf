@@ -181,6 +181,13 @@
          ;;        - toast-overlay - swapped
          ))))
 
+(define %bottom-sheets-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Bottom Sheet")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageBottomSheets"))))))
+
 (define %adw-demo-window-sidebar
   `(object (@ (class "AdwNavigationPage"))
      (property (@ (name "title")
@@ -227,7 +234,8 @@
              #;(child ,%animations-page)
              (child ,%dialogs-page)
              (child ,%about-page)
-             (child ,%banners-page)))))))
+             (child ,%banners-page)
+             (child ,%bottom-sheets-page)))))))
 
 (define %adw-demo-window
   `(interface
