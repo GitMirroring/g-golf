@@ -248,8 +248,6 @@
                    (translatable "yes")) "Adwaita Demo")
       (property (@ (name "default-width")) 800)
       (property (@ (name "default-height")) 576)
-      (property (@ (name "width-request")) 360)
-      (property (@ (name "height-request")) 200)
       (child
           (object (@ (class "AdwBreakpoint"))
             (condition "max-width: 500sp")
