@@ -34,13 +34,13 @@
      (child
          (object (@ (class "AdwActionRow"))
            (property (@ (name "title")
-                        (translatable "yes")) "Rows have a title")
+                        (translatable "yes")) "Rows Have a Title")
            (property (@ (name "subtitle")
                         (translatable "yes")) "They also have a subtitle")))
      (child
          (object (@ (class "AdwActionRow"))
            (property (@ (name "title")
-                        (translatable "yes")) "Rows can have suffix widgets")
+                        (translatable "yes")) "Rows Can Have Suffix Widgets")
            (child
                (object (@ (class "GtkButton"))
                  (property (@ (name "label")
@@ -52,7 +52,7 @@
      (child
          (object (@ (class "AdwActionRow"))
            (property (@ (name "title")
-                        (translatable "yes")) "Rows can have prefix widgets")
+                        (translatable "yes")) "Rows Can Have Prefix Widgets")
            (property (@ (name "activatable-widget")) radio-button-1)
            (child (@ (type "prefix"))
              (object (@ (class "GtkCheckButton")
@@ -62,7 +62,7 @@
      (child
          (object (@ (class "AdwActionRow"))
            (property (@ (name "title")
-                        (translatable "yes")) "Rows can have prefix widgets")
+                        (translatable "yes")) "Rows Can Have Prefix Widgets")
            (property (@ (name "activatable-widget")) radio-button-2)
            (child (@ (type "prefix"))
              (object (@ (class "GtkCheckButton")
@@ -72,8 +72,9 @@
 
 (define %prefs-group-3
   '(object (@ (class "AdwPreferencesGroup"))
-      (property (@ (name "title")
-                   (translatable "yes")) "Entry Rows")
+     (property (@ (name "title")
+                  (translatable "yes")) "Entry Rows")
+     (property (@ (name "separate-rows")) True)
      (child
          (object (@ (class "AdwEntryRow"))
            (property (@ (name "title")
@@ -149,7 +150,7 @@
          (object (@ (class "AdwComboRow")
                     (id "enum-combo-row"))
            (property (@ (name "title")
-                        (translatable "yes")) Enumaration Combo Row)
+                        (translatable "yes")) "Enumaration Combo Row")
            (property (@ (name "subtitle")
                         (translatable "yes"))
              "This combo row was created from an enumaration")
@@ -242,7 +243,34 @@
          (object (@ (class "AdwActionRow"))
            (property (@ (name "title")
                         (translatable "yes"))
-             "Groups can have a header suffix")))))
+             "Groups Can Have a Header Suffix")))))
+
+(define %prefs-group-11
+  '(object (@ (class "AdwPreferencesGroup"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Button Rows")
+     (property (@ (name "separate-rows")) True)
+     (child
+         (object (@ (class "AdwButtonRow"))
+           (property (@ (name "title")
+                        (translatable "yes")) "Add Input Source")
+           (property (@ (name "start-icon-name")) list-add-symbolic)))
+     (child
+         (object (@ (class "AdwButtonRow"))
+           (property (@ (name "title")
+                        (translatable "yes")) "Add Calendar")
+           (property (@ (name "start-icon-name")) go-next-symbolic)))
+     (child
+         (object (@ (class "AdwButtonRow"))
+           (property (@ (name "title")
+                        (translatable "yes")) "Delete Event")
+           (style (class (@ (name "destructive-action"))))))
+     (child
+         (object (@ (class "AdwButtonRow"))
+           (property (@ (name "title")
+                        (translatable "yes")) Search)
+           (style (class (@ (name "suggested-action"))))))))
+
 
 (define %lists
   `(interface
@@ -257,7 +285,7 @@
                        (translatable "yes")) Lists)
           (property (@ (name "description")
                        (translatable "yes"))
-            "Rows and helpers for GtkListBox.")
+            "Rows and helpers for GtkListBox")
           (property (@ (name "child"))
             (object (@ (class "AdwClamp")
                        (id "lists"))
@@ -276,7 +304,8 @@
                   (child ,%prefs-group-7)
                   (child ,%prefs-group-8)
                   (child ,%prefs-group-9)
-                  (child ,%prefs-group-10))))))))))
+                  (child ,%prefs-group-10)
+                  (child ,%prefs-group-11))))))))))
 
 
 (define (make-ui)
