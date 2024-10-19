@@ -44,7 +44,7 @@
   ;; #:use-module (pages animations animations)
   #:use-module (pages alerts alerts)
   #:use-module (pages about about)
-  #:use-module (pages banners banners)
+  #:use-module (pages banner banner)
   #:use-module (pages bottom-sheets bottom-sheets)
 
   #:duplicates (merge-generics
@@ -71,5 +71,5 @@
                               #;(pages animations animations)
                               (pages alerts alerts)
                               (pages about about)
-                              (pages banners banners)
+                              (pages banner banner)
                               (pages bottom-sheets bottom-sheets)))

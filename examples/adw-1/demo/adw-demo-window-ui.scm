@@ -159,12 +159,12 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageAbout"))))))
 
-(define %banners-page
+(define %banner-page
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
-                  (translatable "yes")) "Banners")
+                  (translatable "yes")) "Banner")
      (property (@ (name "child"))
-       (object (@ (class "AdwDemoPageBanners"))
+       (object (@ (class "AdwDemoPageBanner"))
          ;; signal - add-toast - adw_toast_overlay_add_toast
          ;;        - toast-overlay - swapped
          ))))
@@ -227,7 +227,7 @@
          #;(child ,%animations-page)
          (child ,%alerts-page)
          (child ,%about-page)
-         (child ,%banners-page)
+         (child ,%banner-page)
          (child ,%bottom-sheets-page)))))
 
 (define %adw-demo-window

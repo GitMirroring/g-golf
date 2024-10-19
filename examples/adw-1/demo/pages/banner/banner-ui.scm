@@ -66,11 +66,11 @@
            (property (@ (name "active")) True)))))
 
 
-(define %banners-page
+(define %banner-page
   `(interface
     (requires (@ (version "4.0") (lib "gtk")))
     (requires (@ (version "1.0") (lib "libadwaita")))
-    (template (@ (class "AdwDemoPageBanners")
+    (template (@ (class "AdwDemoPageBanner")
                  (parent "AdwBin"))
       (property (@ (name "child"))
         (object (@ (class "AdwToolbarView"))
@@ -112,4 +112,4 @@
 
 
 (define (make-ui)
-  (sxml->ui %banners-page))
+  (sxml->ui %banner-page))

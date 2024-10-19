@@ -26,7 +26,7 @@
 ;;; Code:
 
 
-(define-module (pages banners banners)
+(define-module (pages banner banner)
   #:use-module (oop goops)
   #:use-module (g-golf)
   #:use-module (adw-demo-init)
@@ -37,20 +37,20 @@
 		warn
 		last)
 
-  #:export (<adw-demo-page-banners>))
+  #:export (<adw-demo-page-banner>))
 
 
 #;(g-export )
 
 
-(define-class <adw-demo-page-banners> (<adw-bin>)
+(define-class <adw-demo-page-banner> (<adw-bin>)
   ;; child-id slot(s)
   (banner #:accessor !banner #:child-id "banner")
   (button-label-row #:accessor !button-label-row #:child-id "button-label-row")
   ;; slot(s)
   ;; class options
   #:template (string-append %adw-demo-path
-                            "/pages/banners/banners-ui.ui")
+                            "/pages/banner/banner-ui.ui")
   #:child-ids '("banner"
                 "button-label-row")
   #:g-signal `(add-toast	;; name
@@ -58,7 +58,7 @@
                (,<adw-toast>)	;; param-types
                (run-first)))	;; signal flags
 
-(define-method (initialize (self <adw-demo-page-banners>) initargs)
+(define-method (initialize (self <adw-demo-page-banner>) initargs)
   (next-method)
 
   (connect self
@@ -80,9 +80,9 @@
 
   (install-actions self)
   ;; the following shouldn't be necessary, as things are properly set in
-  ;; the banners-ui.scm module, both the banners editable text and the
+  ;; the banner-ui.scm module, both the banner editable text and the
   ;; editable property binding, but for some misterious reasons, unless
-  ;; I actually do this call, the banners button is not visible.
+  ;; I actually do this call, the banner button is not visible.
   (set-button-label (!banner self)
                     (get-text (!button-label-row self))))
 
@@ -91,10 +91,10 @@
 ;;; install actions
 ;;;
 
-(define-method (add-toast (self <adw-demo-page-banners>) toast)
+(define-method (add-toast (self <adw-demo-page-banner>) toast)
   (emit self 'add-toast toast))
 
-(define (install-actions demo-page-banners)
+(define (install-actions demo-page-banner)
   (let ((action-map (make <g-simple-action-group>))
         (a-activate (make <g-simple-action> #:name "activate")))
 
@@ -102,14 +102,14 @@
     (connect a-activate
              'activate
              (lambda (s-action g-variant)
-               (banner/activate demo-page-banners)))
+               (banner/activate demo-page-banner)))
 
-    (insert-action-group demo-page-banners
+    (insert-action-group demo-page-banner
                          "banner"
                          action-map)))
 
-(define (banner/activate demo-page-banners)
-  (add-toast demo-page-banners
+(define (banner/activate demo-page-banner)
+  (add-toast demo-page-banner
              (make <adw-toast> #:title "Banner action triggered")))
 
 
@@ -117,8 +117,8 @@
 ;;; callback
 ;;;
 
-(define (update-button-cb demo-page-banners)
-  (let* ((self demo-page-banners)
+(define (update-button-cb demo-page-banner)
+  (let* ((self demo-page-banner)
          (button-label-row (!button-label-row self))
          (editable? (get-editable button-label-row)))
     (if editable?
