@@ -53,6 +53,6 @@
   #:child-ids '("header-bar"))
 
 
-(define-method (initialize (self <adw-demo-page-bottom-sheets>) initargs)
+#;(define-method (initialize (self <adw-demo-page-bottom-sheets>) initargs)
   (next-method)
   (set-decoration-layout (!header-bar self) ""))

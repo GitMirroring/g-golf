@@ -68,35 +68,40 @@
                   (name "nick"))))
      (property (@ (name "selected")) 2)))
 
-(define %clamp
+(define %clamp-page
   `(interface
     (requires (@ (version "4.0") (lib "gtk")))
     (requires (@ (version "1.0") (lib "libadwaita")))
     (template (@ (class "AdwDemoPageClamp")
                  (parent "AdwBin"))
       (property (@ (name "child"))
-        (object (@ (class "AdwStatusPage"))
-          (property (@ (name "icon-name")) widget-clamp-symbolic)
-          (property (@ (name "title")
-                       (translatable "yes")) Clamp)
-          (property (@ (name "description")
-                       (translatable "yes"))
-            "This page is clamped to smoothly grow up to a maximum width.")
-          (property (@ (name "child"))
-            (object (@ (class "AdwClamp")
-                       (id "clamp"))
-              #;(property (@ (name "maximum-size")
-                           (bind-source "maximum-size-adjustment")
-                           (bind-property "value")
-                           (bind-flags "sync-create")))
-              ;; property maximum-size
-              ;;   bind - maximum-size-adjustment // value // sync-create
+        (object (@ (class "AdwToolbarView"))
+          (child (@ (type "top"))
+            (object (@ (class "AdwHeaderBar"))
+              (property (@ (name "show-title")) False)))
+          (property (@ (name "content"))
+            (object (@ (class "AdwStatusPage"))
+              (property (@ (name "icon-name")) widget-clamp-symbolic)
+              (property (@ (name "title")
+                           (translatable "yes")) Clamp)
+              (property (@ (name "description")
+                           (translatable "yes"))
+                "This page is clamped to smoothly grow up to a maximum width.")
               (property (@ (name "child"))
-                (object (@ (class "AdwPreferencesGroup"))
-                  (child ,%maximum-size-row)
-                  (child ,%tightening-threshold-row)
-                  (child ,%unit-row))))))))))
+                (object (@ (class "AdwClamp")
+                           (id "clamp"))
+                  #;(property (@ (name "maximum-size")
+                  (bind-source "maximum-size-adjustment") ;
+                  (bind-property "value") ;
+                  (bind-flags "sync-create")))
+                  ;; property maximum-size
+                  ;;   bind - maximum-size-adjustment // value // sync-create
+                  (property (@ (name "child"))
+                    (object (@ (class "AdwPreferencesGroup"))
+                      (child ,%maximum-size-row)
+                      (child ,%tightening-threshold-row)
+                      (child ,%unit-row))))))))))))
 
 
 (define (make-ui)
-  (sxml->ui %clamp))
+  (sxml->ui %clamp-page))
