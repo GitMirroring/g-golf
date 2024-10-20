@@ -38,10 +38,10 @@
 ;;; Code:
 
 
-(define-module (demos shortcut-triggers)
+(define-module (demos shortcuts)
   #:use-module (oop goops)
   #:use-module (g-golf)
-  #:use-module (demos shortcut-triggers-init)
+  #:use-module (demos shortcuts-init)
 
   #:duplicates (merge-generics
 		replace
@@ -114,7 +114,7 @@
   (dimfi 'shortcut-activated)
   (dimfi " " (!label widget))
   (dimfi "   " widget)
-  (dimfi "   " 'g-variant g-variant)
+  #;(dimfi "   " 'g-variant g-variant)
   ;; the data arg is somehow incorrect, to be debugged
   #;(dimfi "   " 'data data))
 

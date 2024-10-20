@@ -40,8 +40,8 @@ exec guile -e main -s "$0" "$@"
 
 
 (add-to-load-path (dirname (current-filename)))
-(use-modules (demos shortcut-triggers-init)
-             (demos shortcut-triggers))
+(use-modules (demos shortcuts-init)
+             (demos shortcuts))
  
 
 (define (main args)
@@ -50,7 +50,7 @@ exec guile -e main -s "$0" "$@"
            (animate
             (lambda ()
               (let ((app (make <gtk-application>
-                           #:application-id "org.gnu.g-golf.shortcut-triggers")))
+                           #:application-id "org.gnu.g-golf.shortcuts")))
                 (connect app 'activate activate-demo)
                 (let ((status (g-application-run app '())))
                   (exit status))))))

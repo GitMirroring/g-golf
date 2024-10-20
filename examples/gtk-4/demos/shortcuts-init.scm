@@ -26,7 +26,7 @@
 ;;; Code:
 
 
-(define-module (demos shortcut-triggers-init)
+(define-module (demos shortcuts-init)
   #:use-module (oop goops)
   #:use-module (g-golf)
   
