@@ -46,6 +46,7 @@
   #:use-module (pages about about)
   #:use-module (pages banner banner)
   #:use-module (pages bottom-sheets bottom-sheets)
+  #:use-module (pages multi-layout multi-layout)
 
   #:duplicates (merge-generics
 		replace
@@ -72,4 +73,5 @@
                               (pages alerts alerts)
                               (pages about about)
                               (pages banner banner)
-                              (pages bottom-sheets bottom-sheets)))
+                              (pages bottom-sheets bottom-sheets)
+                              (pages multi-layout multi-layout)))

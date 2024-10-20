@@ -169,6 +169,13 @@
          ;;        - toast-overlay - swapped
          ))))
 
+(define %multi-layout-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Multi-Layout View")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageMultiLayout"))))))
+
 (define %bottom-sheets-page
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
@@ -228,7 +235,8 @@
          (child ,%alerts-page)
          (child ,%about-page)
          (child ,%banner-page)
-         (child ,%bottom-sheets-page)))))
+         (child ,%bottom-sheets-page)
+         (child ,%multi-layout-page)))))
 
 (define %adw-demo-window
   `(interface
