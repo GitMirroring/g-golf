@@ -46,7 +46,7 @@
               (property (@ (name "title")
                            (translatable "yes")) "Split Views")
               (property (@ (name "description")
-                           (translatable "yes")) "Widgets that display sidebar and content.")
+                           (translatable "yes")) "Widgets that display sidebar and content")
               (property (@ (name "child"))
                 (object (@ (class "GtkBox"))
                   (property (@ (name "orientation")) vertical)

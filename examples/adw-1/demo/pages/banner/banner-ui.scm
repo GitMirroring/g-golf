@@ -98,7 +98,7 @@
                   (property (@ (name "title")
                                (translatable "yes")) Banner)
                   (property (@ (name "description")
-                               (translatable "yes")) "A bar with contextual information.")
+                               (translatable "yes")) "A bar with contextual information")
                   (property (@ (name "icon-name")) widget-banner-symbolic)
                   (property (@ (name "child"))
                     (object (@ (class "AdwClamp"))

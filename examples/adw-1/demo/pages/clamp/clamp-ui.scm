@@ -86,7 +86,7 @@
                            (translatable "yes")) Clamp)
               (property (@ (name "description")
                            (translatable "yes"))
-                "This page is clamped to smoothly grow up to a maximum width.")
+                "This page is clamped to smoothly grow up to a maximum width")
               (property (@ (name "child"))
                 (object (@ (class "AdwClamp")
                            (id "clamp"))

@@ -46,7 +46,7 @@
               (property (@ (name "title")
                            (translatable "yes")) "Style classes")
               (property (@ (name "description")
-                           (translatable "yes")) "Various widget styles available for use.")
+                           (translatable "yes")) "Various widget styles available for use")
               (property (@ (name "child"))
                 (object (@ (class "GtkButton")
                            (id style-classes-button))

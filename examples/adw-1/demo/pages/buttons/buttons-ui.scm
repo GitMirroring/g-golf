@@ -133,7 +133,7 @@
               (property (@ (name "title")
                            (translatable "yes")) Buttons)
               (property (@ (name "description")
-                           (translatable "yes")) "Button helper widgets.")
+                           (translatable "yes")) "Button helper widgets")
               (property (@ (name "child"))
                 (object (@ (class "AdwClamp"))
                   (property (@ (name "maximum-size")) 400)

@@ -86,7 +86,7 @@
               (property (@ (name "title")
                            (translatable "yes")) Toasts)
               (property (@ (name "description")
-                           (translatable "yes")) "Transient in-app notifications.")
+                           (translatable "yes")) "Transient in-app notifications")
               (property (@ (name "child"))
                 (object (@ (class "AdwClamp"))
                   (property (@ (name "maximum-size")) 400)

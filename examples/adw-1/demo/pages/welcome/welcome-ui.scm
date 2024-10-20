@@ -49,7 +49,7 @@
                 "Welcome to Adwaita Demo")
               (property (@ (name "description")
                            (translatable "yes"))
-                "This is a tour of the features the library has to offer."))))))))
+                "This is a tour of the features the library has to offer"))))))))
 
 
 (define (make-ui)

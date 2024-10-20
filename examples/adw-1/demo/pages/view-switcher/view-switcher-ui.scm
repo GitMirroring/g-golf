@@ -46,7 +46,7 @@
               (property (@ (name "title")
                            (translatable "yes")) "View Switcher")
               (property (@ (name "description")
-                           (translatable "yes")) "Widgets to switch the window's view. ")
+                           (translatable "yes")) "Widgets to switch the window's view")
               (property (@ (name "child"))
                 (object (@ (class "GtkButton")
                            (id view-switcher-button))

@@ -46,7 +46,7 @@
               (property (@ (name "title")
                            (translatable "yes")) "Tab View")
               (property (@ (name "description")
-                           (translatable "yes")) "A modern tab widget.")
+                           (translatable "yes")) "A modern tab widget")
               (property (@ (name "child"))
                 (object (@ (class "GtkButton")
                            (id tab-view-button))

@@ -46,7 +46,7 @@
               (property (@ (name "title")
                            (translatable "yes")) "About Dialog")
               (property (@ (name "description")
-                           (translatable "yes")) "An About Dialog.")
+                           (translatable "yes")) "An About Dialog")
               (property (@ (name "child"))
                 (object (@ (class "GtkButton")
                            (id about-button))

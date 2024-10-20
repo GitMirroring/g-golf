@@ -39,7 +39,7 @@
      (property (@ (name "title")
                   (translatable "yes")) Carousel)
      (property (@ (name "description")
-                  (translatable "yes")) "A widget for paginated scrolling.")
+                  (translatable "yes")) "A widget for paginated scrolling")
      (property (@ (name "vexpand")) True)))
 
 (define %orientation-row

@@ -46,7 +46,7 @@
               (property (@ (name "title")
                            (translatable "yes")) "Navigation View")
               (property (@ (name "description")
-                           (translatable "yes")) "A page-based navigation container.")
+                           (translatable "yes")) "A page-based navigation container")
               (property (@ (name "child"))
                 (object (@ (class "GtkButton")
                            (id navigation-view-button))

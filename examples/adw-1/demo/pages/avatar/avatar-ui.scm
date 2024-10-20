@@ -166,7 +166,7 @@
                             (object (@ (class "GtkLabel"))
                               (property (@ (name "label")
                                            (translatable "yes"))
-                                "A user avatar with generated fallback.")
+                                "A user avatar with generated fallback")
                               (property (@ (name "wrap")) True)
                               (property (@ (name "justify")) center)
                               (property (@ (name "use-markup")) True)
