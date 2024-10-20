@@ -137,7 +137,10 @@
         "Easing"
         "HeaderBar"
         "ToolbarView"
-        "BottomSheet")))
+        "BottomSheet"
+        "Layout"
+        "LayoutSlot"
+        "SpinnerPaintable")))
 
 
 (define %adw-demo-path

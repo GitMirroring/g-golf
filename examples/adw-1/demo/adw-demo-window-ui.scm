@@ -169,6 +169,13 @@
          ;;        - toast-overlay - swapped
          ))))
 
+(define %bottom-sheets-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Bottom Sheet")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageBottomSheets"))))))
+
 (define %multi-layout-page
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
@@ -176,12 +183,12 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageMultiLayout"))))))
 
-(define %bottom-sheets-page
+(define %spinner-page
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
-                  (translatable "yes")) "Bottom Sheet")
+                  (translatable "yes")) Spinner)
      (property (@ (name "child"))
-       (object (@ (class "AdwDemoPageBottomSheets"))))))
+       (object (@ (class "AdwDemoPageSpinner"))))))
 
 (define %adw-demo-window-sidebar
   `(object (@ (class "AdwNavigationPage"))
@@ -236,7 +243,8 @@
          (child ,%about-page)
          (child ,%banner-page)
          (child ,%bottom-sheets-page)
-         (child ,%multi-layout-page)))))
+         (child ,%multi-layout-page)
+         (child ,%spinner-page)))))
 
 (define %adw-demo-window
   `(interface
