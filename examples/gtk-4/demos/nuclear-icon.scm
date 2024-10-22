@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -42,7 +42,7 @@
 ;;; Code:
 
 
-(define-module (nuclear-icon)
+(define-module (demos nuclear-icon)
   #:use-module (oop goops)
   #:use-module (g-golf)
   #:use-module (cairo)
