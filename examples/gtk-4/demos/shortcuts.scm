@@ -23,17 +23,18 @@
 
 ;;; Commentary:
 
-;; /* Shortcuts
-;;  * #Keywords: GtkShortcutController
-;;  *
-;;  * GtkShortcut is the abstraction used by GTK to handle shortcuts from
-;;  * keyboard or other input devices.
-;;  *
-;;  * Shortcut triggers can be used to weave complex sequences of key
-;;  * presses into sophisticated mechanisms to activate shortcuts.
-;;  *
-;;  * This demo code shows creative ways to do that.
-;;  */
+;; /*
+;;   Shortcuts
+;;   #Keywords: GtkShortcutController
+;;   
+;;   GtkShortcut is the abstraction used by GTK to handle shortcuts from
+;;   keyboard or other input devices.
+;;   
+;;   Shortcut triggers can be used to weave complex sequences of key
+;;   presses into sophisticated mechanisms to activate shortcuts.
+;;   
+;;   This demo code shows creative ways to do that.
+;; */
 
 ;;; Code:
 
