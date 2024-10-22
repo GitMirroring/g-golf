@@ -24,6 +24,9 @@
 EXTRA_DIST = \
 	$(wildcard *.scm)		\
 	$(wildcard demos/*.scm)		\
+	$(wildcard demos/Makefile)	\
+	$(wildcard demos/*.c)		\
+	$(wildcard demos/*.h)		\
 	$(wildcard *.png)		\
 	$(wildcard images/*.png)	\
 	$(wildcard ui/*.ui)		\

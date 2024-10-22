@@ -72,8 +72,13 @@
 
 (define-method (initialize (self <adw-demo-window>) initargs)
   (next-method)
-  (install-actions self))
+  (install-actions self)
+  (install-shortcuts self))
 
+
+;;;
+;;; install actions
+;;;
 
 (define (install-actions demo-window)
   (let ((action-map (make <g-simple-action-group>))
@@ -95,7 +100,8 @@
 (define (install-app-actions app)
   (let ((a-inspector (make <g-simple-action> #:name "inspector"))
         (a-preferences (make <g-simple-action> #:name "preferences"))
-        (a-about (make <g-simple-action> #:name "about")))
+        (a-about (make <g-simple-action> #:name "about"))
+        (a-quit (make <g-simple-action> #:name "quit")))
 
     (add-action app a-inspector)
     (connect a-inspector
@@ -107,16 +113,50 @@
     (connect a-preferences
              'activate
              (lambda (s-action g-variant)
-               (let ((window (get-active-window app))
-                     (pref-win (make <adw-demo-preferences-window>)))
-                 (set-transient-for pref-win window)
-                 (present pref-win))))
+               (let ((active-window (get-active-window app))
+                     (prefs-dialog (make <adw-demo-preferences-dialog>)))
+                 (present prefs-dialog active-window))))
 
     (add-action app a-about)
     (connect a-about
              'activate
              (lambda (s-action g-variant)
-               (show-about app)))))
+               (app/show-about app)))
+
+    (add-action app a-quit)
+    (connect a-quit
+             'activate
+             (lambda (s-action g-variant)
+               (app/quit app)))
+    (set-accels-for-action app "app.quit" '("<Ctrl>Q"))))
+
+
+;;;
+;;; install shortcuts
+;;;
+
+(define (install-shortcuts demo-window)
+  (let ((controller (make <gtk-shortcut-controller>
+                      #:name "demo-window-shortcuts")))
+    (set-scope controller 'local)
+    (add-controller demo-window controller)
+    (for-each (match-lambda
+                ((key-name modifiers action-name)
+                 (let ((key-value
+                        (gi-import-by-name "Gdk" key-name #:allow-constant? #t)))
+                   (add-shortcut controller
+                                 (make <gtk-shortcut>
+                                   #:trigger (make <gtk-keyval-trigger>
+                                               #:keyval key-value
+                                               #:modifiers modifiers)
+                                   #:action (make <gtk-named-action>
+                                              #:action-name action-name))))))
+        '(("KEY_w" (control-mask)  "window.close")))))
+
+
+;;;
+;;;
+;;;
 
 (define %developers
   '("Adrien Plazas"
@@ -128,7 +168,7 @@
     "Manuel Genovés"
     "Zander Brown"))
 
-(define (show-about app)
+(define (app/show-about app)
   (let* ((active-window (get-active-window app))
          (about (make <adw-about-dialog>
                   #:transient-for active-window
@@ -139,7 +179,7 @@
                   #:website "https://gitlab.gnome.org/GNOME/libadwaita"
                   #:issue-url "https://gitlab.gnome.org/GNOME/libadwaita/-/issues/new"
                   #:debug-info (debug-info)
-                  #:copyright "© 2017–2022 Purism SPC"
+                  #:copyright "© 2017–2022 Purism SPC\n© 2023-2024 GNOME Foundation Inc."
                   #:license-type 'lgpl-2-1
                   #:developers %developers
                   #:designers '("GNOME Design Team")
@@ -151,6 +191,9 @@
     (add-link about "_Chat"
               "https://matrix.to/#/#libadwaita:gnome.org")
     (present about active-window)))
+
+(define (app/quit app)
+  (exit))
 
 (define (activate-demo app)
   (let* ((cwd (dirname (current-filename)))

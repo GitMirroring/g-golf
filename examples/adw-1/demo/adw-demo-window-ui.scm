@@ -46,18 +46,6 @@
                        (translatable "yes")) _"About Adwaita Demo")
          (attribute (@ (name "action")) app.about)))))
 
-(define %sidebar-headerbar
-  '(object (@ (class "AdwHeaderBar"))
-     (child (@ (type "start"))
-       (object (@ (class "GtkButton")
-                  (id "color-scheme-button"))))
-     (child (@ (type "end"))
-       (object (@ (class "GtkMenuButton"))
-         (property (@ (name "tooltip-text")
-                      (translatable "yes")) "Main Menu")
-         (property (@ (name "menu-model")) primary-menu)
-         (property (@ (name "icon-name")) open-menu-symbolic)
-         (property (@ (name "primary")) True)))))
 
 (define %welcome-page
   '(object (@ (class "GtkStackPage"))
@@ -154,12 +142,12 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageAnimations"))))))
 
-(define %dialogs-page
+(define %alerts-page
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
-                  (translatable "yes")) "Dialogs")
+                  (translatable "yes")) "Alert Dialog")
      (property (@ (name "child"))
-       (object (@ (class "AdwDemoPageDialogs"))
+       (object (@ (class "AdwDemoPageAlerts"))
          ;; signal - add-toast - adw_toast_overlay_add_toast
          ;;        - toast-overlay - swapped
          ))))
@@ -171,15 +159,36 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageAbout"))))))
 
-(define %banners-page
+(define %banner-page
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
-                  (translatable "yes")) "Banners")
+                  (translatable "yes")) "Banner")
      (property (@ (name "child"))
-       (object (@ (class "AdwDemoPageBanners"))
+       (object (@ (class "AdwDemoPageBanner"))
          ;; signal - add-toast - adw_toast_overlay_add_toast
          ;;        - toast-overlay - swapped
          ))))
+
+(define %bottom-sheets-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Bottom Sheet")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageBottomSheets"))))))
+
+(define %multi-layout-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Multi-Layout View")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageMultiLayout"))))))
+
+(define %spinner-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) Spinner)
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageSpinner"))))))
 
 (define %adw-demo-window-sidebar
   `(object (@ (class "AdwNavigationPage"))
@@ -190,7 +199,17 @@
      (property (@ (name "child"))
        (object (@ (class "AdwToolbarView"))
          (child (@ (type "top"))
-           ,%sidebar-headerbar)
+           (object (@ (class "AdwHeaderBar"))
+             (child (@ (type "start"))
+               (object (@ (class "GtkButton")
+                          (id "color-scheme-button"))))
+             (child (@ (type "end"))
+               (object (@ (class "GtkMenuButton"))
+                 (property (@ (name "tooltip-text")
+                              (translatable "yes")) "Main Menu")
+                 (property (@ (name "menu-model")) primary-menu)
+                 (property (@ (name "icon-name")) open-menu-symbolic)
+                 (property (@ (name "primary")) True)))))
          (property (@ (name "content"))
            (object (@ (class "GtkStackSidebar"))
              (property (@ (name "stack")) stack)))))))
@@ -201,33 +220,31 @@
      ;; Unless we set the AdwNavigationPage title to something, Adwaita
      ;; complains, even if if/when we set its AdwHeaderBar show-title
      ;; property set to false ...
-     (property (@ (name "title")) "Bluefox") ;; fake title
+     (property (@ (name "title")) "Hidden but ...") ;; fake title
      (property (@ (name "child"))
-       (object (@ (class "AdwToolbarView"))
-         (child (@ (type "top"))
-           (object (@ (class "AdwHeaderBar"))
-             (property (@ (name "show-title")) False)))
-         (property (@ (name "content"))
-           (object (@ (class "GtkStack")
-                      (id "stack"))
-             (property (@ (name "vhomogeneous")) False)
-             ;; signal - notify::visible-child ...
-             (child ,%welcome-page)
-             (child ,%navigation-view-page)
-             (child ,%clamp-page)
-             (child ,%lists-page)
-             (child ,%view-switcher-page)
-             (child ,%carousel-page)
-             (child ,%avatar-page)
-             (child ,%split-views-page)
-             (child ,%tab-view-page)
-             (child ,%buttons-page)
-             (child ,%style-classes-page)
-             (child ,%toasts-page)
-             #;(child ,%animations-page)
-             (child ,%dialogs-page)
-             (child ,%about-page)
-             (child ,%banners-page)))))))
+       (object (@ (class "GtkStack")
+                  (id "stack"))
+         (property (@ (name "vhomogeneous")) False)
+         ;; signal - notify::visible-child ...
+         (child ,%welcome-page)
+         (child ,%navigation-view-page)
+         (child ,%clamp-page)
+         (child ,%lists-page)
+         (child ,%view-switcher-page)
+         (child ,%carousel-page)
+         (child ,%avatar-page)
+         (child ,%split-views-page)
+         (child ,%tab-view-page)
+         (child ,%buttons-page)
+         (child ,%style-classes-page)
+         (child ,%toasts-page)
+         #;(child ,%animations-page)
+         (child ,%alerts-page)
+         (child ,%about-page)
+         (child ,%banner-page)
+         (child ,%bottom-sheets-page)
+         (child ,%multi-layout-page)
+         (child ,%spinner-page)))))
 
 (define %adw-demo-window
   `(interface
@@ -240,8 +257,6 @@
                    (translatable "yes")) "Adwaita Demo")
       (property (@ (name "default-width")) 800)
       (property (@ (name "default-height")) 576)
-      (property (@ (name "width-request")) 360)
-      (property (@ (name "height-request")) 200)
       (child
           (object (@ (class "AdwBreakpoint"))
             (condition "max-width: 500sp")

@@ -26,7 +26,7 @@
 ;;; Code:
 
 
-(define-module (pages dialogs dialogs)
+(define-module (pages alerts alerts)
   #:use-module (oop goops)
   #:use-module (g-golf)
   #:use-module (adw-demo-init)
@@ -37,34 +37,34 @@
 		warn
 		last)
 
-  #:export (<adw-demo-page-dialogs>))
+  #:export (<adw-demo-page-alerts>))
 
 
 #;(g-export )
 
 
-(define-class <adw-demo-page-dialogs> (<adw-bin>)
+(define-class <adw-demo-page-alerts> (<adw-bin>)
   ;; slot(s)
   (last-toast #:accessor !last-toast #:init-value #f)
   ;; child-id slot(s)
-  (dialogs-button #:child-id "dialogs-button"
-                  #:accessor !dialogs-button)
+  (alert-dialog-button #:child-id "alert-dialog-button"
+                        #:accessor !alert-dialog-button)
   ;; class options
   #:template (string-append %adw-demo-path
-                            "/pages/dialogs/dialogs-ui.ui")
-  #:child-ids '("dialogs-button")
+                            "/pages/alerts/alerts-ui.ui")
+  #:child-ids '("alert-dialog-button")
   #:g-signal `(add-toast	;; name
                none		;; return-type	
                (,<adw-toast>)	;; param-types
                (run-first)))	;; signal flags
 
-(define-method (initialize (self <adw-demo-page-dialogs>) initargs)
+(define-method (initialize (self <adw-demo-page-alerts>) initargs)
   (next-method)
 
-  (connect (!dialogs-button self)
+  (connect (!alert-dialog-button self)
            'clicked
            (lambda (b)
-             (demo-alert-dialog-cb self)))
+             (alert-dialog-cb self)))
 
   (connect self
            'add-toast
@@ -73,7 +73,7 @@
                     (toast-overlay (slot-ref demo-window 'toast-overlay)))
                (add-toast toast-overlay toast)))))
 
-(define (demo-alert-dialog-cb window)
+(define (alert-dialog-cb window)
   (let ((dialog (adw-alert-dialog-new "Save Changes"
                                       "Open document contains unsaved changes. Changes which are not saved will be permanently lost.")))
     (add-responses dialog
@@ -110,33 +110,33 @@
                  (add-response dialog id label))))
       responses))
 
-(define (dismissed-cb toast demo-page-dialogs)
-  (when (eq? (!last-toast demo-page-dialogs) toast)
-    (set! (!last-toast demo-page-dialogs) #f)))
+(define (dismissed-cb toast demo-page-alerts)
+  (when (eq? (!last-toast demo-page-alerts) toast)
+    (set! (!last-toast demo-page-alerts) #f)))
 
-(define (alert-cb dialog result demo-page-dialogs)
+(define (alert-cb dialog result demo-page-alerts)
   (let* ((response (choose-finish dialog result))
          (toast (make <adw-toast>
                   #:title (format #f "Dialog response: ~A" response)))
-         (last-toast (!last-toast demo-page-dialogs)))
+         (last-toast (!last-toast demo-page-alerts)))
     (connect toast
              'dismissed
              (lambda (toast)
-               (dismissed-cb toast demo-page-dialogs)))
+               (dismissed-cb toast demo-page-alerts)))
     (when last-toast (dismiss last-toast))
-    (set! (!last-toast demo-page-dialogs) toast)
+    (set! (!last-toast demo-page-alerts) toast)
 
-    (emit demo-page-dialogs 'add-toast toast)))
+    (emit demo-page-alerts 'add-toast toast)))
 
-(define (response-cb dialog response demo-page-dialogs)
+(define (response-cb dialog response demo-page-alerts)
   (let ((toast (make <adw-toast>
                  #:title (format #f "Dialog response: ~A" response)))
-        (last-toast (!last-toast demo-page-dialogs)))
+        (last-toast (!last-toast demo-page-alerts)))
     (connect toast
              'dismissed
              (lambda (toast)
-               (dismissed-cb toast demo-page-dialogs)))
+               (dismissed-cb toast demo-page-alerts)))
     (when last-toast (dismiss last-toast))
-    (set! (!last-toast demo-page-dialogs) toast)
+    (set! (!last-toast demo-page-alerts) toast)
 
-    (emit demo-page-dialogs 'add-toast toast)))
+    (emit demo-page-alerts 'add-toast toast)))

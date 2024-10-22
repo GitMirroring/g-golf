@@ -1,7 +1,7 @@
 ;; -*- mode: sxml-ui; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -29,27 +29,32 @@
 (use-modules (g-golf support sxml))
 
 
-(define %style-classes
+(define %style-classes-page
   `(interface
     (requires (@ (version "4.0") (lib "gtk")))
     (requires (@ (version "1.0") (lib "libadwaita")))
     (template (@ (class "AdwDemoPageStyleClasses")
                  (parent "AdwBin"))
       (property (@ (name "child"))
-        (object (@ (class "AdwStatusPage"))
-          (property (@ (name "icon-name")) style-classes-symbolic)
-          (property (@ (name "title")
-                       (translatable "yes")) "Style classes")
-          (property (@ (name "description")
-                       (translatable "yes")) "Various widget styles available for use.")
-          (property (@ (name "child"))
-            (object (@ (class "GtkButton")
-                       (id style-classes-button))
-              (property (@ (name "label")
-                           (translatable "yes")) "Run the Demo")
-              (property (@ (name "halign")) center)
-              (style (class (@ (name "pill")))))))))))
+        (object (@ (class "AdwToolbarView"))
+          (child (@ (type "top"))
+            (object (@ (class "AdwHeaderBar"))
+              (property (@ (name "show-title")) False)))
+          (property (@ (name "content"))
+            (object (@ (class "AdwStatusPage"))
+              (property (@ (name "icon-name")) style-classes-symbolic)
+              (property (@ (name "title")
+                           (translatable "yes")) "Style classes")
+              (property (@ (name "description")
+                           (translatable "yes")) "Various widget styles available for use")
+              (property (@ (name "child"))
+                (object (@ (class "GtkButton")
+                           (id style-classes-button))
+                  (property (@ (name "label")
+                               (translatable "yes")) "Run the Demo")
+                  (property (@ (name "halign")) center)
+                  (style (class (@ (name "pill")))))))))))))
 
 
 (define (make-ui)
-  (sxml->ui %style-classes))
+  (sxml->ui %style-classes-page))

@@ -35,6 +35,7 @@
     (requires (@ (version "1.0") (lib "libadwaita")))
     (template (@ (class "AdwTabViewDemoPage")
                  (parent "AdwBin"))
+      (style (class (@ (name "tab-page"))))
       (property (@ (name "child"))
         (object (@ (class "GtkEntry")
                    (id "title-entry"))

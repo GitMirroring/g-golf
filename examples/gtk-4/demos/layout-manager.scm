@@ -47,12 +47,26 @@
 (define (activate-demo app)
   (let ((window (make <gtk-application-window>
                   #:title "Layout Manager — Transition"
-                  #:default-width 360
-                  #:default-height 320
                   #:application app))
-        (demo-widget (make <demo-widget>)))
+         (box (make <gtk-box>
+               #:margin-top 6
+               #:margin-start 6
+               #:margin-bottom 6
+               #:margin-end 6
+               #:orientation 'vertical))
+         (demo-widget (make <demo-widget>
+                        #:width-request 360
+                        #:height-request 320))
+         (label  (make <gtk-label>
+                   #:label "<span size=\"x-large\"><span color=\"maroon\">Left </span><span color=\"blue\"><span rise=\"3pt\"><span size=\"xx-large\">&#x1F5B1;</span></span></span><span color=\"maroon\"> click to trigger a transition</span></span>"
+                   #:halign 'center
+                   #:valign 'center
+                   #:use-markup #t)))
+
     (populate-demo-widget demo-widget)
-    (set-child window demo-widget)
+    (set-child window box)
+    (append box demo-widget)
+    (append box label)
     (present window)))
 
 (define (populate-demo-widget demo-widget)

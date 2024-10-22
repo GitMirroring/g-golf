@@ -170,8 +170,6 @@
                    (translatable "yes")) "Tab View Demo")
       (property (@ (name "default-width")) 800)
       (property (@ (name "default-height")) 600)
-      (property (@ (name "width-request")) 360)
-      (property (@ (name "height-request")) 150)
       (property (@ (name "content"))
         ,%tab-overview)
       ;; apparently not permited, not sure why but ...

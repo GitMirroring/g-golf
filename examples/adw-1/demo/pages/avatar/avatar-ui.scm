@@ -127,48 +127,53 @@
     (template (@ (class "AdwDemoPageAvatar")
                  (parent "AdwBin"))
       (property (@ (name "child"))
-        (object (@ (class "GtkScrolledWindow"))
-          (property (@ (name "hscrollbar-policy")) never)
-          (property (@ (name "child"))
-            (object (@ (class "GtkBox"))
-              (property (@ (name "orientation")) vertical)
-              (property (@ (name "valign")) start)
-              (style (class (@ (name "avatar-page"))))
-              (child
-                  (object (@ (class "GtkBox"))
-                    (property (@ (name "orientation")) vertical)
-                    (child
-                        (object (@ (class "AdwAvatar")
-                                   (id "avatar"))
-                          (property (@ (name "valign")) center)
-                          ;; bind property size
-                          ;;   source size // value // sync-create
-                          ;; bind property show-initials
-                          ;;   source show-initials // active // sync-create
-                          ;; bind property text
-                          ;;   source text // text // sync-create
-                          (property (@ (name "margin-bottom")) 36)))
-                    (child
-                        (object (@ (class "GtkLabel"))
-                          (property (@ (name "label")
-                                       (translatable "yes")) Avatar)
-                          (property (@ (name "wrap")) True)
-                          (property (@ (name "wrap-mode")) word-char)
-                          (property (@ (name "justify")) center)
-                          (style (class (@ (name "title")))
-                                 (class (@ (name "title-1"))))))
-                    (child
-                        (object (@ (class "GtkLabel"))
-                          (property (@ (name "label")
-                                       (translatable "yes"))
-                            "A user avatar with generated fallback.")
-                          (property (@ (name "wrap")) True)
-                          (property (@ (name "justify")) center)
-                          (property (@ (name "use-markup")) True)
-                          (style (class (@ (name "body")))
-                                 (class (@ (name "description"))))))
-                    (child ,%clamp)
-                      )))))))))
+        (object (@ (class "AdwToolbarView"))
+          (child (@ (type "top"))
+            (object (@ (class "AdwHeaderBar"))
+              (property (@ (name "show-title")) False)))
+          (property (@ (name "content"))
+            (object (@ (class "GtkScrolledWindow"))
+              (property (@ (name "hscrollbar-policy")) never)
+              (property (@ (name "child"))
+                (object (@ (class "GtkBox"))
+                  (property (@ (name "orientation")) vertical)
+                  (property (@ (name "valign")) start)
+                  (style (class (@ (name "avatar-page"))))
+                  (child
+                      (object (@ (class "GtkBox"))
+                        (property (@ (name "orientation")) vertical)
+                        (child
+                            (object (@ (class "AdwAvatar")
+                                       (id "avatar"))
+                              (property (@ (name "valign")) center)
+                              ;; bind property size
+                              ;;   source size // value // sync-create
+                              ;; bind property show-initials
+                              ;;   source show-initials // active // sync-create
+                              ;; bind property text
+                              ;;   source text // text // sync-create
+                              (property (@ (name "margin-bottom")) 36)))
+                        (child
+                            (object (@ (class "GtkLabel"))
+                              (property (@ (name "label")
+                                           (translatable "yes")) Avatar)
+                              (property (@ (name "wrap")) True)
+                              (property (@ (name "wrap-mode")) word-char)
+                              (property (@ (name "justify")) center)
+                              (style (class (@ (name "title")))
+                                     (class (@ (name "title-1"))))))
+                        (child
+                            (object (@ (class "GtkLabel"))
+                              (property (@ (name "label")
+                                           (translatable "yes"))
+                                "A user avatar with generated fallback")
+                              (property (@ (name "wrap")) True)
+                              (property (@ (name "justify")) center)
+                              (property (@ (name "use-markup")) True)
+                              (style (class (@ (name "body")))
+                                     (class (@ (name "description"))))))
+                        (child ,%clamp)
+                        )))))))))))
 
 
 (define (make-ui)

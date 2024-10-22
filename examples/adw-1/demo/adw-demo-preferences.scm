@@ -36,7 +36,7 @@
 		warn
 		last)
 
-  #:export (<adw-demo-preferences-window>))
+  #:export (<adw-demo-preferences-dialog>))
 
 
 (g-export !toast-bt
@@ -57,7 +57,7 @@
   (for-each (lambda (name)
               (gi-import-by-name "Adw" name))
       '("StatusPage"
-        "PreferencesWindow"
+        "PreferencesDialog"
         "PreferencesPage"
         "PreferencesGroup"
         "Toast"
@@ -65,7 +65,7 @@
         "ActionRow")))
 
 
-(define-class <adw-demo-preferences-window> (<adw-preferences-window>)
+(define-class <adw-demo-preferences-dialog> (<adw-preferences-dialog>)
   ;; slots
   (toast-bt #:child-id "toast-bt" #:accessor !toast-bt)
   (go-to-subpage-1-ar #:child-id "go-to-subpage-1-ar"
@@ -75,7 +75,6 @@
   (go-to-subpage-2-ar #:child-id "go-to-subpage-2-ar"
                       #:accessor !go-to-subpage-2-ar)
   (subpage-2 #:child-id "subpage-2" #:accessor !subpage-2)
-  (subpage-2-bt #:child-id "subpage-2-bt" #:accessor !subpage-2-bt)
   ;; class options
   #:template (string-append (dirname (current-filename))
                             "/adw-demo-preferences-ui.ui")
@@ -85,11 +84,10 @@
                 "subpage-1"
                 "subpage-1-bt"
                 "go-to-subpage-2-ar"
-                "subpage-2"
-                "subpage-2-bt"))
+                "subpage-2"))
 
 
-(define-method (initialize (self <adw-demo-preferences-window>) initargs)
+(define-method (initialize (self <adw-demo-preferences-dialog>) initargs)
   (next-method)
 
   (connect (!toast-bt self)
@@ -105,26 +103,18 @@
   (connect (!subpage-1-bt self)
            'clicked
            (lambda (b)
-             (return-to-preferences-cb self)))
+             (go-to-subpage-2-ar-cb self)))
 
   (connect (!go-to-subpage-2-ar self)
            'activated
            (lambda (r)
-             (go-to-subpage-2-ar-cb self)))
+             (go-to-subpage-2-ar-cb self))))
 
-  (connect (!subpage-2-bt self)
-           'clicked
-           (lambda (b)
-             (return-to-preferences-cb self))))
+(define (toast-show-cb prefs-dialog)
+  (add-toast prefs-dialog (make <adw-toast> #:title "Example Toast")))
 
-(define (toast-show-cb prefs-win)
-  (add-toast prefs-win (make <adw-toast> #:title "Example Toast")))
+(define (go-to-subpage-1-ar-cb prefs-dialog)
+  (push-subpage prefs-dialog (!subpage-1 prefs-dialog)))
 
-(define (go-to-subpage-1-ar-cb prefs-win)
-  (present-subpage prefs-win (!subpage-1 prefs-win)))
-
-(define (go-to-subpage-2-ar-cb prefs-win)
-  (present-subpage prefs-win (!subpage-2 prefs-win)))
-
-(define (return-to-preferences-cb prefs-win)
-  (close-subpage prefs-win))
+(define (go-to-subpage-2-ar-cb prefs-dialog)
+  (push-subpage prefs-dialog (!subpage-2 prefs-dialog)))

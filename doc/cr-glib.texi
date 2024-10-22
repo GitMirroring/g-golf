@@ -33,6 +33,7 @@ though they might be some exception in the future.
 * Byte Arrays:: Arrays of bytes.
 * Quarks:: Two way association between a string and a unique integer identifier
 * Simple XML Subset Parser:: Parses a subset of XML
+* Date and Time Functions:: Calendrical calculations and miscellaneous time stuff
 @end menu
 
 @include cr-glib-version-information.texi
@@ -46,3 +47,4 @@ though they might be some exception in the future.
 @include cr-glib-byte-arrays.texi
 @include cr-glib-quarks.texi
 @include cr-glib-simple-xml-parser.texi
+@include cr-glib-date-and-time-functions.texi

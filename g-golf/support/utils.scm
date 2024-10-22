@@ -66,7 +66,9 @@
             gi-type-tag->ffi
             gi-type-tag->init-val
 
-            nil))	;; [1]
+            nil				;; [1]
+
+            string-replace-all))
 
 ;; [1] we need a way to inform g-golf-callback-closure-marshal to not
 ;; set an ffi-arg-out to any value.
@@ -519,3 +521,34 @@ TYPE-TAG."
      0)))
 
 (define nil 'nil)
+
+
+;;;
+;;; string-replace-all
+;;;
+
+;; based on string-replace-substring, by A. Wingo in
+;; https://lists.gnu.org/archive/html/guile-devel/2014-03/msg00058.html
+;; also in string-replace-substring guix:guix/utils.scm.
+
+(define (string-replace-all str all with)
+  "Return a new string where every instance of @var{all} in string
+   @var{str} has been replaced by @var{with}. For example:
+
+   @lisp
+   (string-replace-all \"a ring of strings\" \"ring\" \"rut\")
+   @result{} \"a rut of struts\"
+   @end lisp
+   "
+  (let ((sublen (string-length all)))
+    (with-output-to-string
+      (lambda ()
+        (let lp ((start 0))
+          (cond
+           ((string-contains str all start)
+            => (lambda (end)
+                 (display (substring/shared str start end))
+                 (display with)
+                 (lp (+ end sublen))))
+           (else
+            (display (substring/shared str start)))))))))

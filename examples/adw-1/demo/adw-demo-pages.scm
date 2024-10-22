@@ -42,9 +42,12 @@
   #:use-module (pages style-classes style-classes)
   #:use-module (pages toasts toasts)
   ;; #:use-module (pages animations animations)
-  #:use-module (pages dialogs dialogs)
+  #:use-module (pages alerts alerts)
   #:use-module (pages about about)
-  #:use-module (pages banners banners)
+  #:use-module (pages banner banner)
+  #:use-module (pages bottom-sheets bottom-sheets)
+  #:use-module (pages multi-layout multi-layout)
+  #:use-module (pages spinner spinner)
 
   #:duplicates (merge-generics
 		replace
@@ -68,6 +71,9 @@
                               (pages style-classes style-classes)
                               (pages toasts toasts)
                               #;(pages animations animations)
-                              (pages dialogs dialogs)
+                              (pages alerts alerts)
                               (pages about about)
-                              (pages banners banners)))
+                              (pages banner banner)
+                              (pages bottom-sheets bottom-sheets)
+                              (pages multi-layout multi-layout)
+                              (pages spinner spinner)))

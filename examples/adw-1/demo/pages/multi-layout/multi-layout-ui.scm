@@ -1,7 +1,7 @@
 ;; -*- mode: sxml-ui; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023, 2024
+;;;; Copyright (C) 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -29,27 +29,31 @@
 (use-modules (g-golf support sxml))
 
 
-(define %dialogs
+(define %multi-layout-page
   `(interface
     (requires (@ (version "4.0") (lib "gtk")))
     (requires (@ (version "1.0") (lib "libadwaita")))
-    (template (@ (class "AdwDemoPageDialogs")
+    (template (@ (class "AdwDemoPageMultiLayout")
                  (parent "AdwBin"))
       (property (@ (name "child"))
-        (object (@ (class "AdwStatusPage"))
-          (property (@ (name "icon-name")) widget-dialog-symbolic)
-          (property (@ (name "title")
-                       (translatable "yes")) Dialogs)
-          (property (@ (name "description")
-                       (translatable "yes")) "Adaptive dialog widgets.")
-          (property (@ (name "child"))
-            (object (@ (class "GtkButton")
-                       (id dialogs-button))
-              (property (@ (name "label")
-                           (translatable "yes")) "Alert Dialog")
-              (property (@ (name "halign")) center)
-              (style (class (@ (name "pill")))))))))))
+        (object (@ (class "AdwToolbarView"))
+          (child (@ (type "top"))
+            (object (@ (class "AdwHeaderBar"))
+              (property (@ (name "show-title")) False)))
+          (property (@ (name "content"))
+            (object (@ (class "AdwStatusPage"))
+              (property (@ (name "title")
+                           (translatable "yes")) "Multi-Layout View")
+              (property (@ (name "description")
+                           (translatable "yes")) "A widget for switching between different layouts")
+              (property (@ (name "child"))
+                (object (@ (class "GtkButton")
+                           (id multi-layout-button))
+                  (property (@ (name "label")
+                               (translatable "yes")) "Run the Demo")
+                  (property (@ (name "halign")) center)
+                  (style (class (@ (name "pill")))))))))))))
 
 
 (define (make-ui)
-  (sxml->ui %dialogs))
+  (sxml->ui %multi-layout-page))

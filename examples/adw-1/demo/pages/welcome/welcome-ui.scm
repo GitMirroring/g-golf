@@ -1,7 +1,7 @@
 ;; -*- mode: sxml-ui; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -29,23 +29,28 @@
 (use-modules (g-golf support sxml))
 
              
-(define %sxml
+(define %welcome-page
   `(interface
     (requires (@ (version "4.0") (lib "gtk")))
     (requires (@ (version "1.0") (lib "libadwaita")))
     (template (@ (class "AdwDemoPageWelcome")
                  (parent "AdwBin"))
       (property (@ (name "child"))
-        (object (@ (class "AdwStatusPage"))
-          (property (@ (name "icon-name"))
-            "org.gnome.Adwaita1.Demo-symbolic")
-          (property (@ (name "title")
-                       (translatable "yes"))
-            "Welcome to Adwaita Demo")
-          (property (@ (name "description")
-                       (translatable "yes"))
-            "This is a tour of the features the library has to offer."))))))
+        (object (@ (class "AdwToolbarView"))
+          (child (@ (type "top"))
+            (object (@ (class "AdwHeaderBar"))
+              (property (@ (name "show-title")) False)))
+          (property (@ (name "content"))
+            (object (@ (class "AdwStatusPage"))
+              (property (@ (name "icon-name"))
+                "org.gnome.Adwaita1.Demo-symbolic")
+              (property (@ (name "title")
+                           (translatable "yes"))
+                "Welcome to Adwaita Demo")
+              (property (@ (name "description")
+                           (translatable "yes"))
+                "This is a tour of the features the library has to offer"))))))))
 
 
 (define (make-ui)
-  (sxml->ui %sxml))
+  (sxml->ui %welcome-page))

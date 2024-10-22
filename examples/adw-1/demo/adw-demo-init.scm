@@ -73,6 +73,7 @@
         "StackPage"
         "Box"
         "ListBox"
+        "CenterBox"
         "Button"
         "ToggleButton"
         "Label"
@@ -133,7 +134,13 @@
         "SpringAnimation"
         "AnimationState"
         "CallbackAnimationTarget"
-        "Easing")))
+        "Easing"
+        "HeaderBar"
+        "ToolbarView"
+        "BottomSheet"
+        "Layout"
+        "LayoutSlot"
+        "SpinnerPaintable")))
 
 
 (define %adw-demo-path

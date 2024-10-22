@@ -26,6 +26,63 @@ warranty.
 
 * Latest News
 
+** Oct 2024
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc8 is released.
+
+This is the eighth release candidate of the upcoming 0.8.0 release, now
+available for testing.
+
+*** Noteworthy changes in 0.8.0-rc8
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+
+**** New interfaces
+
+  g-get-monotonic-time
+
+**** Examples
+
+***** Gtk-4
+
+The following Gtk-4 demo have been added:
+
+  Shortcuts
+  Layout Manager (transformation)
+
+All demo scripts have been renamed (no .scm extension).
+
+***** Adwaita Demo
+
+The Adwaita demo has been reviewed, and is now up-to-date with upstream
+version 1.6.0 (except for the animation page, which still is missing in
+G-Golf).
+
+The following Adwaita Demo pages have been added:
+
+  AdwDemoPageBottomSheets
+  AdwDemoPageMultiLayout
+  AdwDemoPageSpinner
+
+The hello-world demo has been renamed (no .scm extension).
+
+**** Bug fixing
+
+***** string-replace-all
+
+Snarfed from guile-3.0 (ice-9 string-fun).
+
+Not exactly a bug, but as reported by Greg Troxel (thanks),
+string-replace-substring isn't available in earlier versions of guile -
+though we invite every g-golf users to use guile-3.0, when available,
+there is also no reason why g-golf could not be built and used against
+earlier versions of guile.
+
+
+* Older News
+
 ** Sep 2024
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc7 is released.
@@ -43,9 +100,6 @@ Here is a summary of the noteworthy changes in this release. See G-Golf
 This release merely fixes a missing examples/gtk-4/Makefile.am
 (sub)target entry, so the tarball also distributes the newly added
 examples/gtk-4/demos/*.scm files.
-
-
-* Older News
 
 ** Sep 2024
 

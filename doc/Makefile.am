@@ -74,6 +74,7 @@ g_golf_TEXINFOS = \
   cr-glib-byte-arrays.texi	\
   cr-glib-quarks.texi		\
   cr-glib-simple-xml-parser.texi \
+  cr-glib-date-and-time-functions.texi \
   cr-gobject.texi		\
   cr-gobject-type-info.texi	\
   cr-gobject-gobject.texi	\
