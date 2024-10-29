@@ -254,55 +254,59 @@
          (child ,%spring-animation-epsilon)
          (child ,%spring-animation-clamp-switch)))))
 
-(define %animations
+(define %animations-page
   `(interface
     (requires (@ (version "4.0") (lib "gtk")))
     (requires (@ (version "1.0") (lib "libadwaita")))
     (template (@ (class "AdwDemoPageAnimations")
                  (parent "AdwBin"))
       (property (@ (name "child"))
-        (object (@ (class "GtkScrolledWindow"))
-          (property (@ (name "hscrollbar-policy")) never)
-          (property (@ (name "child"))
-            (object (@ (class "GtkBox"))
-              (property (@ (name "orientation")) vertical)
-              (property (@ (name "valign")) center)
-              (style (class (@ (name "timed-animation-page"))))
-              (child
-                  (object (@ (class "GtkBox"))
-                    (property (@ (name "orientation")) vertical)
-                    (child ,%adw-clamp-1)
-                    (child ,%label-1)
-                    (child ,%label-2)))
-              (child
-                  (object (@ (class "GtkBox")
-                             (id "timed-animation-button-box"))
-                    (property (@ (name "valign")) center)
-                    (property (@ (name "halign")) center)
-                    (property (@ (name "margin-top")) 30)
-                    (property (@ (name "margin-bottom")) 30)
-                    (property (@ (name "spacing")) 18)
-                    (child ,%skip-backward-bt)
-                    (child ,%play-pause-bt)
-                    (child ,%skip-forward-bt)))
-              (child
-                  (object (@ (class "AdwPreferencesGroup"))
-                    (child ,%stack-switcher)))
-              (child
-                  (object (@ (class "AdwClamp"))
-                    (property (@ (name "maximum-size")) 400)
-                    (property (@ (name "tightening-threshold")) 300)
-                    (property (@ (name "child"))
-                      (object (@ (class "GtkStack")
-                                 (id "animation-preferences-stack"))
-                        ;; signal
-                        ;;   notify::visible-child-name
-                        ;;   timed-animation-reset
-                        ;;   swapped
-                        (child ,%stack-page-1)
-                        (child ,%stack-page-2)))))
-              )))))))
+        (object (@ (class "AdwToolbarView"))
+          (child (@ (type "top"))
+            (object (@ (class "AdwHeaderBar"))
+              (property (@ (name "show-title")) False)))
+          (property (@ (name "content"))
+            (object (@ (class "GtkScrolledWindow"))
+              (property (@ (name "hscrollbar-policy")) never)
+              (property (@ (name "child"))
+                (object (@ (class "GtkBox"))
+                  (property (@ (name "orientation")) vertical)
+                  (property (@ (name "valign")) center)
+                  (style (class (@ (name "timed-animation-page"))))
+                  (child
+                      (object (@ (class "GtkBox"))
+                        (property (@ (name "orientation")) vertical)
+                        (child ,%adw-clamp-1)
+                        (child ,%label-1)
+                        (child ,%label-2)))
+                  (child
+                      (object (@ (class "GtkBox")
+                                 (id "timed-animation-button-box"))
+                        (property (@ (name "valign")) center)
+                        (property (@ (name "halign")) center)
+                        (property (@ (name "margin-top")) 30)
+                        (property (@ (name "margin-bottom")) 30)
+                        (property (@ (name "spacing")) 18)
+                        (child ,%skip-backward-bt)
+                        (child ,%play-pause-bt)
+                        (child ,%skip-forward-bt)))
+                  (child
+                      (object (@ (class "AdwPreferencesGroup"))
+                        (child ,%stack-switcher)))
+                  (child
+                      (object (@ (class "AdwClamp"))
+                        (property (@ (name "maximum-size")) 400)
+                        (property (@ (name "tightening-threshold")) 300)
+                        (property (@ (name "child"))
+                          (object (@ (class "GtkStack")
+                                     (id "animation-preferences-stack"))
+                            ;; signal
+                            ;;   notify::visible-child-name
+                            ;;   timed-animation-reset
+                            ;;   swapped
+                            (child ,%stack-page-1)
+                            (child ,%stack-page-2))))))))))))))
 
 
 (define (make-ui)
-  (sxml->ui %animations))
+  (sxml->ui %animations-page))
