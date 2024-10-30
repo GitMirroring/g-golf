@@ -43,24 +43,24 @@
 ;; There is actually no need to export these accessors
 #;(g-export !timed-animation
           !spring-animation
-          !timed-animation-button-box
+          !animation-scene
+          !animation-widget
+          !animation-button-box
           !animation-preferences-stack
-          !timed-animation-sample
-          !timed-animation-widget
           !skip-backward-bt
           !play-pause-bt
           !skip-forward-bt
-          !timed-animation-easing
-          !timed-animation-duration
-          !timed-animation-repeat-count
-          !timed-animation-reverse
-          !timed-animation-alternate
-          !spring-animation-velocity
-          !spring-animation-damping
-          !spring-animation-mass
-          !spring-animation-stiffness
-          !spring-animation-epsilon
-          !spring-animation-clamp-switch)
+          !ta-easing
+          !ta-duration
+          !ta-repeat-count
+          !ta-reverse
+          !ta-alternate
+          !sa-velocity
+          !sa-damping
+          !sa-mass
+          !sa-stiffness
+          !sa-epsilon
+          !sa-clamp-switch)
 
 
 (define-class <adw-demo-page-animations> (<adw-bin>)
@@ -72,63 +72,47 @@
                                    #:type ,<adw-animation>)
                     #:accessor !spring-animation)
   ;; child-id slots
-  (timed-animation-button-box #:child-id "timed-animation-button-box"
-                              #:accessor !timed-animation-button-box)
+  (animation-button-box #:child-id "animation-button-box"
+                        #:accessor !animation-button-box)
   (animation-preferences-stack #:child-id "animation-preferences-stack"
                                #:accessor !animation-preferences-stack)
-  (timed-animation-sample #:child-id "timed-animation-sample"
-                          #:accessor !timed-animation-sample)
-  #;(timed-animation-widget #:child-id "timed-animation-widget"
-                            #:accessor !timed-animation-widget)
-  (skip-backward-bt #:child-id "skip-backward-bt"
-                    #:accessor !skip-backward-bt)
-  (play-pause-bt #:child-id "play-pause-bt"
-                 #:accessor !play-pause-bt)
-  (skip-forward-bt #:child-id "skip-forward-bt"
-                   #:accessor !skip-forward-bt)
-  (timed-animation-easing #:child-id "timed-animation-easing"
-                          #:accessor !timed-animation-easing)
-  (timed-animation-duration #:child-id "timed-animation-duration"
-                            #:accessor !timed-animation-duration)
-  (timed-animation-repeat-count #:child-id "timed-animation-repeat-count"
-                                #:accessor !timed-animation-repeat-count)
-  (timed-animation-reverse #:child-id "timed-animation-reverse"
-                           #:accessor !timed-animation-reverse)
-  (timed-animation-alternate #:child-id "timed-animation-alternate"
-                             #:accessor !timed-animation-alternate)
-  (spring-animation-velocity #:child-id "spring-animation-velocity"
-                             #:accessor !spring-animation-velocity)
-  (spring-animation-damping #:child-id "spring-animation-damping"
-                            #:accessor !spring-animation-damping)
-  (spring-animation-mass #:child-id "spring-animation-mass"
-                         #:accessor !spring-animation-mass)
-  (spring-animation-stiffness #:child-id "spring-animation-stiffness"
-                              #:accessor !spring-animation-stiffness)
-  (spring-animation-epsilon #:child-id "spring-animation-epsilon"
-                            #:accessor !spring-animation-epsilon)
-  (spring-animation-clamp-switch #:child-id "spring-animation-clamp-switch"
-                                 #:accessor !spring-animation-clamp-switch)
+  (animation-scene #:child-id "animation-scene" #:accessor !animation-scene)
+  #;(animation-widget #:child-id "animation-widget" #:accessor !animation-widget)
+  (skip-backward-bt #:child-id "skip-backward-bt" #:accessor !skip-backward-bt)
+  (play-pause-bt #:child-id "play-pause-bt" #:accessor !play-pause-bt)
+  (skip-forward-bt #:child-id "skip-forward-bt" #:accessor !skip-forward-bt)
+  (ta-easing #:child-id "ta-easing" #:accessor !ta-easing)
+  (ta-duration #:child-id "ta-duration" #:accessor !ta-duration)
+  (ta-repeat-count #:child-id "ta-repeat-count" #:accessor !ta-repeat-count)
+  (ta-reverse #:child-id "ta-reverse" #:accessor !ta-reverse)
+  (ta-alternate #:child-id "ta-alternate" #:accessor !ta-alternate)
+  (sa-velocity #:child-id "sa-velocity" #:accessor !sa-velocity)
+  (sa-damping #:child-id "sa-damping" #:accessor !sa-damping)
+  (sa-mass #:child-id "sa-mass" #:accessor !sa-mass)
+  (sa-stiffness #:child-id "sa-stiffness" #:accessor !sa-stiffness)
+  (sa-epsilon #:child-id "sa-epsilon" #:accessor !sa-epsilon)
+  (sa-clamp-switch #:child-id "sa-clamp-switch" #:accessor !sa-clamp-switch)
   ;; class options
   #:template (string-append %adw-demo-path
                             "/pages/animations/animations-ui.ui")
-  #:child-ids '("timed-animation-button-box"
+  #:child-ids '("animation-scene"
+                #;"animation-widget"
+                "animation-button-box"
                 "animation-preferences-stack"
-                "timed-animation-sample"
-                #;"timed-animation-widget"
                 "skip-backward-bt"
                 "play-pause-bt"
                 "skip-forward-bt"
-                "timed-animation-easing"
-                "timed-animation-duration"
-                "timed-animation-repeat-count"
-                "timed-animation-reverse"
-                "timed-animation-alternate"
-                "spring-animation-velocity"
-                "spring-animation-damping"
-                "spring-animation-mass"
-                "spring-animation-stiffness"
-                "spring-animation-epsilon"
-                "spring-animation-clamp-switch"))
+                "ta-easing"
+                "ta-duration"
+                "ta-repeat-count"
+                "ta-reverse"
+                "ta-alternate"
+                "sa-velocity"
+                "sa-damping"
+                "sa-mass"
+                "sa-stiffness"
+                "sa-epsilon"
+                "sa-clamp-switch"))
 
 (define-method (initialize (self <adw-demo-page-animations>) initargs)
   (next-method)
@@ -156,15 +140,20 @@
     (connect (!skip-forward-bt self)
              'clicked
              (lambda (b)
-               (set-custom-layout-manager (!timed-animation-sample self))
+               (set-custom-layout-manager (!animation-scene self))
                #;(animations-skip self)))
 
-    (connect (!spring-animation-mass self)
+    (connect (!sa-damping self)
              'notify::value
              (lambda (spin-row p-spec)
                (notify-spring-params-change self)))
 
-    (connect (!spring-animation-stiffness self)
+    (connect (!sa-mass self)
+             'notify::value
+             (lambda (spin-row p-spec)
+               (notify-spring-params-change self)))
+
+    (connect (!sa-stiffness self)
              'notify::value
              (lambda (spin-row p-spec)
                (notify-spring-params-change self)))
@@ -174,17 +163,17 @@
     (set-follow-enable-animations-setting spring-animation #f)
     (notify self "timed-animation")
     (notify self "spring-animation")
-    (set-direction (!timed-animation-button-box self) 'ltr)))
+    (set-direction (!animation-button-box self) 'ltr)))
 
 (define (set-animations animations-page)
-  (let* ((timed-animation-sample (!timed-animation-sample animations-page))
-         (timed-animation-cb (timed-animation-cb-handler timed-animation-sample))
-         (target (adw-callback-animation-target-new timed-animation-cb #f #f))
-         (timed-animation (adw-timed-animation-new timed-animation-sample
+  (let* ((animation-scene (!animation-scene animations-page))
+         (animation-cb (animation-cb-handler animation-scene))
+         (target (adw-callback-animation-target-new animation-cb #f #f))
+         (timed-animation (adw-timed-animation-new animation-scene
                                                    0 1 100
                                                    ;; upstream calls (g-object-ref target)
                                                    target))
-         (spring-animation (adw-spring-animation-new timed-animation-sample
+         (spring-animation (adw-spring-animation-new animation-scene
                                                      0 1
                                                      (adw-spring-params-new-full 10 1 100)
                                                      target)))
@@ -194,12 +183,12 @@
     (values timed-animation spring-animation)))
 
 (define (set-expressions animations-page)
-  (let ((timed-animation-easing (!timed-animation-easing animations-page)))
+  (let ((ta-easing (!ta-easing animations-page)))
     ;; AdwComboRow requires their expression property to be set, it is
     ;; used to bind strings to the labels produced by the default
     ;; factory (if AdwComboRow:factory is not set).
-    (set! (!expression timed-animation-easing)
-          (timed-animation-name-expression))
+    (set! (!expression ta-easing)
+          (ta-name-expression))
 
     (bind (animation-can-reset-expression)
           (!skip-backward-bt animations-page)
@@ -216,18 +205,18 @@
           "sensitive"
           animations-page)))
 
-(define (timed-animation-name-expression)
+(define (ta-name-expression)
   (make-expression 'string
-                   (timed-animation-name-closure)
+                   (ta-name-closure)
                    '()))
 
-(define (timed-animation-name-closure)
+(define (ta-name-closure)
   (make <closure>
-    #:function timed-animation-name
+    #:function ta-name
     #:return-type 'string
     #:param-types `(,<adw-enum-list-item>)))
 
-(define (timed-animation-name adw-enum-list-item)
+(define (ta-name adw-enum-list-item)
   (let ((adw-easing (gi-cache-ref 'enum 'adw-easing))
         (value (!value adw-enum-list-item)))
     (case (enum->symbol adw-easing value)
@@ -332,43 +321,43 @@
   (let ((timed-animation (!timed-animation animations-page))
         (spring-animation (!spring-animation animations-page)))
     ;; timed-animations
-    (bind-property (!timed-animation-repeat-count animations-page)
+    (bind-property (!ta-repeat-count animations-page)
                    "value"
                    timed-animation
                    "repeat-count"
                    '(sync-create bidirectional))
-    (bind-property (!timed-animation-reverse animations-page)
+    (bind-property (!ta-reverse animations-page)
                    "active"
                    timed-animation
                    "reverse"
                    '(sync-create bidirectional))
-    (bind-property (!timed-animation-alternate animations-page)
+    (bind-property (!ta-alternate animations-page)
                    "active"
                    timed-animation
                    "alternate"
                    '(sync-create bidirectional))
-    (bind-property (!timed-animation-duration animations-page)
+    (bind-property (!ta-duration animations-page)
                    "value"
                    timed-animation
                    "duration"
                    '(sync-create bidirectional))
-    (bind-property (!timed-animation-easing animations-page)
+    (bind-property (!ta-easing animations-page)
                    "selected"
                    timed-animation
                    "easing"
                    '(sync-create bidirectional))
     ;; spring-anmation
-    (bind-property (!spring-animation-velocity animations-page)
+    (bind-property (!sa-velocity animations-page)
                    "value"
                    spring-animation
                    "initial-velocity"
                    '(sync-create bidirectional))
-    (bind-property (!spring-animation-epsilon animations-page)
+    (bind-property (!sa-epsilon animations-page)
                    "value"
                    spring-animation
                    "epsilon"
                    '(sync-create bidirectional))
-    (bind-property (!spring-animation-clamp-switch animations-page)
+    (bind-property (!sa-clamp-switch animations-page)
                    "active"
                    spring-animation
                    "clamp"
@@ -453,10 +442,10 @@
 ;;; callback
 ;;;
 
-(define (timed-animation-cb-handler timed-animation-sample)
+(define (animation-cb-handler animation-scene)
   (lambda (value user-data)
-    (dimfi 'queue-allocate timed-animation-sample)
-    (queue-allocate timed-animation-sample)))
+    (dimfi 'queue-allocate animation-scene)
+    (queue-allocate animation-scene)))
 
 (define (animations-reset animations-page)
   (reset (!timed-animation animations-page))
@@ -484,11 +473,11 @@
 (define (notify-spring-params-change animations-page)
   (let ((spring-params
          (adw-spring-params-new-full
-          (get-value (!spring-animation-damping animations-page))
-          (get-value (!spring-animation-mass animations-page))
-          (get-value (!spring-animation-stiffness animations-page)))))
+          (get-value (!sa-damping animations-page))
+          (get-value (!sa-mass animations-page))
+          (get-value (!sa-stiffness animations-page)))))
     (set-spring-params (!spring-animation animations-page) spring-params)
-    (unref spring-params)))
+    (adw-spring-params-unref spring-params)))
 
 
 ;;;
@@ -496,12 +485,12 @@
 ;;;
 
 (define (display-some-animation-sceme-infos self)
-  (let* ((timed-animation-sample (!timed-animation-sample self))
-         (parent (get-ancestor timed-animation-sample
+  (let* ((animation-scene (!animation-scene self))
+         (parent (get-ancestor animation-scene
                                (!g-type <adw-clamp>)))
-         (child (get-first-child timed-animation-sample)))
+         (child (get-first-child animation-scene)))
     (dimfi-widget-measures 'parent parent)
-    (dimfi-widget-measures 'timed-animation-sample timed-animation-sample)
+    (dimfi-widget-measures 'animation-scene animation-scene)
     (dimfi-widget-measures 'child child)))
 
 (define (dimfi-widget-measures title widget)

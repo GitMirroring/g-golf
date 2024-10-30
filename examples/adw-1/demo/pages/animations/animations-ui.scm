@@ -29,17 +29,18 @@
 (use-modules (g-golf support sxml))
 
 
-(define %adw-clamp-1
-  `(object (@ (class "AdwClamp"))
+(define %animation-clamp
+  `(object (@ (class "AdwClamp")
+              (id "animation-clamp"))
      (property (@ (name "maximum-size")) 400)
      (property (@ (name "tightening-threshold")) 300)
      (property (@ (name "child"))
        (object (@ (class "AdwBin")
-                  (id "timed-animation-sample"))
+                  (id "animation-scene"))
          (property (@ (name "margin-bottom")) 36)
          (property (@ (name "child"))
            (object (@ (class "AdwBin")
-                      (id "timed-animation-widget"))
+                      (id "animation-widget"))
              (property (@ (name "halign")) center)
              (property (@ (name "valign")) center)
              (property (@ (name "name")) animation-sample)))))))
@@ -101,18 +102,18 @@
      (property (@ (name "margin-bottom")) 32)
      (property (@ (name "halign")) center)))
 
-(define %timed-animation-easing
+(define %ta-easing
   '(object (@ (class "AdwComboRow")
-              (id "timed-animation-easing"))
+              (id "ta-easing"))
      (property (@ (name "title")
                   (translatable "yes")) Easing)
      (property (@ (name "model"))
        (object (@ (class "AdwEnumListModel"))
          (property (@ (name "enum-type")) AdwEasing)))))
 
-(define %timed-animation-duration
+(define %ta-duration
   '(object (@ (class "AdwSpinRow")
-              (id "timed-animation-duration"))
+              (id "ta-duration"))
      (property (@ (name "title")
                   (translatable "yes")) Duration)
      (property (@ (name "numeric")) True)
@@ -124,9 +125,9 @@
          (property (@ (name "page-increment")) 100)
          (property (@ (name "step-increment")) 50)))))
 
-(define %timed-animation-repeat-count
+(define %ta-repeat-count
   '(object (@ (class "AdwSpinRow")
-              (id "timed-animation-repeat-count"))
+              (id "ta-repeat-count"))
      (property (@ (name "title")
                   (translatable "yes")) "Repeat Count")
      (property (@ (name "numeric")) True)
@@ -138,15 +139,15 @@
          (property (@ (name "page-increment")) 1)
          (property (@ (name "step-increment")) 1)))))
 
-(define %timed-animation-reverse
+(define %ta-reverse
   '(object (@ (class "AdwSwitchRow")
-              (id "timed-animation-reverse"))
+              (id "ta-reverse"))
      (property (@ (name "title")
                   (translatable "yes")) "Reverse")))
 
-(define %timed-animation-alternate
+(define %ta-alternate
   '(object (@ (class "AdwSwitchRow")
-              (id "timed-animation-alternate"))
+              (id "ta-alternate"))
      (property (@ (name "title")
                   (translatable "yes")) "Alternate")))
 
@@ -157,15 +158,15 @@
      (property (@ (name "name")) Timed)
      (property (@ (name "child"))
        (object (@ (class "AdwPreferencesGroup"))
-         (child ,%timed-animation-easing)
-         (child ,%timed-animation-duration)
-         (child ,%timed-animation-repeat-count)
-         (child ,%timed-animation-reverse)
-         (child ,%timed-animation-alternate)))))
+         (child ,%ta-easing)
+         (child ,%ta-duration)
+         (child ,%ta-repeat-count)
+         (child ,%ta-reverse)
+         (child ,%ta-alternate)))))
 
-(define %spring-animation-velocity
+(define %sa-velocity
   '(object (@ (class "AdwSpinRow")
-              (id "spring-animation-velocity"))
+              (id "sa-velocity"))
      (property (@ (name "title")
                   (translatable "yes")) "Initial Velocity")
      (property (@ (name "numeric")) True)
@@ -177,9 +178,9 @@
          (property (@ (name "page-increment")) 10)
          (property (@ (name "step-increment")) 1)))))
 
-(define %spring-animation-damping
+(define %sa-damping
   '(object (@ (class "AdwSpinRow")
-              (id "spring-animation-damping"))
+              (id "sa-damping"))
      (property (@ (name "title")
                   (translatable "yes")) Damping)
      (property (@ (name "numeric")) True)
@@ -191,9 +192,9 @@
          (property (@ (name "page-increment")) 10)
          (property (@ (name "step-increment")) 1)))))
 
-(define %spring-animation-mass
+(define %sa-mass
   '(object (@ (class "AdwSpinRow")
-              (id "spring-animation-mass"))
+              (id "sa-mass"))
      (property (@ (name "title")
                   (translatable "yes")) Mass)
      (property (@ (name "numeric")) True)
@@ -205,9 +206,9 @@
          (property (@ (name "page-increment")) 10)
          (property (@ (name "step-increment")) 1)))))
 
-(define %spring-animation-stiffness
+(define %sa-stiffness
   '(object (@ (class "AdwSpinRow")
-              (id "spring-animation-stiffness"))
+              (id "sa-stiffness"))
      (property (@ (name "title")
                   (translatable "yes")) Stiffness)
      (property (@ (name "numeric")) True)
@@ -219,9 +220,9 @@
          (property (@ (name "page-increment")) 10)
          (property (@ (name "step-increment")) 1)))))
 
-(define %spring-animation-epsilon
+(define %sa-epsilon
   '(object (@ (class "AdwSpinRow")
-              (id "spring-animation-epsilon"))
+              (id "sa-epsilon"))
      (property (@ (name "title")
                   (translatable "yes")) Epsilon)
      (property (@ (name "numeric")) True)
@@ -234,9 +235,9 @@
          (property (@ (name "page-increment")) 0.001)
          (property (@ (name "step-increment")) 0.001)))))
 
-(define %spring-animation-clamp-switch
+(define %sa-clamp-switch
   '(object (@ (class "AdwSwitchRow")
-              (id "spring-animation-clamp-switch"))
+              (id "sa-clamp-switch"))
      (property (@ (name "title")
                   (translatable "yes")) Clamp)))
 
@@ -247,12 +248,12 @@
      (property (@ (name "name")) Spring)
      (property (@ (name "child"))
        (object (@ (class "AdwPreferencesGroup"))
-         (child ,%spring-animation-velocity)
-         (child ,%spring-animation-damping)
-         (child ,%spring-animation-mass)
-         (child ,%spring-animation-stiffness)
-         (child ,%spring-animation-epsilon)
-         (child ,%spring-animation-clamp-switch)))))
+         (child ,%sa-velocity)
+         (child ,%sa-damping)
+         (child ,%sa-mass)
+         (child ,%sa-stiffness)
+         (child ,%sa-epsilon)
+         (child ,%sa-clamp-switch)))))
 
 (define %animations-page
   `(interface
@@ -272,16 +273,16 @@
                 (object (@ (class "GtkBox"))
                   (property (@ (name "orientation")) vertical)
                   (property (@ (name "valign")) center)
-                  (style (class (@ (name "timed-animation-page"))))
+                  (style (class (@ (name "animation-page"))))
                   (child
                       (object (@ (class "GtkBox"))
                         (property (@ (name "orientation")) vertical)
-                        (child ,%adw-clamp-1)
+                        (child ,%animation-clamp)
                         (child ,%label-1)
                         (child ,%label-2)))
                   (child
                       (object (@ (class "GtkBox")
-                                 (id "timed-animation-button-box"))
+                                 (id "animation-button-box"))
                         (property (@ (name "valign")) center)
                         (property (@ (name "halign")) center)
                         (property (@ (name "margin-top")) 30)
