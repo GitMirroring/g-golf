@@ -98,7 +98,7 @@
 
 (define %stack-switcher
   '(object (@ (class "GtkStackSwitcher"))
-     (property (@ (name "stack")) "animation-preferences-stack")
+     (property (@ (name "stack")) "animation-prefs-stack")
      (property (@ (name "margin-bottom")) 32)
      (property (@ (name "halign")) center)))
 
@@ -282,7 +282,7 @@
                         (child ,%label-2)))
                   (child
                       (object (@ (class "GtkBox")
-                                 (id "animation-button-box"))
+                                 (id "animation-bt-box"))
                         (property (@ (name "valign")) center)
                         (property (@ (name "halign")) center)
                         (property (@ (name "margin-top")) 30)
@@ -300,7 +300,7 @@
                         (property (@ (name "tightening-threshold")) 300)
                         (property (@ (name "child"))
                           (object (@ (class "GtkStack")
-                                     (id "animation-preferences-stack"))
+                                     (id "animation-prefs-stack"))
                             ;; signal
                             ;;   notify::visible-child-name
                             ;;   timed-animation-reset

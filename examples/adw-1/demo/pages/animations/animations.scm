@@ -45,11 +45,11 @@
           !spring-animation
           !animation-scene
           !animation-sample
-          !animation-button-box
-          !animation-preferences-stack
+          !animation-bt-box
           !skip-backward-bt
           !play-pause-bt
           !skip-forward-bt
+          !animation-prefs-stack
           !ta-easing
           !ta-duration
           !ta-repeat-count
@@ -72,15 +72,13 @@
                                    #:type ,<adw-animation>)
                     #:accessor !spring-animation)
   ;; child-id slots
-  (animation-button-box #:child-id "animation-button-box"
-                        #:accessor !animation-button-box)
-  (animation-preferences-stack #:child-id "animation-preferences-stack"
-                               #:accessor !animation-preferences-stack)
   (animation-scene #:child-id "animation-scene" #:accessor !animation-scene)
   #;(animation-sample #:child-id "animation-sample" #:accessor !animation-sample)
+  (animation-bt-box #:child-id "animation-bt-box" #:accessor !animation-bt-box)
   (skip-backward-bt #:child-id "skip-backward-bt" #:accessor !skip-backward-bt)
   (play-pause-bt #:child-id "play-pause-bt" #:accessor !play-pause-bt)
   (skip-forward-bt #:child-id "skip-forward-bt" #:accessor !skip-forward-bt)
+  (animation-prefs-stack #:child-id "animation-prefs-stack" #:accessor !animation-prefs-stack)
   (ta-easing #:child-id "ta-easing" #:accessor !ta-easing)
   (ta-duration #:child-id "ta-duration" #:accessor !ta-duration)
   (ta-repeat-count #:child-id "ta-repeat-count" #:accessor !ta-repeat-count)
@@ -97,11 +95,11 @@
                             "/pages/animations/animations-ui.ui")
   #:child-ids '("animation-scene"
                 #;"animation-sample"
-                "animation-button-box"
-                "animation-preferences-stack"
+                "animation-bt-box"
                 "skip-backward-bt"
                 "play-pause-bt"
                 "skip-forward-bt"
+                "animation-prefs-stack"
                 "ta-easing"
                 "ta-duration"
                 "ta-repeat-count"
@@ -121,7 +119,7 @@
     (set-expressions self)
     (bind-properties self)
     
-    (connect (!animation-preferences-stack self)
+    (connect (!animation-prefs-stack self)
              'notify::visible-child-name
              (lambda (stack p-spec)
                (animations-reset self)))
@@ -163,7 +161,7 @@
     (set-follow-enable-animations-setting spring-animation #f)
     (notify self "timed-animation")
     (notify self "spring-animation")
-    (set-direction (!animation-button-box self) 'ltr)))
+    (set-direction (!animation-bt-box self) 'ltr)))
 
 (define (set-animations animations-page)
   (let* ((animation-scene (!animation-scene animations-page))
@@ -426,8 +424,8 @@
 ;;;
 
 (define (get-current-animation animations-page)
-  (let* ((animation-preferences-stack (!animation-preferences-stack animations-page))
-         (current-animation (get-visible-child-name animation-preferences-stack)))
+  (let* ((animation-prefs-stack (!animation-prefs-stack animations-page))
+         (current-animation (get-visible-child-name animation-prefs-stack)))
     (case (string->symbol current-animation)
       ((Timed)
        (!timed-animation animations-page))
