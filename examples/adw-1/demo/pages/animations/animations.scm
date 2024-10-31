@@ -44,7 +44,7 @@
 #;(g-export !timed-animation
           !spring-animation
           !animation-scene
-          !animation-widget
+          !animation-sample
           !animation-button-box
           !animation-preferences-stack
           !skip-backward-bt
@@ -77,7 +77,7 @@
   (animation-preferences-stack #:child-id "animation-preferences-stack"
                                #:accessor !animation-preferences-stack)
   (animation-scene #:child-id "animation-scene" #:accessor !animation-scene)
-  #;(animation-widget #:child-id "animation-widget" #:accessor !animation-widget)
+  #;(animation-sample #:child-id "animation-sample" #:accessor !animation-sample)
   (skip-backward-bt #:child-id "skip-backward-bt" #:accessor !skip-backward-bt)
   (play-pause-bt #:child-id "play-pause-bt" #:accessor !play-pause-bt)
   (skip-forward-bt #:child-id "skip-forward-bt" #:accessor !skip-forward-bt)
@@ -96,7 +96,7 @@
   #:template (string-append %adw-demo-path
                             "/pages/animations/animations-ui.ui")
   #:child-ids '("animation-scene"
-                #;"animation-widget"
+                #;"animation-sample"
                 "animation-button-box"
                 "animation-preferences-stack"
                 "skip-backward-bt"

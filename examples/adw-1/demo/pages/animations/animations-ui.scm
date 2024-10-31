@@ -40,7 +40,7 @@
          (property (@ (name "margin-bottom")) 36)
          (property (@ (name "child"))
            (object (@ (class "AdwBin")
-                      (id "animation-widget"))
+                      (id "animation-sample"))
              (property (@ (name "halign")) center)
              (property (@ (name "valign")) center)
              (property (@ (name "name")) animation-sample)))))))
