@@ -47,10 +47,7 @@ exec guile -e main -s "$0" "$@"
       '("Application")))
 
 
-(add-to-load-path
- (dirname (current-filename)))
-
-
+(add-to-load-path (dirname (current-filename)))
 (use-modules (adw-demo-init)
              (adw-demo-window))
 
