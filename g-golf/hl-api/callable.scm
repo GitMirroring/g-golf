@@ -817,30 +817,29 @@
           ((struct)
            (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
                   (foreign (if is-pointer?
-                               (dereference-pointer gi-arg-val)
+                               (and gi-arg-val
+                                    (dereference-pointer gi-arg-val))
                                gi-arg-val)))
-             (case name
-               ((g-value)
-                (if g-value-ptr?
-                    foreign
-                    (g-value-ref foreign)))
-               (else
-                (if (or (!is-opaque? gi-type)
-                        (!is-semi-opaque? gi-type))
-                    (let ((bv (slot-ref clb/arg 'bv-cache))
-                          (bv-ptr (slot-ref clb/arg 'bv-cache-ptr)))
-                      (if bv
-                          (begin
-                            (g-boxed-sa-guard bv-ptr bv)
-                            bv-ptr)
-                          ;; when bv is #f, it (indirectly) means that
-                          ;; memory is allocated by the callee
-                          (if (null-pointer? foreign)
-                              #f
-                              (begin
-                                #;(g-boxed-ga-guard foreign g-type)
-                                foreign))))
-                    (parse-c-struct foreign (!scm-types gi-type)))))))
+             (and foreign
+                  (case name
+                    ((g-value)
+                     (if g-value-ptr?
+                         foreign
+                         (g-value-ref foreign)))
+                    (else
+                     (if (or (!is-opaque? gi-type)
+                             (!is-semi-opaque? gi-type))
+                         (let ((bv (slot-ref clb/arg 'bv-cache))
+                               (bv-ptr (slot-ref clb/arg 'bv-cache-ptr)))
+                           (if bv
+                               (begin
+                                 (g-boxed-sa-guard bv-ptr bv)
+                                 bv-ptr)
+                               ;; when bv is #f, it (indirectly) means that
+                               ;; memory is allocated by the callee, so we don't
+                               ;; need (g-boxed-ga-guard foreign g-type)
+                               foreign))
+                         (parse-c-struct foreign (!scm-types gi-type))))))))
           ((union)
            (let ((foreign (gi-argument-ref gi-argument 'v-pointer)))
              (case name
