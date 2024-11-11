@@ -363,8 +363,6 @@
 (define (callable-prepare-gi-args-in callable args)
   (let ((is-method? (!is-method? callable))
         (g-value-ptr? (preserve-g-value-ptr? callable)))
-    (when (%debug)
-      (dimfi (!name callable)))
     (let loop ((i 0)
                (arguments (!args-in callable)))
       (match arguments
@@ -401,12 +399,12 @@
                            (forced-type #f)
                            (g-value-ptr? #f))
   (when (%debug)
-    (dimfi 'scm->gi-argument)
+    #;(dimfi " " 'scm->gi-argument)
     (dimfi (format #f "~20,,,' @A:" (!name clb/arg)) value)
-    (dimfi (format #f "~20,,,' @A:" 'type-tag) type-tag)
-    (dimfi (format #f "~20,,,' @A:" 'type-desc) type-desc)
-    (dimfi (format #f "~20,,,' @A:" 'forced-type) forced-type)
-    (dimfi (format #f "~20,,,' @A:" 'ffi-arg?) ffi-arg?))
+    #;(dimfi (format #f "~20,,,' @A:" 'type-tag) type-tag)
+    #;(dimfi (format #f "~20,,,' @A:" 'type-desc) type-desc)
+    #;(dimfi (format #f "~20,,,' @A:" 'forced-type) forced-type)
+    #;(dimfi (format #f "~20,,,' @A:" 'ffi-arg?) ffi-arg?))
   (let ((%g-golf-callback-closure
          (@ (g-golf hl-api callback) g-golf-callback-closure))
         (may-be-null? (may-be-null-acc clb/arg)))
@@ -756,27 +754,34 @@
             (loop (+ i 1)))))))
 
 (define (callable-arg-out->scm argument)
-  (let ((type-tag (!type-tag argument))
-        (type-desc (!type-desc argument))
-        (gi-argument (!gi-argument-out argument))
-        (forced-type (!forced-type argument))
-        (is-pointer? (!is-pointer? argument)))
-    (gi-argument->scm type-tag
-                      type-desc
-                      gi-argument
-                      argument		;; the type-desc instance 'owner'
-                      #:forced-type forced-type
-                      #:is-pointer? is-pointer?)))
+  (let* ((type-tag (!type-tag argument))
+         (type-desc (!type-desc argument))
+         (gi-argument (!gi-argument-out argument))
+         (forced-type (!forced-type argument))
+         (is-pointer? (!is-pointer? argument))
+         (value (gi-argument->scm type-tag
+                                  type-desc
+                                  gi-argument
+                                  argument ;; the type-desc instance 'owner'
+                                  #:forced-type forced-type
+                                  #:is-pointer? is-pointer?)))
+    (when (%debug)
+      (dimfi (format #f "~20,,,' @A:" (!name argument)) value " [ out arg ]"))
+    value))
 
 (define* (callable-return-value->scm callable #:key (args-out #f))
-  (let ((type-tag (!return-type callable))
-        (type-desc (!type-desc callable))
-        (gi-argument (!gi-arg-result callable)))
-    (gi-argument->scm type-tag
-                      type-desc
-                      gi-argument
-                      callable 		;; the type-desc instance 'owner'
-                      #:args-out args-out)))
+  (let* ((type-tag (!return-type callable))
+         (type-desc (!type-desc callable))
+         (gi-argument (!gi-arg-result callable))
+         (value (gi-argument->scm type-tag
+                                  type-desc
+                                  gi-argument
+                                  callable ;; the type-desc instance 'owner'
+                                  #:args-out args-out)))
+    (when (%debug)
+      #;(dimfi (format #f "~4,,,' @A" " =>") value "[" (!name callable) "]")
+      (dimfi (format #f "~4,,,' @A" " =>") value))
+    value))
 
 (define* (gi-argument->scm type-tag type-desc gi-argument clb/arg
                            #:key (forced-type #f)
