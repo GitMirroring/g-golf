@@ -34,7 +34,7 @@
               (id "animation-clamp"))
      (property (@ (name "maximum-size")) 400)
      (property (@ (name "tightening-threshold")) 300)
-     (property (@ (name "child"))
+     #;(property (@ (name "child"))
        (object (@ (class "AdwBin")
                   (id "animation-scene"))
          (property (@ (name "margin-bottom")) 36)

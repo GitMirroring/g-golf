@@ -65,6 +65,8 @@
         "Window"
         "ScrolledWindow"
         "FileDialog"
+        "Expression"
+        "PropertyExpression"
         "ClosureExpression"
         "Adjustment"
         "IconTheme"

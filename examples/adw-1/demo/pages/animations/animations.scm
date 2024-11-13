@@ -30,6 +30,7 @@
   #:use-module (oop goops)
   #:use-module (g-golf)
   #:use-module (adw-demo-init)
+  #:use-module (pages animations animations-scene)
 
   #:duplicates (merge-generics
 		replace
@@ -71,9 +72,11 @@
   (spring-animation #:g-param `(object
                                    #:type ,<adw-animation>)
                     #:accessor !spring-animation)
+  ;; slots
+  (animation-scene #:accessor !animation-scene)
+  (current-animation #:accessor !current-animation #:init-value #f)
   ;; child-id slots
-  (animation-scene #:child-id "animation-scene" #:accessor !animation-scene)
-  #;(animation-sample #:child-id "animation-sample" #:accessor !animation-sample)
+  (animation-clamp #:child-id "animation-clamp" #:accessor !animation-clamp)
   (animation-bt-box #:child-id "animation-bt-box" #:accessor !animation-bt-box)
   (skip-backward-bt #:child-id "skip-backward-bt" #:accessor !skip-backward-bt)
   (play-pause-bt #:child-id "play-pause-bt" #:accessor !play-pause-bt)
@@ -93,8 +96,7 @@
   ;; class options
   #:template (string-append %adw-demo-path
                             "/pages/animations/animations-ui.ui")
-  #:child-ids '("animation-scene"
-                #;"animation-sample"
+  #:child-ids '("animation-clamp"
                 "animation-bt-box"
                 "skip-backward-bt"
                 "play-pause-bt"
@@ -114,54 +116,60 @@
 
 (define-method (initialize (self <adw-demo-page-animations>) initargs)
   (next-method)
-  (receive (timed-animation spring-animation)
-      (set-animations self)
-    (set-expressions self)
-    (bind-properties self)
-    
-    (connect (!animation-prefs-stack self)
-             'notify::visible-child-name
-             (lambda (stack p-spec)
-               (animations-reset self)))
+  (let ((animation-clamp (!animation-clamp self))
+        (animation-scene (make <animation-scene> #:margin-bottom 36))
+        (animation-prefs-stack (!animation-prefs-stack self)))
+    (set! (!animation-scene self) animation-scene)
+    (set-child animation-clamp animation-scene)
+    (receive (timed-animation spring-animation)
+        (set-animations self)
+      (set-expressions self)
+      (bind-expressions self)
+      (bind-properties self)
 
-    (connect (!skip-backward-bt self)
-             'clicked
-             (lambda (b)
-               (animations-reset self)))
+      (connect animation-prefs-stack
+               'notify::visible-child-name
+               (lambda (stack p-spec)
+                 (prefs-stack-visible-child-cb self stack)))
+      ;; we need to emit the signal, so the current-animation slot is set
+      (notify animation-prefs-stack "visible-child-name")
 
-    (connect (!play-pause-bt self)
-             'clicked
-             (lambda (b)
-               (display-some-animation-sceme-infos self)
-               #;(animation-play-pause self)))
+      (connect (!skip-backward-bt self)
+               'clicked
+               (lambda (b)
+                 (animations-reset self)))
 
-    (connect (!skip-forward-bt self)
-             'clicked
-             (lambda (b)
-               (set-custom-layout-manager (!animation-scene self))
-               #;(animations-skip self)))
+      (connect (!play-pause-bt self)
+               'clicked
+               (lambda (b)
+                 (animation-play-pause self)))
 
-    (connect (!sa-damping self)
-             'notify::value
-             (lambda (spin-row p-spec)
-               (notify-spring-params-change self)))
+      (connect (!skip-forward-bt self)
+               'clicked
+               (lambda (b)
+                 (animations-skip self)))
 
-    (connect (!sa-mass self)
-             'notify::value
-             (lambda (spin-row p-spec)
-               (notify-spring-params-change self)))
+      (connect (!sa-damping self)
+               'notify::value
+               (lambda (spin-row p-spec)
+                 (notify-spring-params-change self)))
 
-    (connect (!sa-stiffness self)
-             'notify::value
-             (lambda (spin-row p-spec)
-               (notify-spring-params-change self)))
+      (connect (!sa-mass self)
+               'notify::value
+               (lambda (spin-row p-spec)
+                 (notify-spring-params-change self)))
 
-    (set-easing timed-animation 'ease-in-out-cubic)
-    (set-follow-enable-animations-setting timed-animation #f)
-    (set-follow-enable-animations-setting spring-animation #f)
-    (notify self "timed-animation")
-    (notify self "spring-animation")
-    (set-direction (!animation-bt-box self) 'ltr)))
+      (connect (!sa-stiffness self)
+               'notify::value
+               (lambda (spin-row p-spec)
+                 (notify-spring-params-change self)))
+
+      (set-easing timed-animation 'ease-in-out-cubic)
+      (set-follow-enable-animations-setting timed-animation #f)
+      (set-follow-enable-animations-setting spring-animation #f)
+      (notify self "timed-animation")
+      (notify self "spring-animation")
+      (set-direction (!animation-bt-box self) 'ltr))))
 
 (define (set-animations animations-page)
   (let* ((animation-scene (!animation-scene animations-page))
@@ -180,28 +188,17 @@
                 'spring-animation spring-animation)
     (values timed-animation spring-animation)))
 
-(define (set-expressions animations-page)
-  (let ((ta-easing (!ta-easing animations-page)))
+
+;;;
+;;; set expressions
+;;;
+
+(define-method (set-expressions (self <adw-demo-page-animations>))
+  (let ((ta-easing (!ta-easing self)))
     ;; AdwComboRow requires their expression property to be set, it is
     ;; used to bind strings to the labels produced by the default
     ;; factory (if AdwComboRow:factory is not set).
-    (set! (!expression ta-easing)
-          (ta-name-expression))
-
-    (bind (animation-can-reset-expression)
-          (!skip-backward-bt animations-page)
-          "sensitive"
-          animations-page)
-
-    (bind (play-pause-icon-name-expression)
-          (!play-pause-bt animations-page)
-          "icon-name"
-          animations-page)
-
-    (bind (animation-can-skip-expression)
-          (!skip-forward-bt animations-page)
-          "sensitive"
-          animations-page)))
+    (set! (!expression ta-easing) (ta-name-expression))))
 
 (define (ta-name-expression)
   (make-expression 'string
@@ -253,10 +250,54 @@
        (displayln "Warning: unprocessed adwaita easing name.")
        (enum->name adw-easing value)))))
 
+
+;;;
+;;; bind expressions
+;;;
+
+(define-method (bind-expressions (self <adw-demo-page-animations>))
+  (bind (animation-can-reset-expression self)
+        (!skip-backward-bt self)
+        "sensitive"
+        self)
+
+  (bind (play-pause-icon-name-expression)
+        (!play-pause-bt self)
+        "icon-name"
+        self)
+
+  (bind (animation-can-skip-expression)
+        (!skip-forward-bt self)
+        "sensitive"
+        self))
+
+(define-method (animation-can-reset-expression (self <adw-demo-page-animations>))
+  (let* ((ta-lookup (lookup <adw-demo-page-animations> #f "timed-animation"))
+         (ta-state-lookup (lookup <adw-animation> ta-lookup "state"))
+         (sa-lookup (lookup <adw-demo-page-animations> #f "spring-animation"))
+         (sa-state-lookup (lookup <adw-animation> sa-lookup "state")))
+    (make-expression 'boolean
+                     (animation-can-reset-closure)
+                     (list ta-state-lookup sa-state-lookup))))
+
+(define (animation-can-reset-closure)
+  (make <closure>
+    #:function animation-can-reset?
+    #:return-type 'boolean
+    #:param-types `(,<adw-demo-page-animations>)))
+
+(define (animation-can-reset? animations-page ta-state sa-state)
+    (or (not (eq? ta-state 'idle))
+        (not (eq? sa-state 'idle))))
+
 (define (play-pause-icon-name-expression)
-  (make-expression 'string
-                   (play-pause-icon-name-closure)
-                   '())) ;; flags
+  (let* ((ta-lookup (lookup <adw-demo-page-animations> #f "timed-animation"))
+         (ta-state-lookup (lookup <adw-animation> ta-lookup "state"))
+         (sa-lookup (lookup <adw-demo-page-animations> #f "spring-animation"))
+         (sa-state-lookup (lookup <adw-animation> sa-lookup "state")))
+    (make-expression 'string
+                     (play-pause-icon-name-closure)
+                     (list ta-state-lookup sa-state-lookup))))
 
 (define (play-pause-icon-name-closure)
   (make <closure>
@@ -264,66 +305,45 @@
     #:return-type 'string
     #:param-types `(,<adw-demo-page-animations>)))
 
-(define (play-pause-icon-name animations-page)
-  (let ((timed-state (!state (!timed-animation animations-page)))
-        (spring-state (!state (!spring-animation animations-page))))
-    #;(dimfi 'get-play-pause-icon-name)
-    #;(dimfi "  " 'timed-state timed-state)
-    #;(dimfi "  " 'spring-state spring-state)
-    (if (or (eq? timed-state 'playing)
-            (eq? spring-state 'playing))
-        "media-playback-pause-symbolic"
-        "media-playback-start-symbolic")))
-
-(define (animation-can-reset-expression)
-  (make-expression 'boolean
-                   (animation-can-reset-closure)
-                   '())) ;; flags
-
-(define (animation-can-reset-closure)
-  (make <closure>
-    #:function animation-can-reset
-    #:return-type 'boolean
-    #:param-types `(,<adw-demo-page-animations>)))
-
-(define (animation-can-reset animations-page)
-  (let ((timed-state (!state (!timed-animation animations-page)))
-        (spring-state (!state (!spring-animation animations-page))))
-    #;(dimfi 'animation-can-reset)
-    #;(dimfi "  " 'timed-state timed-state)
-    #;(dimfi "  " 'spring-state spring-state)
-    (and (not (eq? timed-state 'idle))
-         (not (eq? spring-state 'idle)))))
+(define (play-pause-icon-name animations-page ta-state sa-state)
+  (if (or (eq? ta-state 'playing)
+          (eq? sa-state 'playing))
+      "media-playback-pause-symbolic"
+      "media-playback-start-symbolic"))
 
 (define (animation-can-skip-expression)
-  (make-expression 'boolean
-                   (animation-can-skip-closure)
-                   '())) ;; flags
+  (let* ((ta-lookup (lookup <adw-demo-page-animations> #f "timed-animation"))
+         (ta-state-lookup (lookup <adw-animation> ta-lookup "state"))
+         (sa-lookup (lookup <adw-demo-page-animations> #f "spring-animation"))
+         (sa-state-lookup (lookup <adw-animation> sa-lookup "state")))
+    (make-expression 'boolean
+                     (animation-can-skip-closure)
+                     (list ta-state-lookup sa-state-lookup))))
 
 (define (animation-can-skip-closure)
   (make <closure>
-    #:function animation-can-skip
+    #:function animation-can-skip?
     #:return-type 'boolean
     #:param-types `(,<adw-demo-page-animations>)))
 
-(define (animation-can-skip animations-page)
-  (let ((timed-state (!state (!timed-animation animations-page)))
-        (spring-state (!state (!spring-animation animations-page))))
-    #;(dimfi 'animation-can-skip)
-    #;(dimfi "  " 'timed-state timed-state)
-    #;(dimfi "  " 'spring-state spring-state)
-    (and (not (eq? timed-state 'finished))
-         (not (eq? spring-state 'finished)))))
+(define (animation-can-skip? animations-page ta-state sa-state)
+    (and (not (eq? ta-state 'finished))
+         (not (eq? sa-state 'finished))))
+
+
+;;;
+;;; bind properties
+;;;
 
 (define (bind-properties animations-page)
   (let ((timed-animation (!timed-animation animations-page))
         (spring-animation (!spring-animation animations-page)))
     ;; timed-animations
-    (bind-property (!ta-repeat-count animations-page)
+    (bind-property (!ta-repeat-count animations-page)	;; source
                    "value"
-                   timed-animation
+                   timed-animation			;; target
                    "repeat-count"
-                   '(sync-create bidirectional))
+                   '(sync-create bidirectional))	;; flags
     (bind-property (!ta-reverse animations-page)
                    "active"
                    timed-animation
@@ -361,80 +381,6 @@
                    "clamp"
                    '(sync-create bidirectional))))
 
-(define (make-expression type closure flags)
-  (gtk-closure-expression-new (symbol->g-type type)
-                              (!g-closure closure)
-                              flags))
-
-
-;;;
-;;; custom layout manager
-;;;
-
-(define (set-custom-layout-manager scene)
-  #;(dimfi 'set-layout-manager scene)
-  (set-layout-manager scene
-                      (gtk-custom-layout-new #f
-                                             custom-measure
-                                             custom-allocate)))
-
-(define (custom-measure scene orientation for-size)
-  #;(dimfi-widget-measures 'WITHIN-custom-measure-func scene)
-  (let ((child (get-first-child scene)))
-    (receive (minimum natural minimum-baseline natural-baseline)
-        (measure child orientation for-size)
-      #;(dimfi-widget-measures 'CHILD-size child)
-      (values minimum natural minimum-baseline natural-baseline))))
-
-(define (custom-allocate scene width height baseline)
-  #;(dimfi-widget-measures 'WITHIN-custom-allocate-func scene)
-  (let ((child (get-first-child scene))
-        (progress (get-progress scene)))
-    #;(dimfi-widget-measures 'CHILD-size child)
-    (receive (child-width natural minimum-baseline natural-baseline)
-        (measure child 'horizontal -1)
-      (allocate child width height baseline
-                (transform width child-width progress))
-      (values))))
-
-
-;;;
-;;; custom layout manager utils
-;;;
-
-(define (get-progress scene)
-  (let* ((ancestor (get-ancestor scene
-                                 (!g-type <adw-demo-page-animations>)))
-         (animation (get-current-animation ancestor)))
-    (get-value animation)))
-
-(define (get-offset width child-width progress)
-  (inexact->exact (* (- width child-width)
-                     (- progress 0.5))))
-
-(define (transform width child-width progress)
-  (gsk-transform-translate #f
-                           (graphene-point-init (graphene-point-alloc)
-                                                (get-offset width child-width progress)
-                                                0)))
-
-
-;;;
-;;; get currrent animation
-;;;
-
-(define (get-current-animation animations-page)
-  (let* ((animation-prefs-stack (!animation-prefs-stack animations-page))
-         (current-animation (get-visible-child-name animation-prefs-stack)))
-    (case (string->symbol current-animation)
-      ((Timed)
-       (!timed-animation animations-page))
-      ((Spring)
-       (!spring-animation animations-page))
-      (else
-       (scm-error 'impossible #f "Unreached current animation: ~S"
-                  (list animations-page) #f)))))
-
 
 ;;;
 ;;; callback
@@ -442,8 +388,22 @@
 
 (define (animation-cb-handler animation-scene)
   (lambda (value user-data)
-    (dimfi 'queue-allocate animation-scene)
     (queue-allocate animation-scene)))
+
+(define (prefs-stack-visible-child-cb animations-page stack)
+  (animations-reset animations-page)
+  ;; we also need to update the current-animation (animations-page
+  ;; instance) slot, as it's used by the <animation-layout>, which
+  ;; allows to (drastically) reduces the number of calls to
+  ;; get-visible-child-name and string->symbol.
+  (let ((visible-child (get-visible-child-name stack)))
+    (case (string->symbol visible-child)
+      ((Timed)
+       (set! (!current-animation animations-page)
+             (!timed-animation animations-page)))
+      ((Spring)
+       (set! (!current-animation animations-page)
+             (!spring-animation animations-page))))))
 
 (define (animations-reset animations-page)
   (reset (!timed-animation animations-page))
@@ -454,7 +414,7 @@
   (skip (!spring-animation animations-page)))
 
 (define (animation-play-pause animations-page)
-  (let* ((animation (get-current-animation animations-page))
+  (let* ((animation (!current-animation animations-page))
          (state (get-state animation)))
     (case state
       ((idle
@@ -479,34 +439,13 @@
 
 
 ;;;
-;;; Debug - utils
+;;; utils
 ;;;
 
-(define (display-some-animation-sceme-infos self)
-  (let* ((animation-scene (!animation-scene self))
-         (parent (get-ancestor animation-scene
-                               (!g-type <adw-clamp>)))
-         (child (get-first-child animation-scene)))
-    (dimfi-widget-measures 'parent parent)
-    (dimfi-widget-measures 'animation-scene animation-scene)
-    (dimfi-widget-measures 'child child)))
+(define (lookup type expr name)
+  (gtk-property-expression-new (!g-type type) expr name))
 
-(define (dimfi-widget-measures title widget)
-  (dimfi title)
-  (dimfi " " widget)
-  (dimfi (format #f "~20,,,' @A:" 'get-width) (get-width widget))
-  (dimfi (format #f "~20,,,' @A:" 'get-height) (get-height widget))
-  #;(dimfi "  --- (gtk-widget-measure widget 'horizontal -1)")
-  #;(receive (minimum natural minimum-baseline natural-baseline)
-      (measure widget 'horizontal -1)
-    (dimfi (format #f "~20,,,' @A:" 'minimum) minimum)
-    (dimfi (format #f "~20,,,' @A:" 'natural) natural)
-    (dimfi (format #f "~20,,,' @A:" 'minimum-baseline) minimum-baseline)
-    (dimfi (format #f "~20,,,' @A:" 'natural-baseline) natural-baseline))
-  #;(dimfi "   --- (gtk-widget-measure widget 'vertical -1)")
-  #;(receive (minimum natural minimum-baseline natural-baseline)
-      (measure widget 'vertical -1)
-    (dimfi (format #f "~20,,,' @A:" 'minimum) minimum)
-    (dimfi (format #f "~20,,,' @A:" 'natural) natural)
-    (dimfi (format #f "~20,,,' @A:" 'minimum-baseline) minimum-baseline)
-    (dimfi (format #f "~20,,,' @A:" 'natural-baseline) natural-baseline)))
+(define (make-expression type closure params)
+  (gtk-closure-expression-new (symbol->g-type type)
+                              (!g-closure closure)
+                              params))
