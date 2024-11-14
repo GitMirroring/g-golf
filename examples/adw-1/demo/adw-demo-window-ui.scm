@@ -135,7 +135,7 @@
          ;;        - toast-overlay - swapped
          ))))
 
-#;(define %animations-page
+(define %animations-page
   '(object (@ (class "GtkStackPage"))
      (property (@ (name "title")
                   (translatable "yes")) "Animations")
@@ -238,7 +238,7 @@
          (child ,%buttons-page)
          (child ,%style-classes-page)
          (child ,%toasts-page)
-         #;(child ,%animations-page)
+         (child ,%animations-page)
          (child ,%alerts-page)
          (child ,%about-page)
          (child ,%banner-page)

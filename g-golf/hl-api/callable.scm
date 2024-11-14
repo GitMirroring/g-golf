@@ -363,8 +363,6 @@
 (define (callable-prepare-gi-args-in callable args)
   (let ((is-method? (!is-method? callable))
         (g-value-ptr? (preserve-g-value-ptr? callable)))
-    (when (%debug)
-      (dimfi (!name callable)))
     (let loop ((i 0)
                (arguments (!args-in callable)))
       (match arguments
@@ -401,12 +399,12 @@
                            (forced-type #f)
                            (g-value-ptr? #f))
   (when (%debug)
-    (dimfi 'scm->gi-argument)
+    #;(dimfi " " 'scm->gi-argument)
     (dimfi (format #f "~20,,,' @A:" (!name clb/arg)) value)
-    (dimfi (format #f "~20,,,' @A:" 'type-tag) type-tag)
-    (dimfi (format #f "~20,,,' @A:" 'type-desc) type-desc)
-    (dimfi (format #f "~20,,,' @A:" 'forced-type) forced-type)
-    (dimfi (format #f "~20,,,' @A:" 'ffi-arg?) ffi-arg?))
+    #;(dimfi (format #f "~20,,,' @A:" 'type-tag) type-tag)
+    #;(dimfi (format #f "~20,,,' @A:" 'type-desc) type-desc)
+    #;(dimfi (format #f "~20,,,' @A:" 'forced-type) forced-type)
+    #;(dimfi (format #f "~20,,,' @A:" 'ffi-arg?) ffi-arg?))
   (let ((%g-golf-callback-closure
          (@ (g-golf hl-api callback) g-golf-callback-closure))
         (may-be-null? (may-be-null-acc clb/arg)))
@@ -756,27 +754,34 @@
             (loop (+ i 1)))))))
 
 (define (callable-arg-out->scm argument)
-  (let ((type-tag (!type-tag argument))
-        (type-desc (!type-desc argument))
-        (gi-argument (!gi-argument-out argument))
-        (forced-type (!forced-type argument))
-        (is-pointer? (!is-pointer? argument)))
-    (gi-argument->scm type-tag
-                      type-desc
-                      gi-argument
-                      argument		;; the type-desc instance 'owner'
-                      #:forced-type forced-type
-                      #:is-pointer? is-pointer?)))
+  (let* ((type-tag (!type-tag argument))
+         (type-desc (!type-desc argument))
+         (gi-argument (!gi-argument-out argument))
+         (forced-type (!forced-type argument))
+         (is-pointer? (!is-pointer? argument))
+         (value (gi-argument->scm type-tag
+                                  type-desc
+                                  gi-argument
+                                  argument ;; the type-desc instance 'owner'
+                                  #:forced-type forced-type
+                                  #:is-pointer? is-pointer?)))
+    (when (%debug)
+      (dimfi (format #f "~20,,,' @A:" (!name argument)) value " [ out arg ]"))
+    value))
 
 (define* (callable-return-value->scm callable #:key (args-out #f))
-  (let ((type-tag (!return-type callable))
-        (type-desc (!type-desc callable))
-        (gi-argument (!gi-arg-result callable)))
-    (gi-argument->scm type-tag
-                      type-desc
-                      gi-argument
-                      callable 		;; the type-desc instance 'owner'
-                      #:args-out args-out)))
+  (let* ((type-tag (!return-type callable))
+         (type-desc (!type-desc callable))
+         (gi-argument (!gi-arg-result callable))
+         (value (gi-argument->scm type-tag
+                                  type-desc
+                                  gi-argument
+                                  callable ;; the type-desc instance 'owner'
+                                  #:args-out args-out)))
+    (when (%debug)
+      #;(dimfi (format #f "~4,,,' @A" " =>") value "[" (!name callable) "]")
+      (dimfi (format #f "~4,,,' @A" " =>") value))
+    value))
 
 (define* (gi-argument->scm type-tag type-desc gi-argument clb/arg
                            #:key (forced-type #f)
@@ -817,30 +822,29 @@
           ((struct)
            (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
                   (foreign (if is-pointer?
-                               (dereference-pointer gi-arg-val)
+                               (and gi-arg-val
+                                    (dereference-pointer gi-arg-val))
                                gi-arg-val)))
-             (case name
-               ((g-value)
-                (if g-value-ptr?
-                    foreign
-                    (g-value-ref foreign)))
-               (else
-                (if (or (!is-opaque? gi-type)
-                        (!is-semi-opaque? gi-type))
-                    (let ((bv (slot-ref clb/arg 'bv-cache))
-                          (bv-ptr (slot-ref clb/arg 'bv-cache-ptr)))
-                      (if bv
-                          (begin
-                            (g-boxed-sa-guard bv-ptr bv)
-                            bv-ptr)
-                          ;; when bv is #f, it (indirectly) means that
-                          ;; memory is allocated by the callee
-                          (if (null-pointer? foreign)
-                              #f
-                              (begin
-                                #;(g-boxed-ga-guard foreign g-type)
-                                foreign))))
-                    (parse-c-struct foreign (!scm-types gi-type)))))))
+             (and foreign
+                  (case name
+                    ((g-value)
+                     (if g-value-ptr?
+                         foreign
+                         (g-value-ref foreign)))
+                    (else
+                     (if (or (!is-opaque? gi-type)
+                             (!is-semi-opaque? gi-type))
+                         (let ((bv (slot-ref clb/arg 'bv-cache))
+                               (bv-ptr (slot-ref clb/arg 'bv-cache-ptr)))
+                           (if bv
+                               (begin
+                                 (g-boxed-sa-guard bv-ptr bv)
+                                 bv-ptr)
+                               ;; when bv is #f, it (indirectly) means that
+                               ;; memory is allocated by the callee, so we don't
+                               ;; need (g-boxed-ga-guard foreign g-type)
+                               foreign))
+                         (parse-c-struct foreign (!scm-types gi-type))))))))
           ((union)
            (let ((foreign (gi-argument-ref gi-argument 'v-pointer)))
              (case name

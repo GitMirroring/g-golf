@@ -88,26 +88,30 @@
 
 (define-method (initialize (self <gi-struct>) initargs)
   (next-method)
-  (let ((g-name (get-keyword #:g-name initargs))
-        (field-types (get-keyword #:field-types initargs #f)))
-    (and g-name
-         (mslot-set! self
-                     'g-name g-name
-                     'name (g-name->name g-name)))
-    (and field-types
-         (let ((scm-types (map gi-type-tag->ffi field-types))
-               (opaque? (null? field-types)))
-           (mslot-set! self
-                       'scm-types scm-types
-                       'init-vals (map gi-type-tag->init-val field-types)
-                       'is-opaque? opaque?
-                       'is-semi-opaque? (if (or opaque?
-                                                (memq 'void field-types)
-                                                (memq 'interface field-types)
-                                                (not (= (!size self)
-                                                        (reduce + 0 (map sizeof scm-types)))))
-                                            #t
-                                            #f))))))
+  (let* ((g-name (get-keyword #:g-name initargs #f))
+         (name (and g-name (g-name->name g-name)))
+         (field-types (get-keyword #:field-types initargs #f)))
+    (when g-name
+      (mslot-set! self
+                  'g-name g-name
+                  'name name))
+    (when field-types
+      (let ((scm-types (map gi-type-tag->ffi field-types))
+            (opaque? (null? field-types)))
+        (mslot-set! self
+                    'scm-types scm-types
+                    'init-vals (map gi-type-tag->init-val field-types)
+                    'is-opaque? opaque?
+                    'is-semi-opaque? (if (or opaque?
+                                             (and name
+                                                  (string-prefix? "graphene"
+                                                             (symbol->string name)))
+                                             (memq 'void field-types)
+                                             (memq 'interface field-types)
+                                             (not (= (!size self)
+                                                     (reduce + 0 (map sizeof scm-types)))))
+                                         #t
+                                         #f))))))
 
 (define-method (field-offset (self <gi-struct>) field-name)
   (match (assq-ref (!field-desc self) field-name)

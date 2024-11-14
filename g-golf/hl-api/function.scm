@@ -81,9 +81,8 @@
           (n-gi-arg-out (!n-gi-arg-out f-inst))
           (gi-args-out (!gi-args-out f-inst))
           (gi-arg-result (!gi-arg-result f-inst)))
-      #;(when (%debug)
-        (dimfi "        ----" 'g-function-info-invoke name)
-        (dimfi "          ----" args))
+      (when (%debug)
+        (dimfi name))
       (unless (memq 'skip-prepare-gi-arguments args)
         (callable-prepare-gi-arguments f-inst args))
       (with-gerror g-error
@@ -106,6 +105,8 @@
                         (cons (callable-return-value->scm f-inst)
                               (map callable-arg-out->scm (!args-out f-inst))))))
             ((void)
+             (when (%debug)
+               (dimfi (format #f "~4,,,' @A" "  => n/a (void)")))
              (apply values
                     (map callable-arg-out->scm (!args-out f-inst))))
             (else
@@ -114,7 +115,10 @@
                       (cons (callable-return-value->scm f-inst #:args-out args-out)
                             args-out)))))
           (case return-type
-            ((void) (values))
+            ((void)
+             (when (%debug)
+               (dimfi (format #f "~4,,,' @A" "  => n/a (void)")))
+             (values))
             (else
              (callable-return-value->scm f-inst)))))))
 

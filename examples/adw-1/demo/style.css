@@ -5,12 +5,12 @@ stacksidebar {
 
 /* Mimic the status page. */
 .avatar-page,
-.timed-animation-page {
+.animation-page {
   margin: 36px 12px;
 }
 
 .avatar-page > box > label.title,
-.timed-animation-page > box > label.title {
+.animation-page > box > label.title {
   margin-bottom: 12px;
 }
 

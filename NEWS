@@ -26,6 +26,45 @@ warranty.
 
 * Latest News
 
+** Nov 2024
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc9 is released.
+
+This is the ninth release candidate of the upcoming 0.8.0 release, now
+available for testing.
+
+*** Noteworthy changes in 0.8.0-rc9
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+
+**** Examples
+
+***** Adwaita Demo
+
+The following Adwaita Demo pages have been added:
+
+  AdwDemoPageAnimations
+
+Note that this required quite a few changes compared to the upstream
+demo, because in C, they can call gtk_widget_set_layout_manager, which
+is not possible for (any) language bindings. Instead, language bindings
+users must define a derived GtkLayoutManager class, and declare it as
+the layout manager of the (derived GObject) class you are working
+on. You may look at this (example) or the gtk-4 layout-manager and
+layout-manager-2 examples to get inspired to write your first layout
+manager derived class.
+
+**** Bug fixing
+
+***** gi-argument->scm
+
+Working on the AdwDemoPageAnimations port to G-Golf revealed an
+important (now fixed) bug in the gi-argument->scm procedure.
+
+* Older News
+
 ** Oct 2024
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0-rc8 is released.
@@ -79,9 +118,6 @@ string-replace-substring isn't available in earlier versions of guile -
 though we invite every g-golf users to use guile-3.0, when available,
 there is also no reason why g-golf could not be built and used against
 earlier versions of guile.
-
-
-* Older News
 
 ** Sep 2024
 

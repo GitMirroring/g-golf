@@ -176,7 +176,7 @@
          (return-type (!return-type callback)))
     (when (%debug)
       (dimfi 'g-golf-callback-closure-marshal)
-      (dimfi " " (!name callback)))
+      (dimfi " --" (!name callback) "-- "))
     (let loop ((arguments (!args-in callback))
                (ffi-arg ffi-args)
                (args '()))
@@ -199,12 +199,10 @@
                                  #:is-method? (!is-method? callback)
                                  #:forced-type return-type)))))
         ((argument . rests)
-         (let ((value (ffi-arg->cb-arg callback argument ffi-arg)))
-           (when (%debug)
-             (dimfi (format #f "~20,,,' @A:" (!name argument)) value))
-           (loop rests
-                 (gi-pointer-inc ffi-arg)
-                 (cons value args))))))))
+         (loop rests
+               (gi-pointer-inc ffi-arg)
+               (cons (ffi-arg->cb-arg callback argument ffi-arg)
+                     args)))))))
 
 (define %g-golf-callback-closure-marshal
   (procedure->pointer void
@@ -250,26 +248,17 @@
           (case value
 	    ((nil) 'nothing)	;; do not set the out arg to any value
             (else
-             (scm->gi-argument (!type-tag arg-out)
-                               (!type-desc arg-out)
-                               ffi-out-arg
-                               value
-                               arg-out
-                               r-vals ;; required, but won't be used
-                               #:ffi-arg? #t
-                               #:may-be-null-acc !may-be-null?
-                               #:is-method? #f ;; args-in off-by-one 'only'
-                               #:forced-type (!forced-type arg-out))
-             (when (%debug)
-               (dimfi (format #f "~20,,,' @A:" (!name arg-out)) value
-                      (format #f " [ out arg - ffi val (check) ~A"
-                              (gi-argument->scm (!type-tag arg-out)
-                                                (!type-desc arg-out)
-                                                ffi-out-arg
-                                                arg-out
-                                                #:forced-type (!forced-type arg-out)
-                                                #:is-pointer? (!is-pointer? arg-out)))
-                      "]"))
+             (parameterize ((%debug #f))
+               (scm->gi-argument (!type-tag arg-out)
+                                 (!type-desc arg-out)
+                                 ffi-out-arg
+                                 value
+                                 arg-out
+                                 r-vals ;; required, but won't be used
+                                 #:ffi-arg? #t
+                                 #:may-be-null-acc !may-be-null?
+                                 #:is-method? #f ;; args-in off-by-one 'only'
+                                 #:forced-type (!forced-type arg-out)))
              (loop (gi-pointer-inc ffi-out-arg)
                    args-out-tail
                    r-vals-tail)))))))))
