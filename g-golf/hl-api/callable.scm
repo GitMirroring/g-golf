@@ -401,10 +401,10 @@
   (when (%debug)
     #;(dimfi " " 'scm->gi-argument)
     (dimfi (format #f "~20,,,' @A:" (!name clb/arg)) value)
-    #;(dimfi (format #f "~20,,,' @A:" 'type-tag) type-tag)
-    #;(dimfi (format #f "~20,,,' @A:" 'type-desc) type-desc)
-    #;(dimfi (format #f "~20,,,' @A:" 'forced-type) forced-type)
-    #;(dimfi (format #f "~20,,,' @A:" 'ffi-arg?) ffi-arg?))
+    (dimfi (format #f "~20,,,' @A:" 'type-tag) type-tag)
+    (dimfi (format #f "~20,,,' @A:" 'type-desc) type-desc)
+    (dimfi (format #f "~20,,,' @A:" 'forced-type) forced-type)
+    (dimfi (format #f "~20,,,' @A:" 'ffi-arg?) ffi-arg?))
   (let ((%g-golf-callback-closure
          (@ (g-golf hl-api callback) g-golf-callback-closure))
         (may-be-null? (may-be-null-acc clb/arg)))
@@ -596,43 +596,45 @@
        ;; gi-argument to a pointer to the alocated mem.
        (case forced-type
          ((pointer)
-          (if (not value)
-              (if may-be-null?
-                  (gi-argument-set! gi-argument 'v-pointer #f)
-                  (error "Invalid (pointer to) " type-tag " argument: " value))
-              (case type-tag
-                ((boolean
-                  int8 uint8
-                  int16 uint16
-                  int32 uint32
-                  int64 uint64
-                  float double
-                  gtype)
-                 (receive (make-bv bv-ref bv-set!)
-                     (gi-type-tag->bv-acc type-tag)
-                   (if ffi-arg?
-                       (let* ((foreign (gi-argument-ref gi-argument 'v-pointer))
-                              (bv-ptr (dereference-pointer foreign))
-                              (bv-size (sizeof (primitive-eval type-tag)))
-                              (bv (pointer->bytevector bv-ptr bv-size)))
-                         (bv-set! bv 0 value))
-                       (let* ((bv-cache (!bv-cache clb/arg))
-                              (bv-cache-ptr (!bv-cache-ptr clb/arg))
-                              (bv (or bv-cache (make-bv 1 0)))
-                              (bv-ptr (or bv-cache-ptr
-                                          (bytevector->pointer bv))))
-                         (unless bv-cache
-                           (mslot-set! clb/arg
-                                       'bv-cache bv
-                                       'bv-cache-ptr bv-ptr))
-                         (bv-set! bv 0 value)
-                         (gi-argument-set! gi-argument 'v-pointer bv-ptr)))))
-                ((void)
-                 ;; Till proved wrong, we'll consider those opaque
-                 ;; pointers.
-                 (gi-argument-set! gi-argument 'v-pointer value))
-                (else
-                 (warning "Unimplemented (pointer to): " type-tag)))))
+          ;; in this case, unlike i wrongly tought before this patch,
+          ;; may-be-null? (can be) is #f, as we need a valid pointer,
+          ;; which is dereferenced to retreive the 'out argument value.
+          (case type-tag
+            ((boolean
+              int8 uint8
+              int16 uint16
+              int32 uint32
+              int64 uint64
+              float double
+              gtype)
+             (receive (make-bv bv-ref bv-set!)
+                 (gi-type-tag->bv-acc type-tag)
+               (if ffi-arg?
+                   (let* ((foreign (gi-argument-ref gi-argument 'v-pointer))
+                          (bv-ptr (dereference-pointer foreign))
+                          (bv-size (sizeof (primitive-eval type-tag)))
+                          (bv (pointer->bytevector bv-ptr bv-size)))
+                     (bv-set! bv 0 value))
+                   (let* ((bv-cache (!bv-cache clb/arg))
+                          (bv-cache-ptr (!bv-cache-ptr clb/arg))
+                          (bv (or bv-cache (make-bv 1 0)))
+                          (bv-ptr (or bv-cache-ptr
+                                      (bytevector->pointer bv))))
+                     (unless bv-cache
+                       (mslot-set! clb/arg
+                                   'bv-cache bv
+                                   'bv-cache-ptr bv-ptr))
+                     (bv-set! bv 0
+                              (case type-tag
+                                ((boolean) (if value 1 0))
+                                (else value)))
+                     (gi-argument-set! gi-argument 'v-pointer bv-ptr)))))
+            ((void)
+             ;; Till proved wrong, we'll consider those opaque
+             ;; pointers.
+             (gi-argument-set! gi-argument 'v-pointer value))
+            (else
+             (warning "Unimplemented (pointer to): " type-tag))))
          (else
           (gi-argument-set! gi-argument
                             (gi-type-tag->field type-tag)
