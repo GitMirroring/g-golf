@@ -63,7 +63,7 @@
           !closure
           !destroy
           !direction
-          !transfert
+          !transfer
           !scope
           !type-tag
           !type-desc
@@ -100,7 +100,7 @@
   (closure #:accessor !closure)
   (destroy #:accessor !destroy)
   (direction #:accessor !direction #:init-keyword #:direction)
-  (transfert #:accessor !transfert)
+  (transfer #:accessor !transfer)
   (scope #:accessor !scope)
   (type-tag #:accessor !type-tag #:init-keyword #:type-tag)
   (type-desc #:accessor !type-desc #:init-keyword #:type-desc)
@@ -140,7 +140,7 @@
               (closure (g-arg-info-get-closure info))
               (destroy (g-arg-info-get-destroy info))
               (direction (g-arg-info-get-direction info))
-              (transfert (g-arg-info-get-ownership-transfer info))
+              (transfer (g-arg-info-get-ownership-transfer info))
               (scope (g-arg-info-get-scope info))
               (type-info (g-arg-info-get-type info))
               (type-tag (g-type-info-get-tag type-info))
@@ -162,7 +162,7 @@
                        'closure closure
                        'destroy destroy
                        'direction direction
-                       'transfert transfert
+                       'transfer transfer
                        'scope scope
                        'type-tag type-tag
                        'type-desc type-desc
