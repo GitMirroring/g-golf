@@ -60,6 +60,7 @@
           !n-arg
           !al-pos
           !caller-owns
+          !instance-ownership-transfer
           !return-type
           !type-desc
           !is-enum?
@@ -104,6 +105,7 @@
   (n-arg #:accessor !n-arg)
   (al-pos #:accessor !al-pos)
   (caller-owns #:accessor !caller-owns)
+  (instance-ownership-transfer #:accessor !instance-ownership-transfer)
   (return-type #:accessor !return-type)
   (type-desc #:accessor !type-desc)
   (is-enum? #:accessor !is-enum?)
