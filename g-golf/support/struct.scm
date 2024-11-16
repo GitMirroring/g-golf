@@ -96,22 +96,27 @@
                   'g-name g-name
                   'name name))
     (when field-types
-      (let ((scm-types (map gi-type-tag->ffi field-types))
-            (opaque? (null? field-types)))
-        (mslot-set! self
-                    'scm-types scm-types
-                    'init-vals (map gi-type-tag->init-val field-types)
-                    'is-opaque? opaque?
-                    'is-semi-opaque? (if (or opaque?
-                                             (and name
-                                                  (string-prefix? "graphene"
-                                                             (symbol->string name)))
-                                             (memq 'void field-types)
-                                             (memq 'interface field-types)
-                                             (not (= (!size self)
-                                                     (reduce + 0 (map sizeof scm-types)))))
-                                         #t
-                                         #f))))))
+      (let* ((scm-types (map gi-type-tag->ffi field-types))
+             (opaque? (null? field-types))
+             (semi-opaque? (if (or opaque?
+                                   (and name
+                                        (or #;(string=? g-name
+                                                      "GIMarshallingTestsBoxedStruct")
+                                            (string-prefix? "graphene"
+                                                            (symbol->string name))))
+                                   (memq 'void field-types)
+                                   (memq 'interface field-types)
+                                   (not (= (!size self)
+                                           (reduce + 0 (map sizeof scm-types)))))
+                               #t
+                               #f)))
+             (mslot-set! self
+                         'scm-types scm-types
+                         'init-vals (if (or opaque? semi-opaque?)
+                                        #f
+                                        (map gi-type-tag->init-val field-types))
+                         'is-opaque? opaque?
+                         'is-semi-opaque? semi-opaque?)))))
 
 (define-method (field-offset (self <gi-struct>) field-name)
   (match (assq-ref (!field-desc self) field-name)
