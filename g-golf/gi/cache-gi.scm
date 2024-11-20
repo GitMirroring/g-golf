@@ -101,6 +101,10 @@
 
     (set! gi-cache-show
           (lambda (m-key)
-            (hash-for-each (lambda (key value)
-                             (%dimfi key value))
-                (%gi-cache m-key))))))
+            (case m-key
+              ((keys)
+               '(enum flags struct boxed union function))
+              (else
+               (hash-for-each (lambda (key value)
+                                (%dimfi key value))
+                   (%gi-cache m-key))))))))
