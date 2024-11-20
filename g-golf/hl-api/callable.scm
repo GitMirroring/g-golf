@@ -30,6 +30,7 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
+  #:use-module ((srfi srfi-1) #:select (map fold-right))
   #:use-module (oop goops)
   #:use-module (g-golf support)
   #:use-module (g-golf gi)
@@ -83,6 +84,7 @@
                   'can-throw-gerror (g-callable-info-can-throw-gerror info)
                   'is-method? (g-callable-info-is-method info)
                   'caller-owns (g-callable-info-get-caller-owns info)
+                  'instance-ownership-transfer (g-callable-info-get-instance-ownership-transfer info)
                   'return-type return-type
                   'type-desc type-desc
                   'is-enum? (and (eq? return-type 'interface)
@@ -382,7 +384,9 @@
                              #:may-be-null-acc !may-be-null?
                              #:is-method? is-method?
                              #:forced-type (!forced-type argument)
-                             #:g-value-ptr? (assq-ref g-value-ptr? i))
+                             #:g-value-ptr? (assq-ref g-value-ptr? i)
+                             #:direction (!direction argument)
+                             #:transfer (!transfer argument))
            (loop (+ i 1)
                  rest)))))))
 
@@ -397,7 +401,9 @@
                            (may-be-null-acc #f)
                            (is-method? #f)
                            (forced-type #f)
-                           (g-value-ptr? #f))
+                           (g-value-ptr? #f)
+                           (direction 'n/a)
+                           (transfer #f))
   (when (%debug)
     #;(dimfi " " 'scm->gi-argument)
     (dimfi (format #f "~20,,,' @A:" (!name clb/arg)) value)
@@ -430,37 +436,43 @@
                    (gi-argument-set! gi-argument 'v-int f-val)
                    (error "No such flag(s) " value " in " gi-type))))
             ((struct)
-             (case name
-               ((void
-                 g-value)
-                ;; Struct for which the (symbol) name is void should be
-                ;; considerd opaque.  Functions and methods that use
-                ;; GValue(s) should be overridden-ed/manually wrapped to
-                ;; initialize those g-value(s) - and here, value is
-                ;; supposed to (always) be a valid pointer to an
-                ;; initialized GValue.
-                (gi-argument-set! gi-argument 'v-pointer value))
-               ((g-closure)
-                ;; FIXME - as till this patch we accepted a pointer (to
-                ;; a GClosure), we'll keep that possibility for now, but
-                ;; later we should only accept procedure ...
-                (gi-argument-set! gi-argument 'v-pointer
-                                  (if value
-                                      (if (procedure? value)
-                                          (!g-closure (make <closure>
-                                                        #:function value
-                                                        #:g-value-ptr? g-value-ptr?))
-                                          value)
-                                      #f)))
-
-               (else
-                (gi-argument-set! gi-argument 'v-pointer
-                                  (cond ((or (!is-opaque? gi-type)
-                                             (!is-semi-opaque? gi-type))
-                                         value)
-                                        (else
-                                         (make-c-struct (!scm-types gi-type)
-                                                        value)))))))
+             (let ((foreign
+                    (case name
+                      ((void
+                        g-value)
+                       ;; Struct for which the (symbol) name is void should be
+                       ;; considerd opaque.  Functions and methods that use
+                       ;; GValue(s) should be overridden-ed/manually wrapped to
+                       ;; initialize those g-value(s) - and here, value is
+                       ;; supposed to (always) be a valid pointer to an
+                       ;; initialized GValue.
+                       (or value %null-pointer))
+                      ((g-closure)
+                       ;; FIXME - as till this patch we accepted a pointer (to
+                       ;; a GClosure), we'll keep that possibility for now, but
+                       ;; later we should only accept procedure ...
+                       (if value
+                           (if (procedure? value)
+                               (!g-closure (make <closure>
+                                             #:function value
+                                             #:g-value-ptr? g-value-ptr?))
+                               value)
+                           %null-pointer))
+                      (else
+                       (if (or (!is-opaque? gi-type)
+                               (!is-semi-opaque? gi-type))
+                           (or value %null-pointer)
+                           (scm->gi-struct value gi-type transfer))))))
+               (gi-argument-set! gi-argument 'v-pointer
+                                 (case direction
+                                   ((inout)
+                                    ;; we need 1 further indirection
+                                    (let* ((bv (make-bytevector (sizeof '*) 0))
+                                           (bv-ptr (bytevector->pointer bv)))
+                                      (bv-ptr-set! bv-ptr foreign)
+                                      bv-ptr))
+                                   (else
+                                    foreign)))))
             ((union)
              (gi-argument-set! gi-argument 'v-pointer value))
             ((object
@@ -705,7 +717,7 @@
                                      (let ((bv (make-bytevector (sizeof '*) 0)))
                                        (mslot-set! arg-out
                                                    'bv-cache #f
-                                                   'bv-cache-ptr %null-pointer)
+                                                   'bv-cache-ptr #f)
                                        (gi-argument-set! gi-argument-out 'v-pointer
                                                          (bytevector->pointer bv)))))))
 
@@ -766,7 +778,8 @@
                                   gi-argument
                                   argument ;; the type-desc instance 'owner'
                                   #:forced-type forced-type
-                                  #:is-pointer? is-pointer?)))
+                                  #:is-pointer? is-pointer?
+                                  #:transfer (!transfer argument))))
     (when (%debug)
       (dimfi (format #f "~20,,,' @A:" (!name argument)) value " [ out arg ]"))
     value))
@@ -779,7 +792,8 @@
                                   type-desc
                                   gi-argument
                                   callable ;; the type-desc instance 'owner'
-                                  #:args-out args-out)))
+                                  #:args-out args-out
+                                  #:transfer (!caller-owns callable))))
     (when (%debug)
       #;(dimfi (format #f "~4,,,' @A" " =>") value "[" (!name callable) "]")
       (dimfi (format #f "~4,,,' @A" " =>") value))
@@ -789,7 +803,8 @@
                            #:key (forced-type #f)
                            (is-pointer? #f)
                            (args-out #f)
-                           (g-value-ptr? #f))
+                           (g-value-ptr? #f)
+                           (transfer #f))
   ;; forced-type is only used for 'inout and 'out arguments, in which
   ;; case it is 'pointer - see 'simple' types below.
 
@@ -825,7 +840,8 @@
            (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
                   (foreign (if is-pointer?
                                (and gi-arg-val
-                                    (dereference-pointer gi-arg-val))
+                                    (gi->scm (dereference-pointer gi-arg-val)
+                                             'pointer))
                                gi-arg-val)))
              (and foreign
                   (case name
@@ -846,7 +862,7 @@
                                ;; memory is allocated by the callee, so we don't
                                ;; need (g-boxed-ga-guard foreign g-type)
                                foreign))
-                         (parse-c-struct foreign (!scm-types gi-type))))))))
+                         (gi-struct->scm foreign gi-type transfer)))))))
           ((union)
            (let ((foreign (gi-argument-ref gi-argument 'v-pointer)))
              (case name
@@ -1023,3 +1039,108 @@
        (6 . (1 2))))     ;; transform-from	input output
     (else
      #f)))
+
+
+;;;
+;;; utils
+;;;
+
+(define (scm->gi-struct scm-vals gi-struct transfer)
+  (let* ((scm-types (!scm-types gi-struct))
+         (foreign (make-c-struct scm-types
+                                 (map scm->gi-struct-field
+                                   scm-vals
+                                   (!field-desc gi-struct)))))
+    (case transfer
+      ((everything)
+       (g-boxed-copy (!g-type gi-struct) foreign))
+      (else
+       foreign))))
+
+(define (scm->gi-struct-field scm-val field-desc)
+  (match field-desc
+    ((name type offset flags)
+     (case type
+       ((boolean)
+        (if scm-val 1 0))
+       ((int8
+         uint8
+         int16
+         uint16
+         int32
+         uint32
+         int64
+         uint64
+         float
+         double
+         unichar)
+        scm-val)
+       ((utf8
+         filename)
+        (scm->gi scm-val 'string))
+       ((array)
+        (case name
+          ((g-strv)
+           (scm->gi-strings scm-val))
+          (else
+           scm-val)))
+       ;; we should decode interface glist and gslist but let's just
+       ;; return the pointer for now.
+       ((interface
+         glist
+         gslist
+         ghash
+         error)
+        scm-val)
+       (else
+        (error "No such GI type tag: " type))))))
+
+(define (gi-struct->scm foreign gi-struct transfer)
+  (let* ((scm-types (!scm-types gi-struct))
+         (result (fold-right gi-struct-field->scm
+                             '()
+                             (parse-c-struct foreign scm-types)
+                             (!field-desc gi-struct))))
+    (case transfer
+      ((everything)
+       (g-boxed-free (!g-type gi-struct) foreign)))
+    result))
+
+(define (gi-struct-field->scm field-val field-desc prev)
+  (cons (match field-desc
+          ((name type offset flags)
+           (case type
+             ((boolean)
+              (if (= field-val 1) #t #f))
+             ((int8
+               uint8
+               int16
+               uint16
+               int32
+               uint32
+               int64
+               uint64
+               float
+               double
+               unichar)
+              field-val)
+             ((utf8
+               filename)
+              (gi->scm field-val 'string))
+             ((array)
+              (case name
+                ((g-strv)
+                 (gi-strings->scm field-val))
+                (else
+                 field-val)))
+             ;; we should decode interface glist and gslist but let's just
+             ;; return the pointer for now.
+             ((interface
+               glist
+               gslist
+               ghash
+               error)
+              field-val)
+             (else
+              (error "No such GI type tag: " type)))))
+        prev))
