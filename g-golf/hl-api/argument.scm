@@ -100,7 +100,8 @@
   (closure #:accessor !closure)
   (destroy #:accessor !destroy)
   (direction #:accessor !direction #:init-keyword #:direction)
-  (transfer #:accessor !transfer)
+  (transfer #:accessor !transfer
+            #:init-keyword #:transfer #:init-value 'n/a)
   (scope #:accessor !scope)
   (type-tag #:accessor !type-tag #:init-keyword #:type-tag)
   (type-desc #:accessor !type-desc #:init-keyword #:type-desc)
