@@ -428,7 +428,24 @@
             ((enum)
              (let ((e-val (enum->value gi-type value)))
                (if e-val
-                   (gi-argument-set! gi-argument 'v-int e-val)
+                   (case direction
+                     ((inout)
+                      ;; we need 1 further indirection
+                      (receive (make-bv bv-ref bv-set!)
+                          (gi-type-tag->bv-acc 'int32)
+                        (let* ((bv-cache (!bv-cache clb/arg))
+                               (bv-cache-ptr (!bv-cache-ptr clb/arg))
+                               (bv (or bv-cache (make-bv 1 0)))
+                               (bv-ptr (or bv-cache-ptr
+                                           (bytevector->pointer bv))))
+                          (unless bv-cache
+                            (mslot-set! clb/arg
+                                        'bv-cache bv
+                                        'bv-cache-ptr bv-ptr))
+                          (bv-set! bv 0 e-val)
+                          (gi-argument-set! gi-argument 'v-pointer bv-ptr))))
+                     (else
+                      (gi-argument-set! gi-argument 'v-int e-val)))
                    (error "No such symbol " value " in " gi-type))))
             ((flags)
              (let ((f-val (flags->integer gi-type value)))
@@ -779,6 +796,7 @@
                                   argument ;; the type-desc instance 'owner'
                                   #:forced-type forced-type
                                   #:is-pointer? is-pointer?
+                                  #:direction (!direction argument)
                                   #:transfer (!transfer argument))))
     (when (%debug)
       (dimfi (format #f "~20,,,' @A:" (!name argument)) value " [ out arg ]"))
@@ -804,6 +822,7 @@
                            (is-pointer? #f)
                            (args-out #f)
                            (g-value-ptr? #f)
+                           (direction 'n/a)
                            (transfer #f))
   ;; forced-type is only used for 'inout and 'out arguments, in which
   ;; case it is 'pointer - see 'simple' types below.
@@ -818,13 +837,14 @@
        ((type name gi-type g-type confirmed?)
         (case type
           ((enum)
-           (let ((val (case forced-type
-                        ((pointer)
-                         (let* ((foreign (gi-argument-ref gi-argument 'v-pointer))
-                                (bv (pointer->bytevector foreign (sizeof int))))
-                           (s32vector-ref bv 0)))
-                        (else
-                         (gi-argument-ref gi-argument 'v-int)))))
+           (let ((val
+                  (case direction
+                    ((inout out)
+                     (let* ((foreign (gi-argument-ref gi-argument 'v-pointer))
+                            (bv (pointer->bytevector foreign (sizeof int))))
+                       (s32vector-ref bv 0)))
+                    (else
+                     (gi-argument-ref gi-argument 'v-int)))))
              (or (enum->symbol gi-type val)
                  (error "No such " name " value: " val))))
           ((flags)
