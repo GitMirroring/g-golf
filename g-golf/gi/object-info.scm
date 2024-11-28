@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016, 2023
+;;;; Copyright (C) 2016, 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -286,7 +286,7 @@
 
 (define (g-object-info-find-method info name)
   (let ((pointer (g_object_info_find_method info
-					    (string->pointer name))))
+					    (string->pointer name "utf8"))))
     (if (null-pointer? pointer)
 	#f
 	pointer)))
@@ -311,7 +311,7 @@
 
 (define (g-object-info-find-signal info name)
   (let ((pointer (g_object_info_find_signal info
-					    (string->pointer name))))
+					    (string->pointer name "utf8"))))
     (if (null-pointer? pointer)
 	#f
 	pointer)))
@@ -327,7 +327,7 @@
 
 (define (g-object-info-find-vfunc info name)
   (let ((pointer (g_object_info_find_vfunc info
-					    (string->pointer name))))
+					    (string->pointer name "utf8"))))
     (if (null-pointer? pointer)
 	#f
 	pointer)))

@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2022
+;;;; Copyright (C) 2016 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -162,7 +162,7 @@
         #f)))
 
 (define (g-function-info-get-symbol info)
-  (pointer->string (g_function_info_get_symbol info)))
+  (pointer->string (g_function_info_get_symbol info) -1 "utf8"))
 
 (define (g-function-info-get-vfunc info)
   (let ((flags (g-function-info-get-flags info)))

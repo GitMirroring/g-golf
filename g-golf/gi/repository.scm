@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016, 2022
+;;;; Copyright (C) 2016, 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -57,7 +57,7 @@
                                          #:key (repository #f))
   (gi->scm (g_irepository_get_dependencies (or repository
                                                %null-pointer)
-                                           (string->pointer namespace))
+                                           (string->pointer namespace "utf8"))
            'strings))
 
 (define* (g-irepository-get-loaded-namespaces #:key (repository #f))
@@ -69,28 +69,29 @@
                                     #:key (repository #f))
   (g_irepository_get_n_infos (or repository
                                  %null-pointer)
-			     (string->pointer namespace)))
+			     (string->pointer namespace "utf8")))
 
 (define* (g-irepository-get-info namespace index
                                  #:key (repository #f))
   (g_irepository_get_info (or repository
                               %null-pointer)
-			  (string->pointer namespace)
+			  (string->pointer namespace "utf8")
 			  index))
 
 (define* (g-irepository-enumerate-versions namespace
                                            #:key (repository #f))
-  (map pointer->string
+  (map (lambda (str)
+         (pointer->string -1 "utf8"))
     (gi->scm (g_irepository_enumerate_versions (or repository
                                                    %null-pointer)
-                                               (string->pointer namespace))
+                                               (string->pointer namespace "utf8"))
              'glist)))
 
 (define* (g-irepository-get-typelib-path namespace
                                          #:key (repository #f))
   (gi->scm (g_irepository_get_typelib_path (or repository
                                                %null-pointer)
-                                           (string->pointer namespace))
+                                           (string->pointer namespace "utf8"))
            'string))
 
 (define* (g-irepository-require namespace
@@ -99,9 +100,9 @@
   (with-gerror g-error
 	       (g_irepository_require (or repository
                                           %null-pointer)
-				      (string->pointer namespace)
+				      (string->pointer namespace "utf8")
 				      (if version
-					  (string->pointer version)
+					  (string->pointer version "utf8")
 					  %null-pointer)
 				      0
 				      g-error)))
@@ -110,21 +111,21 @@
                                      #:key (repository #f))
   (gi->scm (g_irepository_get_c_prefix (or repository
                                            %null-pointer)
-                                       (string->pointer namespace))
+                                       (string->pointer namespace "utf8"))
            'string))
 
 (define* (g-irepository-get-shared-library namespace
                                            #:key (repository #f))
   (gi->scm (g_irepository_get_shared_library (or repository
                                                  %null-pointer)
-                                             (string->pointer namespace))
+                                             (string->pointer namespace "utf8"))
            'csv-string))
 
 (define* (g-irepository-get-version namespace
                                     #:key (repository #f))
   (gi->scm (g_irepository_get_version (or repository
                                           %null-pointer)
-                                      (string->pointer namespace))
+                                      (string->pointer namespace "utf8"))
            'string))
 
 (define* (g-irepository-find-by-gtype gtype
@@ -138,8 +139,8 @@
                                      #:key (repository #f))
   (gi->scm (g_irepository_find_by_name (or repository
                                            %null-pointer)
-                                       (string->pointer namespace)
-                                       (string->pointer name))
+                                       (string->pointer namespace "utf8")
+                                       (string->pointer name "utf8"))
            'pointer))
 
 

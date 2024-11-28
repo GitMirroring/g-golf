@@ -255,7 +255,7 @@
     (for-each (lambda (item)
                 (match item
                   ((u-pos c-pos l-pos)
-                   (set! (!al-arg? (list-ref arguments l-pos)) #t))))
+                   (set! (!al-arg? (list-ref arguments l-pos)) item))))
         al-pos)
     (mslot-set! callable
                 'n-arg (if is-method? (+ n-arg 1) n-arg)
@@ -345,7 +345,7 @@
                            args
                            (cdr al-pos)
                            (cons (cond ((list? ar) (length ar))
-                                       ((string? ar) -1)
+                                       ((string? ar) (string-utf8-length ar))
                                        (else
                                         (error "What array is this " ar)))
                                  cble-args)))
@@ -548,7 +548,7 @@
                    ;; this is most likely a string, but we will check
                    ;; and also (blindingly) accept a pointer.
                    (cond ((string? value)
-                          (let ((string-pointer (string->pointer value)))
+                          (let ((string-pointer (string->pointer value "utf8")))
                             (set! (!string-pointer clb/arg) string-pointer)
                             ;; don't use 'v-string, which expects a
                             ;; string, calls string->pointer (and does
@@ -613,7 +613,7 @@
            (if may-be-null?
                (gi-argument-set! gi-argument 'v-pointer #f)
                (error "Invalid " type-tag " argument: " #f))
-           (let ((string-pointer (string->pointer value)))
+           (let ((string-pointer (string->pointer value "utf8")))
              (set! (!string-pointer clb/arg) string-pointer)
              ;; don't use 'v-string, which expects a string, calls
              ;; string->pointer (and does not keep a reference).

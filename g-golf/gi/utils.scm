@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2022
+;;;; Copyright (C) 2016 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -118,7 +118,7 @@
 				  (list uint32 int8 '*))
 	     ((domain code message)
 	      (g-free ?var)
-	      (error (pointer->string message)))))))))
+	      (error (pointer->string message -1 "utf8")))))))))
 
 
 ;;;
@@ -149,7 +149,7 @@
   (and pointer
        (if (null-pointer? pointer)
            #f
-           (pointer->string pointer))))
+           (pointer->string pointer -1 "utf8"))))
 
 (define (gi-n-string->scm pointer n-string)
   (if (or (not pointer)
@@ -163,7 +163,7 @@
             (reverse! results)
             (loop (+ i 1)
                   (gi-pointer-inc pointer)
-                  (cons (pointer->string (dereference-pointer pointer))
+                  (cons (pointer->string (dereference-pointer pointer) -1 "utf8")
                         results))))))
 
 (define (gi-strings->scm pointer)
@@ -177,14 +177,14 @@
                     (if (null-pointer? d-pointer)
                         (reverse! result)
                         (gi-strings->scm-1 (gi-pointer-inc pointer)
-                                           (cons (pointer->string d-pointer)
+                                           (cons (pointer->string d-pointer -1 "utf8")
                                                  result)))))))
              (gi-strings->scm-1 pointer '()))))
 
 (define (gi-csv-string->scm pointer)
   (if (null-pointer? pointer)
       '()
-      (string-split (pointer->string pointer)
+      (string-split (pointer->string pointer -1 "utf8")
                     #\,)))
 
 (define (gi-pointer->scm pointer)
@@ -307,7 +307,7 @@
 
 (define (scm->gi-string value)
   (if value
-      (string->pointer value)
+      (string->pointer value "utf8")
       %null-pointer))
 
 ;; The following two procedures need a bit more work, because a
@@ -331,7 +331,7 @@
              (values o-ptr
                      (reverse! i-ptrs)))
             ((str . rest)
-             (let ((i-ptr (string->pointer str)))
+             (let ((i-ptr (string->pointer str "utf8")))
                (bv-ptr-set! w-ptr i-ptr)
                (loop (gi-pointer-inc w-ptr)
                      (cons i-ptr i-ptrs)
@@ -355,7 +355,7 @@
                      (reverse! i-ptrs)))
 
             ((str . rest)
-             (let ((i-ptr (string->pointer str)))
+             (let ((i-ptr (string->pointer str "utf8")))
                (bv-ptr-set! w-ptr i-ptr)
                (loop (gi-pointer-inc w-ptr)
                      (cons i-ptr i-ptrs)

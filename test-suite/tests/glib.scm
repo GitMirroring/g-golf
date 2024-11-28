@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2021
+;;;; Copyright (C) 2016 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -158,21 +158,23 @@
 ;;;
 
 (define-method (test-g-slist-append (self <g-golf-test-glib>))
-  (let* ((a (string->pointer "hello"))
-         (b (string->pointer "world!"))
+  (let* ((a (string->pointer "hello" "utf8"))
+         (b (string->pointer "world!" "utf8"))
          (g-first (assert (g-slist-append #f a)))
          (g-first (assert (g-slist-append g-first b))))
     (assert-true (equal? (list "hello" "world!")
-                         (map pointer->string
+                         (map (lambda (str)
+                                (pointer->string str -1 "utf8"))
                            (gi->scm g-first 'gslist))))))
 
 (define-method (test-g-slist-prepend (self <g-golf-test-glib>))
-  (let* ((a (string->pointer "hello"))
-         (b (string->pointer "world!"))
+  (let* ((a (string->pointer "hello" "utf8"))
+         (b (string->pointer "world!" "utf8"))
          (g-first (assert (g-slist-prepend #f b)))
          (g-first (assert (g-slist-prepend g-first a))))
     (assert-true (equal? (list "hello" "world!")
-                         (map pointer->string
+                         (map (lambda (str)
+                                (pointer->string str -1 "utf8"))
                            (gi->scm g-first 'gslist))))))
 
 
