@@ -319,9 +319,13 @@
 
 ;; [1]
 
-;; 0.	u-args ar-pos
-;; 1.	cble-arg ar-pos
-;; 2.	cble-arg al-pos
+;; an al-pos (array length position) entry is made of 3 items, which are
+;; named (when calling match upon such an al-pos entry) u-pos c-pos
+;; l-pos, integers that correspond to:
+
+;;   u-pos 	the position of the array in the user args list
+;;   c-pos 	the position of the array in the callable args list
+;;   l-pos)	the position of the aray length in the callable args list
 
 !#
 
