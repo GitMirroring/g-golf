@@ -617,11 +617,20 @@
            (if may-be-null?
                (gi-argument-set! gi-argument 'v-pointer #f)
                (error "Invalid " type-tag " argument: " #f))
-           (let ((string-pointer (string->pointer value "utf8")))
-             (set! (!string-pointer clb/arg) string-pointer)
+           (let ((foreign (string->pointer value "utf8")))
+             (set! (!string-pointer clb/arg) foreign)
              ;; don't use 'v-string, which expects a string, calls
              ;; string->pointer (and does not keep a reference).
-             (gi-argument-set! gi-argument 'v-pointer string-pointer))))
+             (gi-argument-set! gi-argument 'v-pointer
+                                 (case direction
+                                   ((inout)
+                                    ;; we need 1 further indirection
+                                    (let* ((bv (make-bytevector (sizeof '*) 0))
+                                           (bv-ptr (bytevector->pointer bv)))
+                                      (bv-ptr-set! bv-ptr foreign)
+                                      bv-ptr))
+                                   (else
+                                    foreign))))))
       (else
        ;; Here starts fundamental types. However, we still need to check
        ;; the forced-type slot-value, and when it is a pointer, allocate
