@@ -139,6 +139,7 @@
     ((gslist) (gi-gslist->scm value))
     ((gtypes) (gi-gtypes->scm value))
     ((n-gtype) (gi-n-gtype->scm value cmpl))
+    ((array) (gi-array->scm value cmpl))
     (else
      (error "No such type: " type))))
 
@@ -279,6 +280,30 @@
               (loop (+ i 1)
                     (cons (gtypevector-ref bv i)
                           results)))))))
+
+(define (gi-array->scm foreign type-desc)
+  ;; (c 4 #f -1 int32)
+  (match type-desc
+    ((array fixed-size is-zero-terminated param-n param-tag)
+     (case param-tag
+       ((int8 ;; uint8 - the array is likely a string
+         int16 uint16
+         int32 uint32
+         int64 uint64
+         float double
+         gtype)
+        (let* ((module (resolve-module '(g-golf gi common-types)))
+               (%gi-type-tag->bv-acc (module-ref module 'gi-type-tag->bv-acc)))
+          (receive (make-bv bv-ref bv-set!)
+              (%gi-type-tag->bv-acc param-tag)
+            (let* ((ffi-type (primitive-eval param-tag))
+                   (bv (pointer->bytevector foreign
+                                            (* (sizeof ffi-type) fixed-size))))
+              (map (lambda (index)
+                     (bv-ref bv index))
+                (iota fixed-size))))))
+       (else
+        (error "what array is this?"))))))
 
 
 ;;;

@@ -932,20 +932,23 @@
                                (list 'object name class g-type #t)))
                        (make class #:g-inst foreign)))))))))))
     ((array)
-     (match type-desc
-       ((array fixed-size is-zero-terminated param-n param-tag)
-        (case param-tag
-          ((utf8
-            filename)
-           (gi->scm (gi-argument-ref gi-argument 'v-pointer) 'strings))
-          ((gtype)
-           (let ((array-ptr (gi-argument-ref gi-argument 'v-pointer)))
+     (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
+            (foreign (if is-pointer?
+                         (dereference-pointer gi-arg-val)
+                         gi-arg-val)))
+       (match type-desc
+         ((array fixed-size is-zero-terminated param-n param-tag)
+          (case param-tag
+            ((utf8
+              filename)
+             (gi->scm foreign 'strings))
+            ((gtype)
              (if is-zero-terminated
-                 (gi->scm array-ptr 'gtypes)
-                 (gi->scm array-ptr 'n-gtype (list-ref args-out param-n)))))
-          (else
-           (warning "Unimplemented (arg-out->scm) type - array;"
-                    (format #f "~S" type-desc)))))))
+                 (gi->scm foreign 'gtypes)
+                 (gi->scm foreign 'n-gtype (list-ref args-out param-n))))
+            (else
+             ;; (c 4 #f -1 int32)
+             (gi->scm foreign 'array type-desc)))))))
     ((glist
       gslist)
      (let* ((g-first (gi-argument-ref gi-argument 'v-pointer))
