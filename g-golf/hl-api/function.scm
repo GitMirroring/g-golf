@@ -80,9 +80,11 @@
           (gi-args-in (!gi-args-in f-inst))
           (n-gi-arg-out (!n-gi-arg-out f-inst))
           (gi-args-out (!gi-args-out f-inst))
-          (gi-arg-result (!gi-arg-result f-inst)))
+          (gi-arg-result (!gi-arg-result f-inst))
+          (dirs (map !direction (!arguments f-inst))))
       (when (%debug)
-        (dimfi name))
+        (dimfi name)
+        (dimfi (format #f "~4,,,' @A" "<=") args))
       (unless (memq 'skip-prepare-gi-arguments args)
         (callable-prepare-gi-arguments f-inst args))
       (with-gerror g-error
@@ -94,26 +96,27 @@
 			                   gi-arg-result
                                            g-error))
       (if (> n-gi-arg-out 0)
-          (case return-type
-            ((boolean)
-             (if (gi-strip-boolean-result? name)
-                 (if (callable-return-value->scm f-inst)
-                     (apply values
-                            (map callable-arg-out->scm (!args-out f-inst)))
-                     (error " " name " failed."))
+          (let* ((args-out (map callable-arg-out->scm (!args-out f-inst)))
+                 (clb-c-arg-list (in-out->clb-c-arg-list dirs args args-out)))
+            (case return-type
+              ((boolean)
+               (if (gi-strip-boolean-result? name)
+                   (if (callable-return-value->scm f-inst)
+                       (apply values args-out)
+                       (error " " name " failed."))
+                   (apply values
+                          (cons (callable-return-value->scm f-inst
+                                                            #:clb-c-arg-list clb-c-arg-list)
+                                args-out))))
+              ((void)
+               (when (%debug)
+                 (dimfi (format #f "~4,,,' @A" "  => n/a (void)")))
+               (apply values  args-out))
+              (else
                  (apply values
-                        (cons (callable-return-value->scm f-inst)
-                              (map callable-arg-out->scm (!args-out f-inst))))))
-            ((void)
-             (when (%debug)
-               (dimfi (format #f "~4,,,' @A" "  => n/a (void)")))
-             (apply values
-                    (map callable-arg-out->scm (!args-out f-inst))))
-            (else
-             (let ((args-out (map callable-arg-out->scm (!args-out f-inst))))
-               (apply values
-                      (cons (callable-return-value->scm f-inst #:args-out args-out)
-                            args-out)))))
+                        (cons (callable-return-value->scm f-inst
+                                                          #:clb-c-arg-list clb-c-arg-list)
+                              args-out)))))
           (case return-type
             ((void)
              (when (%debug)
