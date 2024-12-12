@@ -33,13 +33,16 @@
   #:use-module (rnrs bytevectors)
   #:use-module (system foreign)
   #:use-module (srfi srfi-1)
+  #:use-module (srfi srfi-4)
   #:use-module (g-golf support utils)
   #:use-module (g-golf support enum)
   #:use-module (g-golf support bytevector)
+  #:use-module (g-golf support struct)
   #:use-module (g-golf glib mem-alloc)
   #:use-module (g-golf glib glist)
   #:use-module (g-golf glib gslist)
   #:use-module (g-golf gobject type-info)
+  #:use-module (g-golf gobject boxed-types)
 
   #:duplicates (merge-generics
 		replace
@@ -65,6 +68,8 @@
             gi-gslist->scm
             gi-gtypes->scm
             gi-n-gtype->scm
+            gi-struct->scm
+            gi-array->scm
             scm->gi
             scm->gi-boolean
             scm->gi-string
@@ -77,7 +82,9 @@
             #;scm->gi-glist
             scm->gi-gslist
             scm->gi-n-gtype
-            scm->gi-gtypes))
+            scm->gi-gtypes
+            scm->gi-struct
+            scm->gi-array))
 
 
 (define %gi-pointer-size (sizeof '*))
@@ -139,6 +146,7 @@
     ((gslist) (gi-gslist->scm value))
     ((gtypes) (gi-gtypes->scm value))
     ((n-gtype) (gi-n-gtype->scm value cmpl))
+    ((struct) (gi-struct->scm value cmpl))
     ((array) (gi-array->scm value cmpl))
     (else
      (error "No such type: " type))))
@@ -281,29 +289,118 @@
                     (cons (gtypevector-ref bv i)
                           results)))))))
 
-(define (gi-array->scm foreign type-desc)
-  ;; (c 4 #f -1 int32)
-  (match type-desc
-    ((array fixed-size is-zero-terminated param-n param-tag)
-     (case param-tag
-       ((int8 ;; uint8 - the array is likely a string
-         int16 uint16
-         int32 uint32
-         int64 uint64
-         float double
-         gtype)
-        (let* ((module (resolve-module '(g-golf gi common-types)))
-               (%gi-type-tag->bv-acc (module-ref module 'gi-type-tag->bv-acc)))
-          (receive (make-bv bv-ref bv-set!)
-              (%gi-type-tag->bv-acc param-tag)
-            (let* ((ffi-type (primitive-eval param-tag))
-                   (bv (pointer->bytevector foreign
-                                            (* (sizeof ffi-type) fixed-size))))
-              (map (lambda (index)
-                     (bv-ref bv index))
-                (iota fixed-size))))))
-       (else
-        (error "what array is this?"))))))
+(define (gi-struct->scm foreign cmpl)
+  (match cmpl
+    ((gi-struct transfer)
+     (let* ((scm-types (!scm-types gi-struct))
+            (result (fold-right gi-struct-field->scm
+                                '()
+                                (parse-c-struct foreign scm-types)
+                                (!field-desc gi-struct))))
+       (case transfer
+         ((everything)
+          (g-boxed-free (!g-type gi-struct) foreign)))
+       result))))
+
+(define (gi-struct-field->scm field-val field-desc prev)
+  (cons (match field-desc
+          ((name type offset flags)
+           (case type
+             ((boolean)
+              (if (= field-val 1) #t #f))
+             ((int8
+               uint8
+               int16
+               uint16
+               int32
+               uint32
+               int64
+               uint64
+               float
+               double
+               unichar)
+              field-val)
+             ((utf8
+               filename)
+              (gi->scm field-val 'string))
+             ((array)
+              (case name
+                ((g-strv)
+                 (gi-strings->scm field-val))
+                (else
+                 field-val)))
+             ;; we should decode interface glist and gslist but let's just
+             ;; return the pointer for now.
+             ((interface
+               glist
+               gslist
+               ghash
+               error)
+              field-val)
+             (else
+              (error "No such GI type tag: " type)))))
+        prev))
+
+(define (gi-array->scm foreign compl)
+  ;; (c 4 #f -1 int32) or (c 4 #f -1 interface)
+  (if (null-pointer? foreign)
+      #f
+      (match compl
+        ((type-desc array-type-desc transfer clb-c-arg-list)
+         (match type-desc
+           ((array fixed-size is-zero-terminated param-n param-tag)
+            (case param-tag
+              ((interface)
+               (match array-type-desc
+                 ((type r-name gi-struct id confirmed?)
+                  (case type
+                    ;; ((object) ...)
+                    ((struct)
+                     (let ((s-size (!size gi-struct))
+                           (n-item fixed-size))
+                       (gi-array-struct->scm foreign n-item s-size
+                                             (list gi-struct transfer))))
+                    (else
+                     (error "Unimplemented array interface: " type))))))
+              ((utf8
+                filename)
+               (gi-strings->scm foreign))
+              ;; ((uint8) ...)
+              ((int8 ;; uint8 - the array is likely a string
+                int16 uint16
+                int32 uint32 boolean unichar
+                int64 uint64
+                float double
+                gtype)
+               (let* ((module (resolve-module '(g-golf gi common-types)))
+                      (%gi-type-tag->bv-acc (module-ref module 'gi-type-tag->bv-acc)))
+                 (receive (make-bv bv-ref bv-set!)
+                     (%gi-type-tag->bv-acc param-tag)
+                   (let* ((ffi-type (primitive-eval param-tag))
+                          (size- (if (= fixed-size -1)
+                                     (list-ref clb-c-arg-list param-n)
+                                     fixed-size))
+                          (bv (pointer->bytevector foreign
+                                                   (* (sizeof ffi-type) size-))))
+                     (map (lambda (index)
+                            (let ((val (bv-ref bv index)))
+                              (case param-tag
+                                ((boolean)
+                                 (if (= val 1) #t #f)))))
+                       (iota size-))))))
+              (else
+               (error "What array is this? " param-tag)))))))))
+
+(define (gi-array-struct->scm foreign n-item s-size cmpl)
+  (let loop ((i 0)
+             (w-ptr foreign)
+             (result '()))
+    (if (= i n-item)
+        (reverse result)
+        (loop (+ i 1)
+              (gi-pointer-inc w-ptr s-size)
+              (cons (gi-struct->scm w-ptr cmpl)
+                    result)))))
 
 
 ;;;
@@ -324,6 +421,8 @@
     ((gslist) (scm->gi-gslist value))
     ((n-gtype) (scm->gi-n-gtype value cmpl))
     ((gtypes) (scm->gi-gtypes value))
+    ((struct) (scm->gi-struct value cmpl))
+    ((array) (scm->gi-array value cmpl))
     (else
      (error "No such type: " type))))
 
@@ -473,3 +572,128 @@
                                    g-type))
              (loop rest
                    (+ i 1))))))))
+
+(define (scm->gi-struct scm-vals cmpl)
+  (match cmpl
+    ((gi-struct transfer)
+     (let* ((scm-types (!scm-types gi-struct))
+            (foreign (make-c-struct scm-types
+                                    (map scm->gi-struct-field
+                                      scm-vals
+                                      (!field-desc gi-struct)))))
+       (case transfer
+         ((everything)
+          (g-boxed-copy (!g-type gi-struct) foreign))
+         (else
+          foreign))))))
+
+(define (scm->gi-struct-field scm-val field-desc)
+  (match field-desc
+    ((name type offset flags)
+     (case type
+       ((boolean)
+        (if scm-val 1 0))
+       ((int8
+         uint8
+         int16
+         uint16
+         int32
+         uint32
+         int64
+         uint64
+         float
+         double
+         unichar)
+        scm-val)
+       ((utf8
+         filename)
+        (scm->gi scm-val 'string))
+       ((array)
+        (case name
+          ((g-strv)
+           (scm->gi-strings scm-val))
+          (else
+           scm-val)))
+       ;; we should decode interface glist and gslist but let's just
+       ;; return the pointer for now.
+       ((interface
+         glist
+         gslist
+         ghash
+         error)
+        scm-val)
+       (else
+        (error "No such GI type tag: " type))))))
+
+(define (scm->gi-array vals compl)
+  (if (null? vals)
+      %null-pointer
+      ;; (c 4 #f -1 int32) or (c 4 #f -1 interface)
+      (match compl
+        ((type-desc array-type-desc transfer)
+         (match type-desc
+           ((array fixed-size is-zero-terminated param-n param-tag)
+            (case param-tag
+              ((interface)
+               (match array-type-desc
+                 ((type r-name gi-struct id confirmed?)
+                  (case type
+                    ((object)
+                     (let* ((module (resolve-module '(g-golf hl-api gtype)))
+                            (!g-inst (module-ref module '!g-inst)))
+                       (scm->gi-pointers (map !g-inst vals))))
+                    ((struct)
+                     (let ((s-size (!size gi-struct))
+                           (n-item (if (= fixed-size -1)
+                                       (length vals)
+                                       fixed-size)))
+                       (scm->gi-array-struct vals n-item s-size
+                                             (list gi-struct transfer))))
+                    (else
+                     (error "Unimplemented array interface: " type))))))
+              ((utf8
+                filename)
+               (scm->gi-strings vals))
+              ((uint8)
+               ;; could be a string ...
+               (if (string? vals)
+                   (string->pointer vals "utf8")
+                   (let* ((n-item (length vals))
+                          (bv (make-u8vector n-item)))
+                     (for-each (lambda (i)
+                                 (u8vector-set! bv i (list-ref vals i)))
+                         (iota n-item))
+                     bv)))
+              ((int8
+                int16 uint16
+                int32 uint32 boolean unichar
+                int64 uint64
+                float double
+                gtype)
+               (let* ((module (resolve-module '(g-golf gi common-types)))
+                      (%gi-type-tag->bv-acc (module-ref module 'gi-type-tag->bv-acc)))
+                 (receive (make-bv bv-ref bv-set!)
+                     (%gi-type-tag->bv-acc param-tag)
+                   (let* ((n-item (if (= fixed-size -1)
+                                      (length vals)
+                                      fixed-size))
+                          (bv (make-bv (if is-zero-terminated (+ n-item 1) n-item) 0)))
+                     (for-each (lambda (i)
+                                 (let ((val (list-ref vals i)))
+                                   (bv-set! bv i
+                                            (case param-tag
+                                              ((boolean)
+                                               (if val 1 0))
+                                              (else
+                                               val)))))
+                         (iota n-item))
+                     bv))))
+              (else
+               (error "what array is this?")))))))))
+
+(define (scm->gi-array-struct items n-item s-size cmpl)
+  (if (= (length items) n-item)
+      (scm->gi-n-pointer (map (lambda (item)
+                                (scm->gi-struct item cmpl))
+                           items))
+      (error "Wrong number of args: " items)))

@@ -30,7 +30,8 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
-  #:use-module ((srfi srfi-1) #:select (map fold-right))
+  #:use-module ((srfi srfi-1)
+                #:select (map fold-right delete-duplicates third))
   #:use-module (oop goops)
   #:use-module (g-golf support)
   #:use-module (g-golf gi)
@@ -495,7 +496,7 @@
                        (if (or (!is-opaque? gi-type)
                                (!is-semi-opaque? gi-type))
                            (or value %null-pointer)
-                           (scm->gi-struct value gi-type transfer))))))
+                           (scm->gi-struct value (list gi-type transfer)))))))
                (gi-argument-set! gi-argument 'v-pointer
                                  (case direction
                                    ((inout)
@@ -536,62 +537,30 @@
            (if may-be-null?
                (gi-argument-set! gi-argument 'v-pointer #f)
                (error "Invalid array argument: " value))
-           (match type-desc
-             ((array fixed-size is-zero-terminated param-n param-tag)
-              (let* ((param-n (if (= param-n -1)
-                                  -1
-                                  (if is-method? (+ param-n 1) param-n)))
-                     (arg-n (if (= param-n -1)
-                                -1
-                                (list-ref args param-n))))
-                (case param-tag
-                  ((utf8
-                    filename)
-                   (gi-argument-set! gi-argument 'v-pointer
-                                     (if (or is-zero-terminated
-                                             (= arg-n -1))
-                                         (scm->gi-strings value)
-                                         (scm->gi-n-string value arg-n))))
-                  ((gtype)
-                   (gi-argument-set! gi-argument 'v-pointer
-                                     (if (or is-zero-terminated
-                                             (= arg-n -1))
-                                         (warning
-                                          "Unimplemented (prepare args-in) scm->gi-gtypes."
-                                          "")
-                                         (scm->gi-n-gtype value arg-n))))
-                  ((uint8)
-                   ;; this is most likely a string, but we will check
-                   ;; and also (blindingly) accept a pointer.
-                   (cond ((string? value)
-                          (let ((string-pointer (string->pointer value "utf8")))
-                            (set! (!string-pointer clb/arg) string-pointer)
-                            ;; don't use 'v-string, which expects a
-                            ;; string, calls string->pointer (and does
-                            ;; not keep a reference).
-                            (gi-argument-set! gi-argument 'v-pointer string-pointer)))
-                         ((pointer? value)
-                          ;; as said above, we blindingly accept a pointer
-                          (gi-argument-set! gi-argument 'v-pointer value))
-                         (else
-                          (error "Invalid (uint8 array) argument: " value))))
-                  ((interface)
-                   (match (!array-type-desc clb/arg)
-                     ((type name gi-type g-type confirmed?)
-                      (case type
-                        ((object)
-                         (let ((ptrs (map !g-inst value)))
-                           (gi-argument-set! gi-argument 'v-pointer
-                                             (if (or is-zero-terminated
-                                                     (= arg-n -1))
-                                                 (scm->gi-pointers ptrs)
-                                                 (scm->gi-n-pointer ptrs arg-n)))))
-                        (else
-                         (warning "Unimplemented (prepare args-in) type - array;"
-                                  (format #f "~S" type-desc)))))))
-                  (else
-                   (warning "Unimplemented (prepare args-in) type - array;"
-                            (format #f "~S" type-desc)))))))))
+           (let* ((array (scm->gi-array value
+                                        (list type-desc
+                                              (!array-type-desc clb/arg)
+                                              transfer)))
+                  (array-ptr (if (pointer? array)
+                                 ;; scm->gi-array may return a pointer already,
+                                 ;; such as for strings, filename ...
+                                 array
+                                 (bytevector->pointer array))))
+             (case direction
+               ((inout)
+                ;; we need 1 further indirection
+                (let* ((bv (make-bytevector (sizeof '*) 0))
+                       (bv-ptr (bytevector->pointer bv)))
+                  (mslot-set! clb/arg
+                              'bv-cache bv
+                              'bv-cache-ptr bv-ptr)
+                  (bv-ptr-set! bv-ptr array-ptr)
+                  (gi-argument-set! gi-argument 'v-pointer bv-ptr)))
+               (else
+                (mslot-set! clb/arg
+                            'bv-cache array
+                            'bv-cache-ptr array-ptr)
+                (gi-argument-set! gi-argument 'v-pointer array-ptr))))))
       ((glist)
        (if (or (not value)
                (null? value))
@@ -774,9 +743,29 @@
                        ((array)
                         (match type-desc
                           ((array fixed-size is-zero-terminated param-n param-tag)
-                           ;; (gi-argument-set! gi-argument-out 'v-pointer %null-pointer)
-                           (warning "Unimplemented (prepare args-out) type - array;"
-                                    (format #f "~S" type-desc)))))
+                           (let* ((bv (if is-caller-allocate?
+                                          (case param-tag
+                                            ((interface)
+                                             ;; likely an array of struct
+                                             (match (!array-type-desc arg-out)
+                                               ((type r-name gi-struct id confirmed?)
+                                                (case type
+                                                  ((struct)
+                                                   (let* ((s-size (!size gi-struct))
+                                                          (n-item fixed-size))
+                                                     (make-bytevector (* n-item s-size))))
+                                                  (else
+                                                   (error "what array description is this?"))))))
+                                            (else
+                                             (receive (make-bv bv-ref bv-set!)
+                                                 (gi-type-tag->bv-acc param-tag)
+                                               (make-bv fixed-size))))
+                                          (make-bytevector (sizeof '*))))
+                                  (bv-ptr (bytevector->pointer bv)))
+                             (mslot-set! arg-out
+                                         'bv-cache bv
+                                         'bv-cache-ptr bv-ptr)
+                             (gi-argument-set! gi-argument-out 'v-pointer bv-ptr)))))
                        ((glist
                          gslist
                          ghash
@@ -813,21 +802,29 @@
   (let* ((type-tag (!type-tag argument))
          (type-desc (!type-desc argument))
          (gi-argument (!gi-argument-out argument))
+         (is-caller-allocate? (!is-caller-allocate? argument))
          (forced-type (!forced-type argument))
          (is-pointer? (!is-pointer? argument))
          (value (gi-argument->scm type-tag
                                   type-desc
                                   gi-argument
                                   argument ;; the type-desc instance 'owner'
+                                  #:is-caller-allocate? is-caller-allocate?
                                   #:forced-type forced-type
                                   #:is-pointer? is-pointer?
                                   #:direction (!direction argument)
                                   #:transfer (!transfer argument))))
     (when (%debug)
-      (dimfi (format #f "~20,,,' @A:" (!name argument)) value " [ out arg ]"))
+      (let ((n-pos (string-length (format #f "~A" value))))
+        (dimfi (format #f "~?"
+                       (string-append "~A ~"
+                                      (number->string (- 30 n-pos))
+                                      ",,,' @A")
+                       (list (format #f "~20,,,' @A: ~S" (!name argument) value)
+                             " [ out arg ]")))))
     value))
 
-(define* (callable-return-value->scm callable #:key (args-out #f))
+(define* (callable-return-value->scm callable #:key (clb-c-arg-list #f))
   (let* ((type-tag (!return-type callable))
          (type-desc (!type-desc callable))
          (gi-argument (!gi-arg-result callable))
@@ -835,7 +832,7 @@
                                   type-desc
                                   gi-argument
                                   callable ;; the type-desc instance 'owner'
-                                  #:args-out args-out
+                                  #:clb-c-arg-list clb-c-arg-list
                                   #:transfer (!caller-owns callable))))
     (when (%debug)
       #;(dimfi (format #f "~4,,,' @A" " =>") value "[" (!name callable) "]")
@@ -843,9 +840,11 @@
     value))
 
 (define* (gi-argument->scm type-tag type-desc gi-argument clb/arg
-                           #:key (forced-type #f)
+                           #:key
+                           (is-caller-allocate? #f)
+                           (forced-type #f)
                            (is-pointer? #f)
-                           (args-out #f)
+                           (clb-c-arg-list #f)
                            (g-value-ptr? #f)
                            (direction 'n/a)
                            (transfer #f))
@@ -907,7 +906,7 @@
                                ;; memory is allocated by the callee, so we don't
                                ;; need (g-boxed-ga-guard foreign g-type)
                                foreign))
-                         (gi-struct->scm foreign gi-type transfer)))))))
+                         (gi-struct->scm foreign (list gi-type transfer))))))))
           ((union)
            (let ((foreign (gi-argument-ref gi-argument 'v-pointer)))
              (case name
@@ -945,22 +944,17 @@
                        (make class #:g-inst foreign)))))))))))
     ((array)
      (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
-            (foreign (if is-pointer?
-                         (dereference-pointer gi-arg-val)
-                         gi-arg-val)))
-       (match type-desc
-         ((array fixed-size is-zero-terminated param-n param-tag)
-          (case param-tag
-            ((utf8
-              filename)
-             (gi->scm foreign 'strings))
-            ((gtype)
-             (if is-zero-terminated
-                 (gi->scm foreign 'gtypes)
-                 (gi->scm foreign 'n-gtype (list-ref args-out param-n))))
-            (else
-             ;; (c 4 #f -1 int32)
-             (gi->scm foreign 'array type-desc)))))))
+            (foreign (if is-caller-allocate?
+                         gi-arg-val
+                         (if is-pointer?
+                             (dereference-pointer gi-arg-val)
+                             gi-arg-val))))
+       (gi-array->scm foreign
+                      (list type-desc
+                            (!array-type-desc clb/arg)
+                            transfer
+                            ;; the array length can be given by an out arg
+                            clb-c-arg-list))))
     ((glist
       gslist)
      (let* ((g-first (gi-argument-ref gi-argument 'v-pointer))
@@ -1089,103 +1083,3 @@
 ;;;
 ;;; utils
 ;;;
-
-(define (scm->gi-struct scm-vals gi-struct transfer)
-  (let* ((scm-types (!scm-types gi-struct))
-         (foreign (make-c-struct scm-types
-                                 (map scm->gi-struct-field
-                                   scm-vals
-                                   (!field-desc gi-struct)))))
-    (case transfer
-      ((everything)
-       (g-boxed-copy (!g-type gi-struct) foreign))
-      (else
-       foreign))))
-
-(define (scm->gi-struct-field scm-val field-desc)
-  (match field-desc
-    ((name type offset flags)
-     (case type
-       ((boolean)
-        (if scm-val 1 0))
-       ((int8
-         uint8
-         int16
-         uint16
-         int32
-         uint32
-         int64
-         uint64
-         float
-         double
-         unichar)
-        scm-val)
-       ((utf8
-         filename)
-        (scm->gi scm-val 'string))
-       ((array)
-        (case name
-          ((g-strv)
-           (scm->gi-strings scm-val))
-          (else
-           scm-val)))
-       ;; we should decode interface glist and gslist but let's just
-       ;; return the pointer for now.
-       ((interface
-         glist
-         gslist
-         ghash
-         error)
-        scm-val)
-       (else
-        (error "No such GI type tag: " type))))))
-
-(define (gi-struct->scm foreign gi-struct transfer)
-  (let* ((scm-types (!scm-types gi-struct))
-         (result (fold-right gi-struct-field->scm
-                             '()
-                             (parse-c-struct foreign scm-types)
-                             (!field-desc gi-struct))))
-    (case transfer
-      ((everything)
-       (g-boxed-free (!g-type gi-struct) foreign)))
-    result))
-
-(define (gi-struct-field->scm field-val field-desc prev)
-  (cons (match field-desc
-          ((name type offset flags)
-           (case type
-             ((boolean)
-              (if (= field-val 1) #t #f))
-             ((int8
-               uint8
-               int16
-               uint16
-               int32
-               uint32
-               int64
-               uint64
-               float
-               double
-               unichar)
-              field-val)
-             ((utf8
-               filename)
-              (gi->scm field-val 'string))
-             ((array)
-              (case name
-                ((g-strv)
-                 (gi-strings->scm field-val))
-                (else
-                 field-val)))
-             ;; we should decode interface glist and gslist but let's just
-             ;; return the pointer for now.
-             ((interface
-               glist
-               gslist
-               ghash
-               error)
-              field-val)
-             (else
-              (error "No such GI type tag: " type)))))
-        prev))
