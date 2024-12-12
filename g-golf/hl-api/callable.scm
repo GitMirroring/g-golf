@@ -247,7 +247,19 @@
                              #f))
          (gi-args-out (if gi-args-out-bv
                           (bytevector->pointer gi-args-out-bv)
-                          %null-pointer)))
+                          %null-pointer))
+         ;; we need to remove duplicate entries, as shown by one of the tests
+         ;; gi_marshalling_tests_multi_array_key_value_in, in this case both
+         ;; arrays are mentionning their array-length as 0 (the array length
+         ;; arg pos in the original test function definition. but we can't
+         ;; keep both, otherwise it would provoque 2 additional args at
+         ;; runtime.
+         (al-pos (delete-duplicates al-pos
+                                    (lambda (x y)
+                                      ;; x and y are defined as (u-pos c-pos l-pos)
+                                      ;; we only keep one al-pos list per each l-pos
+                                      ;; distinct value
+                                      (= (third x) (third y))))))
     (when gi-args-in-bv
       (finalize-callable-arguments args-in gi-args-in-bv !gi-argument-in))
     (when gi-args-out-bv
