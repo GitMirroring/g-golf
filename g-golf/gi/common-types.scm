@@ -241,7 +241,8 @@ type-tag."
     ((boolean
       int32)
      (values make-s32vector s32vector-ref s32vector-set!))
-    ((uint32)
+    ((uint32
+      unichar)
      (values make-u32vector u32vector-ref u32vector-set!))
     ((int64)
      (values make-s64vector s64vector-ref s64vector-set!))
