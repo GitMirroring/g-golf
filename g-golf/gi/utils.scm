@@ -649,6 +649,8 @@
                                        fixed-size)))
                        (scm->gi-array-struct vals n-item s-size
                                              (list gi-struct transfer))))
+                    ((enum)
+                     (scm->gi-array-enum vals array-type-desc))
                     (else
                      (error "Unimplemented array interface: " type))))))
               ((utf8
@@ -708,3 +710,24 @@
              (else
               (scm->gi-n-pointer structs n-item))))))
       (error "Wrong number of args: " items)))
+
+(define (scm->gi-array-enum vals array-type-desc)
+  (match array-type-desc
+    ((type r-name gi-enum id confirmed?)
+     (scm->gi-array-int (map (lambda (val)
+                               (enum->value gi-enum val))
+                          vals)))))
+
+(define (scm->gi-array-int vals)
+  (receive (make-bv bv-ref bv-set!)
+      (values make-s32vector s32vector-ref s32vector-set!)
+    (let* ((n-val (length vals))
+           (bv (make-bv n-val)))
+      (let loop ((i 0)
+                 (vals vals))
+        (match vals
+          (() bv)
+          ((val . rest)
+           (bv-set! bv i val)
+           (loop (+ i 1)
+                 rest)))))))
