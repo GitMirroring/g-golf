@@ -36,6 +36,7 @@
   #:use-module (srfi srfi-4)
   #:use-module (g-golf support utils)
   #:use-module (g-golf support enum)
+  #:use-module (g-golf support flags)
   #:use-module (g-golf support bytevector)
   #:use-module (g-golf support struct)
   #:use-module (g-golf glib mem-alloc)
@@ -651,6 +652,8 @@
                                              (list gi-struct transfer))))
                     ((enum)
                      (scm->gi-array-enum vals array-type-desc))
+                    ((flags)
+                     (scm->gi-array-flags vals array-type-desc))
                     (else
                      (error "Unimplemented array interface: " type))))))
               ((utf8
@@ -716,6 +719,13 @@
     ((type r-name gi-enum id confirmed?)
      (scm->gi-array-int (map (lambda (val)
                                (enum->value gi-enum val))
+                          vals)))))
+
+(define (scm->gi-array-flags vals array-type-desc)
+  (match array-type-desc
+    ((type r-name gi-flags id confirmed?)
+     (scm->gi-array-int (map (lambda (val)
+                               (flags->integer gi-flags val))
                           vals)))))
 
 (define (scm->gi-array-int vals)
