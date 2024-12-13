@@ -693,7 +693,18 @@
 
 (define (scm->gi-array-struct items n-item s-size cmpl)
   (if (= (length items) n-item)
-      (scm->gi-n-pointer (map (lambda (item)
-                                (scm->gi-struct item cmpl))
-                           items))
+      (let ((structs (map (lambda (item)
+                            (scm->gi-struct item cmpl))
+                       items)))
+        (match cmpl
+          ((gi-struct transfer)
+           (case transfer
+             ((everything)
+              (let* ((copies (map (lambda (foreign)
+                                    (g-boxed-copy (!g-type gi-struct) foreign))
+                               structs))
+                     (foreign (scm->gi-n-pointer copies n-item)))
+                (g-memdup foreign (* n-item (sizeof '*)))))
+             (else
+              (scm->gi-n-pointer structs n-item))))))
       (error "Wrong number of args: " items)))

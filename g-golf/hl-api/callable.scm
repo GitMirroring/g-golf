@@ -557,9 +557,10 @@
                   (bv-ptr-set! bv-ptr array-ptr)
                   (gi-argument-set! gi-argument 'v-pointer bv-ptr)))
                (else
-                (mslot-set! clb/arg
-                            'bv-cache array
-                            'bv-cache-ptr array-ptr)
+                (unless (eq? transfer 'everything)
+                  (mslot-set! clb/arg
+                              'bv-cache array
+                              'bv-cache-ptr array-ptr))
                 (gi-argument-set! gi-argument 'v-pointer array-ptr))))))
       ((glist)
        (if (or (not value)
