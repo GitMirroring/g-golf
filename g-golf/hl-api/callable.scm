@@ -171,7 +171,7 @@
                            'gi-argument-out-bv-pos n-gi-arg-out)
                (loop (+ i 1)
                      (+ arg-pos 1)
-                     al-pos
+                     (al-pos-check argument al-pos is-method?)
                      (cons argument arguments)
                      (+ n-gi-arg-in 1)
                      (cons argument args-in)
@@ -184,7 +184,7 @@
                            'gi-argument-out-bv-pos n-gi-arg-out)
                (loop (+ i 1)
                      (+ arg-pos 1)
-                     al-pos
+                     (al-pos-check argument al-pos is-method?)
                      (cons argument arguments)
                      n-gi-arg-in
                      args-in
