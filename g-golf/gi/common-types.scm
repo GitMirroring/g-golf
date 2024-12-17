@@ -270,7 +270,7 @@ type-tag."
       uint64
       float
       double) (primitive-eval type-tag))
-    ((gtype) unsigned-long)
+    ((gtype) size_t)
     ((utf8
       filename
       array
