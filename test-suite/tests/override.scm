@@ -55,7 +55,7 @@
         "TextBuffer"
         "init")))
 
-(gtk-init 0 '())
+(gtk-init '())
 
 
 (define-class <g-golf-test-override-gtk> (<test-case>))
