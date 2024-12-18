@@ -119,7 +119,7 @@ exec guile -e main -s "$0" "$@"
              (lambda (b)
                (let* ((content-provider (get-content clipboard))
                       (value (and content-provider
-                                  (get-value content-provider))))
+                                  (dimfi 'value (get-value content-provider)))))
                  (and value
                       (if (is-a? value <string>)
                           (set-text entry-to value)
@@ -158,8 +158,16 @@ exec guile -e main -s "$0" "$@"
 
 
 (define (main args)
-  (let ((app (make <gtk-application>
-               #:application-id "org.gtk.example")))
-    (connect app 'activate activate)
-    (let ((status (g-application-run app args)))
-      (exit status))))
+  (letrec ((debug? (or (member "-d" args)
+                       (member "--debug" args)))
+           (animate
+            (lambda ()
+              (let ((app (make <gtk-application>
+                           #:application-id "org.gnu.g-golf.gtk4.clipboard")))
+                (connect app 'activate activate)
+                (let ((status (g-application-run app '())))
+                  (exit status))))))
+    (if debug?
+        (parameterize ((%debug #t))
+          (animate))
+        (animate))))
