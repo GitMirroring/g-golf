@@ -43,7 +43,7 @@
   #:use-module (rnrs bytevectors)
   #:use-module (rnrs arithmetic bitwise)
   #:use-module (system foreign)
-  #:use-module (srfi srfi-1)
+  #:use-module ((srfi srfi-1) #:hide (map))
   #:use-module (g-golf support libg-golf)
   #:use-module (g-golf support const)
   #:use-module (g-golf support float)

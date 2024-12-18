@@ -38,7 +38,7 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
-  #:use-module (srfi srfi-1)
+  #:use-module ((srfi srfi-1) #:select (filter-map find))
   #:use-module (oop goops)
   #:use-module (g-golf support)
   #:use-module (g-golf glib)
@@ -48,7 +48,8 @@
   #:use-module (g-golf hl-api gparam)
   #:use-module (g-golf hl-api iface)
 
-  #:replace (connect)
+  #:replace (connect
+             map)
 
   #:duplicates (merge-generics
 		replace
@@ -92,6 +93,13 @@
 (define-method (connect . args)
   "The core Guile implementation of the connect(2) POSIX call"
   (apply %connect args))
+
+(define %map
+  (module-ref the-root-module 'map))
+
+(define-method (map . args)
+  "The core Guile implementation of the map call"
+  (apply %map args))
 
 ;; Same as above, in order to avoid the following warning [1], the
 ;; disconnect gf must be added and exported from this module. This is
