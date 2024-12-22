@@ -128,7 +128,8 @@
 
 (define-method (initialize (self <argument>) initargs)
   (let ((info (or (get-keyword #:info initargs #f)
-                  (error "Missing #:info initarg: " initargs))))
+                  (error "Missing #:info initarg: " initargs)))
+        (is-method? (get-keyword #:is-method? initargs #f)))
     (case info
       ((instance)
        (receive (split-kw split-rest)
@@ -153,7 +154,8 @@
               (is-skip? (g-arg-info-is-skip info))
               (forced-type (arg-info-forced-type direction type-tag is-pointer?)))
          (receive (type-desc array-type-desc)
-             (type-description type-info #:type-tag type-tag)
+             (type-description type-info
+                               #:type-tag type-tag #:is-method? is-method?)
            #;(g-base-info-unref type-info)
            (g-base-info-unref info)
            (mslot-set! self
@@ -198,7 +200,7 @@
       'pointer
       type-tag))
 
-(define* (type-description info #:key (type-tag #f))
+(define* (type-description info #:key (type-tag #f) (is-method? #f))
   (let ((type-tag (or type-tag
                       (g-type-info-get-tag info))))
     (case type-tag
@@ -206,7 +208,7 @@
        (values (type-description-interface info)
                #f))
       ((array)
-       (type-description-array info))
+       (type-description-array info is-method?))
       ((glist
         gslist)
        (values (type-description-glist info type-tag)
@@ -235,7 +237,7 @@
              (g-base-info-unref iface-info)
              iface-type))))))
 
-(define (type-description-array info)
+(define (type-description-array info is-method?)
   (let* ((type (g-type-info-get-array-type info))
          (fixed-size (g-type-info-get-array-fixed-size info))
          (is-zero-terminated (g-type-info-is-zero-terminated info))
@@ -249,16 +251,26 @@
          (values (list type
                        fixed-size
                        is-zero-terminated
-                       param-n
+                       (if is-method? (+ param-n 1) param-n)
                        param-tag)
                  i-desc)))
       (else
        (g-base-info-unref param-type)
-       (values (list type
-                     fixed-size
-                     is-zero-terminated
-                     param-n
-                     param-tag)
+       (values
+        (list type
+              fixed-size
+              is-zero-terminated
+              ;; Unless g-type-info-get-array-length returns -1
+              ;; (fixed-sized or zero-terminated arrays), when the
+              ;; callable is a method, we must add 1 to the above call
+              ;; result because GI typelibs do not take the first method
+              ;; argument into account, added by GI lang bindings, and
+              ;; hence, for methods, GI typelibs param-n values are off
+              ;; by one.
+              (if (= param-n -1)
+                  param-n
+                  (if is-method? (+ param-n 1) param-n))
+              param-tag)
                param-tag)))))
 
 (define (type-description-glist info type-tag)

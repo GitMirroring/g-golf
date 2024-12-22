@@ -343,11 +343,17 @@
         prev))
 
 (define (gi-array->scm foreign compl)
-  ;; (c 4 #f -1 int32) or (c 4 #f -1 interface)
+  ;; compl(ement) pattern is
+  ;;   (type-desc array-type-desc transfer al-alist)
+  ;; for example
+  ;;   ((c -1 #f 0 int32) int32 nothing ((0 . 4)))
+  ;; or
+  ;;   ((c 2 #f -1 interface)
+  ;;    (struct the-struct-name #<<gi-struct> 7fca4b7a44d0> 4 #t) nothing ())
   (if (null-pointer? foreign)
       #f
       (match compl
-        ((type-desc array-type-desc transfer clb-c-arg-list)
+        ((type-desc array-type-desc transfer al-alist)
          (match type-desc
            ((array fixed-size is-zero-terminated param-n param-tag)
             (case param-tag
@@ -377,9 +383,12 @@
                       (%gi-type-tag->bv-acc (module-ref module 'gi-type-tag->bv-acc)))
                  (receive (make-bv bv-ref bv-set!)
                      (%gi-type-tag->bv-acc param-tag)
-                   (let* ((ffi-type (primitive-eval param-tag))
+                   (let* ((ffi-type (case param-tag
+                                      ((gtype) size_t)
+                                      (else
+                                       (primitive-eval param-tag))))
                           (size- (if (= fixed-size -1)
-                                     (list-ref clb-c-arg-list param-n)
+                                     (assq-ref al-alist param-n)
                                      fixed-size))
                           (bv (pointer->bytevector foreign
                                                    (* (sizeof ffi-type) size-))))
@@ -387,7 +396,9 @@
                             (let ((val (bv-ref bv index)))
                               (case param-tag
                                 ((boolean)
-                                 (if (= val 1) #t #f)))))
+                                 (if (= val 1) #t #f))
+                                (else
+                                 val))))
                        (iota size-))))))
               (else
                (error "What array is this? " param-tag)))))))))
@@ -689,6 +700,10 @@
                                             (case param-tag
                                               ((boolean)
                                                (if val 1 0))
+                                              ((gtype)
+                                               (if (symbol? val)
+                                                   (symbol->g-type val)
+                                                   val))
                                               (else
                                                val)))))
                          (iota n-item))

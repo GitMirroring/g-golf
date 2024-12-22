@@ -382,25 +382,6 @@ stored in the g-value.
 
 (define (g-value-ref-param-n param-vals param-args param-n)
   (let* ((%g-value-size (g-value-size))
-         (param-n (if param-args
-                      (match param-args
-                        ((param-arg1 . rest)
-                         (if param-arg1
-                             param-n
-                             ;; When #f is the first argument 'desc', it
-                             ;; means that the closure is a method - see
-                             ;; signal-connect in (g-golf hl-api signal)
-                             ;; to see this 'in action'. In these cases,
-                             ;; the typelib GI information about
-                             ;; 'array-length' argument position must be
-                             ;; increased by one, because the GI
-                             ;; g-type-info-get-array-length returns a
-                             ;; value that does not take the first
-                             ;; method argument into account, the
-                             ;; instance upon which the method is
-                             ;; called.
-                             (+ param-n 1))))
-                      param-n))
          (g-value (gi-pointer-inc param-vals
                                   (* %g-value-size param-n)))
          (param-arg (and param-args

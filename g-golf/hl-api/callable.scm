@@ -30,7 +30,8 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
-  #:use-module ((srfi srfi-1) #:select (delete-duplicates third))
+  #:use-module ((srfi srfi-1)
+                #:select (delete-duplicates third filter-map))
   #:use-module (oop goops)
   #:use-module (g-golf support)
   #:use-module (g-golf gi)
@@ -56,6 +57,7 @@
             callable-prepare-gi-arguments
             scm->gi-argument
             callable-return-value->scm
+            callable-args-out->scm
             callable-arg-out->scm
             gi-argument->scm))
 
@@ -70,29 +72,32 @@
          (g-name (get-keyword #:g-name initargs (g-base-info-get-name info)))
          (name (get-keyword #:name initargs (g-name->name g-name)))
          (return-type-info (g-callable-info-get-return-type info))
-         (return-type (g-type-info-get-tag return-type-info)))
+         (return-type (g-type-info-get-tag return-type-info))
+         (is-method? (g-callable-info-is-method info))
+         (iot (g-callable-info-get-instance-ownership-transfer info)))
+    (next-method)
     (receive (type-desc array-type-desc)
-        (type-description return-type-info #:type-tag return-type)
+        (type-description return-type-info
+                          #:type-tag return-type
+                          #:is-method? is-method?)
       (g-base-info-unref return-type-info)
-      (next-method)
-      (unless namespace
-        (mslot-set! self
-                    'namepace (g-base-info-get-namespace info)
-                    'g-name g-name
-                    'name name))
       (mslot-set! self
+                  'namespace (g-base-info-get-namespace info)
+                  'g-name g-name
+                  'name name
                   'can-throw-gerror (g-callable-info-can-throw-gerror info)
-                  'is-method? (g-callable-info-is-method info)
+                  'is-method? is-method?
                   'caller-owns (g-callable-info-get-caller-owns info)
-                  'instance-ownership-transfer (g-callable-info-get-instance-ownership-transfer info)
+                  'instance-ownership-transfer iot
                   'return-type return-type
                   'type-desc type-desc
+                  'array-type-desc array-type-desc
                   'is-enum? (and (eq? return-type 'interface)
                                       (match type-desc
                                         ((type name gi-type g-type confirmed?)
                                          (or (eq? type 'enum)
                                              (eq? type 'flags)))))
-                  'array-type-desc array-type-desc
+
                   'may-return-null? (g-callable-info-may-return-null info))
       (initialize-callable-arguments self))))
 
@@ -134,17 +139,20 @@
                (n-gi-arg-out 0)
                (args-out '()))
       (if (= i n-arg)
-          (initialize-callable-arguments-final-steps callable
-                                                     is-method?
-                                                     n-arg
-                                                     (reverse al-pos)
-                                                     (reverse arguments)
-                                                     (reverse args-in)
-                                                     (reverse args-out)
-                                                     n-gi-arg-in
-                                                     n-gi-arg-out)
+          ;; we need to complete al-pos (array length position (arg))
+          ;; considering the returned value, which can be an array, the
+          ;; length of which could be specified by an out arg.
+          (let ((al-pos (al-pos-check callable 'out al-pos)))
+            (initialize-callable-arguments-final-steps callable
+                                                       (if is-method? (+ n-arg 1) n-arg)
+                                                       (reverse al-pos)
+                                                       (reverse arguments)
+                                                       (reverse args-in)
+                                                       (reverse args-out)
+                                                       n-gi-arg-in
+                                                       n-gi-arg-out))
           (let* ((arg-info (g-callable-info-get-arg info i))
-                 (argument (make <argument> #:info arg-info)))
+                 (argument (make <argument> #:info arg-info #:is-method? is-method?)))
             (case (!direction argument)
               ((in)
                (mslot-set! argument
@@ -154,7 +162,7 @@
                            'gi-argument-in-bv-pos n-gi-arg-in)
                (loop (+ i 1)
                      (+ arg-pos 1)
-                     (al-pos-check argument al-pos is-method?)
+                     (al-pos-check argument 'in al-pos)
                      (cons argument arguments)
                      (+ n-gi-arg-in 1)
                      (cons argument args-in)
@@ -170,7 +178,7 @@
                            'gi-argument-out-bv-pos n-gi-arg-out)
                (loop (+ i 1)
                      (+ arg-pos 1)
-                     (al-pos-check argument al-pos is-method?)
+                     (al-pos-check argument 'inout al-pos)
                      (cons argument arguments)
                      (+ n-gi-arg-in 1)
                      (cons argument args-in)
@@ -183,7 +191,7 @@
                            'gi-argument-out-bv-pos n-gi-arg-out)
                (loop (+ i 1)
                      (+ arg-pos 1)
-                     (al-pos-check argument al-pos is-method?)
+                     (al-pos-check argument 'out al-pos)
                      (cons argument arguments)
                      n-gi-arg-in
                      args-in
@@ -191,25 +199,34 @@
                      (+ n-gi-arg-out 1)
                      (cons argument args-out)))))))))
 
-(define (al-pos-check argument al-pos is-method?)
-  (case (!type-tag argument)
-    ((array)
-     (match (!type-desc argument)
-       ((array fixed-size is-zero-terminated param-n param-tag)
-        (if (= param-n -1)
-            al-pos
-            (let* ((arg-pos (!arg-pos argument))
-                   (param-n (if is-method? (+ param-n 1) param-n))
-                   (u-args-ar-pos (if (< param-n arg-pos) ;; [1]
-                                      (- arg-pos
-                                         (+ (length al-pos) 1))
-                                      (- arg-pos (length al-pos)))))
-              (cons (list u-args-ar-pos
-                          arg-pos ;; 'real' array pos [2]
-                          param-n)
-                    al-pos))))))
+(define (al-pos-check clb/arg direction al-pos)
+  (let ((type-tag (if (is-a? clb/arg <callable>)
+                      (!return-type clb/arg)
+                      (!type-tag clb/arg))))
+    (case type-tag
+      ((array)
+       (match (!type-desc clb/arg)
+         ((array fixed-size is-zero-terminated param-n param-tag)
+          (if (= param-n -1)
+              al-pos
+              (if (is-a? clb/arg <callable>)
+                  (cons (list -1
+                              -1
+                              param-n
+                              direction)
+                        al-pos)
+                  (let* ((arg-pos (!arg-pos clb/arg))
+                         (u-args-ar-pos (if (< param-n arg-pos) ;; [1]
+                                            (- arg-pos
+                                               (+ (length al-pos) 1))
+                                            (- arg-pos (length al-pos)))))
+                    (cons (list u-args-ar-pos
+                                arg-pos ;; 'real' array pos [2]
+                                param-n
+                                direction)
+                          al-pos)))))))
       (else
-       al-pos)))
+       al-pos))))
 
 ;; [1]
 
@@ -224,8 +241,7 @@
 ;; cble-args list - we need it to construct the cble-args list
 
 (define (initialize-callable-arguments-final-steps callable
-                                                   is-method?
-                                                   n-arg	;; callable-info-n-args
+                                                   n-arg
                                                    al-pos
                                                    arguments
                                                    args-in
@@ -256,22 +272,31 @@
          ;; runtime.
          (al-pos (delete-duplicates al-pos
                                     (lambda (x y)
-                                      ;; x and y are defined as (u-pos c-pos l-pos)
+                                      ;; x y pattern (u-pos c-pos l-pos direction)
                                       ;; we only keep one al-pos list per each l-pos
                                       ;; distinct value
-                                      (= (third x) (third y))))))
+                                      (= (third x) (third y)))))
+         (al-pos-in (filter-map (lambda (item)
+                                  (match item
+                                    ((u-pos c-pos l-pos direction)
+                                     (case direction
+                                       ((in inout) item)
+                                       (else #f)))))
+                        al-pos)))
     (when gi-args-in-bv
       (finalize-callable-arguments args-in gi-args-in-bv !gi-argument-in))
     (when gi-args-out-bv
       (finalize-callable-arguments args-out gi-args-out-bv !gi-argument-out))
     (for-each (lambda (item)
                 (match item
-                  ((u-pos c-pos l-pos)
+                  ((u-pos c-pos l-pos direction)
                    (set! (!al-arg? (list-ref arguments l-pos)) item))))
         al-pos)
     (mslot-set! callable
-                'n-arg (if is-method? (+ n-arg 1) n-arg)
+                'n-arg n-arg
                 'al-pos al-pos
+                'al-pos-in al-pos-in
+                'n-al-pos-in (length al-pos-in)
                 'arguments arguments
                 'n-gi-arg-in n-gi-arg-in
                 'args-in args-in
@@ -299,18 +324,20 @@
   (let* ((args-length (length args))
          (n-arg (!n-arg callable))
          (n-arg-in (!n-gi-arg-in callable))
-         (al-pos (!al-pos callable))
-         (effective-n-arg-in (- n-arg-in (length al-pos)))
+         (al-pos-in (!al-pos-in callable))
+         (n-al-pos-in (!n-al-pos-in callable))
+         (effective-n-arg-in (- n-arg-in n-al-pos-in))
          (override? (!override? callable)))
     (if (or (and (or override?
                      (is-a? callable <callback>))
                  (= args-length n-arg))
             (= args-length effective-n-arg-in))
-        (let ((args (if (null? al-pos)
-                        args
-                        (u-args->cble-args n-arg-in args al-pos))))
-          (callable-prepare-gi-args-in callable args)
-          (callable-prepare-gi-args-out callable args args-length n-arg))
+        (let ((clb-args (if (null? al-pos-in)
+                            args
+                            (u-args->cble-args n-arg-in args al-pos-in))))
+          (callable-prepare-gi-args-in callable clb-args)
+          (callable-prepare-gi-args-out callable clb-args args-length n-arg)
+          clb-args)
         (scm-error 'wrong-arg-nb #f "Wrong number of arguments: ~A ~S"
                    (list (!name callable) args) #f))))
 
@@ -341,34 +368,40 @@
 
 !#
 
-(define (u-args->cble-args n-arg-in u-args al-pos)
-  (let loop ((i 0)
-             (args u-args)
-             (al-pos al-pos)
-             (cble-args '()))
-    (if (= i n-arg-in)
-        (reverse! cble-args)
-        (if (null? al-pos)
-            (loop (+ i 1)
-                  (cdr args)
-                  '()
-                  (cons (car args) cble-args))
-            (match (car al-pos)
-              ((u-pos c-pos l-pos)
-               (if (= i l-pos)
-                   (let ((ar (list-ref u-args u-pos)))
-                     (loop (+ i 1)
-                           args
-                           (cdr al-pos)
-                           (cons (cond ((list? ar) (length ar))
-                                       ((string? ar) (string-utf8-length ar))
-                                       (else
-                                        (error "What array is this " ar)))
-                                 cble-args)))
-                   (loop (+ i 1)
-                         (cdr args)
-                         al-pos
-                         (cons (car args) cble-args)))))))))
+(define (u-args->cble-args n-arg-in u-args al-pos-in)
+  (if (null? al-pos-in)
+      u-args
+      (let loop ((i 0)
+                 (args u-args)
+                 (al-pos-in al-pos-in)
+                 (cble-args '()))
+        (if (= i n-arg-in)
+            (reverse! cble-args)
+            (if (null? al-pos-in)
+                (loop (+ i 1)
+                      (cdr args)
+                      '()
+                      (cons (car args) cble-args))
+                (match (car al-pos-in)
+                  ((u-pos c-pos l-pos direction)
+                   (if (= i l-pos)
+                       (let ((ar (list-ref u-args u-pos)))
+                         (loop (+ i 1)
+                               args
+                               (cdr al-pos-in)
+                               (cons (cond ((list? ar) (length ar))
+                                           ((string? ar) (string-utf8-length ar))
+                                           ;; #f is also admitted as an empty array
+                                           ((not ar) 0)
+                                           (else
+                                            (error "What array is this " ar)))
+                                     cble-args)))
+                       (loop (+ i 1)
+                             (cdr args)
+                             al-pos-in
+                             (cons (car args) cble-args))))
+                  (else
+                   (error "What al-pos-in is this:" (car al-pos-in)))))))))
 
 (define %maybe-null-exceptions
   '(child-setup-data-destroy
@@ -381,13 +414,12 @@
 (define (callable-prepare-gi-args-in callable args)
   (let ((is-method? (!is-method? callable))
         (g-value-ptr? (preserve-g-value-ptr? callable)))
-    (let loop ((i 0)
-               (arguments (!args-in callable)))
+    (let loop ((arguments (!args-in callable)))
       (match arguments
         (() 'done)
         ((argument . rest)
          (let* ((arg-pos (!arg-pos argument))
-                (value (list-ref args #;i arg-pos))
+                (value (list-ref args arg-pos))
                 (is-pointer? (!is-pointer? argument))
                 (gi-argument (!gi-argument-in argument))
                 (field (!gi-argument-field argument)))
@@ -400,11 +432,10 @@
                              #:may-be-null-acc !may-be-null?
                              #:is-method? is-method?
                              #:forced-type (!forced-type argument)
-                             #:g-value-ptr? (assq-ref g-value-ptr? i)
+                             #:g-value-ptr? (assq-ref g-value-ptr? arg-pos)
                              #:direction (!direction argument)
                              #:transfer (!transfer argument))
-           (loop (+ i 1)
-                 rest)))))))
+           (loop rest)))))))
 
 (define* (scm->gi-argument type-tag
                            type-desc
@@ -798,7 +829,31 @@
                         (gi-argument-set! gi-argument-out 'v-ulong 0))))))
             (loop (+ i 1)))))))
 
-(define (callable-arg-out->scm argument)
+(define (callable-args-out->scm callable u-args)
+  ;; some out arg(s) are array length (for other out arg(s)) and need to
+  ;; be retrieved first, as they are required to build the corresponding
+  ;; array.
+  (receive (al-out-args out-args)
+      (split-out-args (!args-out callable))
+    (let* ((al-out-arg-vals (map (lambda (arg)
+                                   (let ((arg-pos (!arg-pos arg)))
+                                     (cons arg-pos
+                                           (callable-arg-out->scm arg))))
+                              al-out-args))
+           (out-arg-vals (map (lambda (arg)
+                                (cons (!arg-pos arg)
+                                      (callable-arg-out->scm arg
+                                                             #:al-alist al-out-arg-vals)))
+                           out-args))
+           (out-args (sort (append al-out-arg-vals
+                                   out-arg-vals)
+                           (lambda (a b)
+                             (< (car a) (car b))))))
+      (values (map cdr out-args)
+              al-out-arg-vals))))
+
+(define* (callable-arg-out->scm argument
+                                #:key (al-alist '()))
   (let* ((type-tag (!type-tag argument))
          (type-desc (!type-desc argument))
          (gi-argument (!gi-argument-out argument))
@@ -813,7 +868,8 @@
                                   #:forced-type forced-type
                                   #:is-pointer? is-pointer?
                                   #:direction (!direction argument)
-                                  #:transfer (!transfer argument))))
+                                  #:transfer (!transfer argument)
+                                  #:al-alist al-alist)))
     (when (%debug)
       (let ((n-pos (string-length (format #f "~A" value))))
         (dimfi (format #f "~?"
@@ -824,7 +880,7 @@
                              " [ out arg ]")))))
     value))
 
-(define* (callable-return-value->scm callable #:key (clb-c-arg-list #f))
+(define* (callable-return-value->scm callable #:key (al-alist '()))
   (let* ((type-tag (!return-type callable))
          (type-desc (!type-desc callable))
          (gi-argument (!gi-arg-result callable))
@@ -832,8 +888,8 @@
                                   type-desc
                                   gi-argument
                                   callable ;; the type-desc instance 'owner'
-                                  #:clb-c-arg-list clb-c-arg-list
-                                  #:transfer (!caller-owns callable))))
+                                  #:transfer (!caller-owns callable)
+                                  #:al-alist al-alist)))
     (when (%debug)
       #;(dimfi (format #f "~4,,,' @A" " =>") value "[" (!name callable) "]")
       (dimfi (format #f "~4,,,' @A" " =>") value))
@@ -844,10 +900,10 @@
                            (is-caller-allocate? #f)
                            (forced-type #f)
                            (is-pointer? #f)
-                           (clb-c-arg-list #f)
                            (g-value-ptr? #f)
                            (direction 'n/a)
-                           (transfer #f))
+                           (transfer #f)
+                           (al-alist '()))
   ;; forced-type is only used for 'inout and 'out arguments, in which
   ;; case it is 'pointer - see 'simple' types below.
 
@@ -947,14 +1003,16 @@
             (foreign (if is-caller-allocate?
                          gi-arg-val
                          (if is-pointer?
-                             (dereference-pointer gi-arg-val)
+                             (and gi-arg-val
+                                  (dereference-pointer gi-arg-val))
                              gi-arg-val))))
-       (gi-array->scm foreign
-                      (list type-desc
-                            (!array-type-desc clb/arg)
-                            transfer
-                            ;; the array length can be given by an out arg
-                            clb-c-arg-list))))
+       (and foreign
+            (gi-array->scm foreign
+                           (list type-desc
+                                 (!array-type-desc clb/arg)
+                                 transfer
+                                 ;; the array length can be given by an out arg
+                                 al-alist)))))
     ((glist
       gslist)
      (let* ((g-first (gi-argument-ref gi-argument 'v-pointer))
@@ -1083,3 +1141,20 @@
 ;;;
 ;;; utils
 ;;;
+
+(define (split-out-args args)
+  (let loop ((args args)
+             (al-out-args '())
+             (out-args '()))
+    (match args
+      (()
+       (values (reverse al-out-args)
+               (reverse out-args)))
+      ((arg . rest)
+       (if (!al-arg? arg)
+           (loop rest
+                 (cons arg al-out-args)
+                 out-args)
+           (loop rest
+                 al-out-args
+                 (cons arg out-args)))))))

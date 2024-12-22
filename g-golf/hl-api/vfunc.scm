@@ -358,10 +358,8 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
           (gi-args-in (!gi-args-in callback))
           (n-gi-arg-out (!n-gi-arg-out callback))
           (gi-args-out (!gi-args-out callback))
-          (gi-arg-result (!gi-arg-result callback)))
-      #;(dimfi '%next-vfunc-proc)
-      #;(dimfi "  " return-type n-gi-arg-in n-gi-arg-out)
-      (callable-prepare-gi-arguments callback args)
+          (gi-arg-result (!gi-arg-result callback))
+          (clb-args (callable-prepare-gi-arguments callback args)))
       (with-gerror g-error
         (g-callable-info-invoke info
                                 function
@@ -373,30 +371,30 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
                                 (!is-method? callback)
                                 (!can-throw-gerror callback)
                                 g-error))
-      #;(dimfi "  " 'after-g-callable-info-invoke)
-      (if (> n-gi-arg-out 0)
-          (case return-type
-            ((boolean)
-             (if (gi-strip-boolean-result? name)
-                 (if (callable-return-value->scm callback)
+        (if (> n-gi-arg-out 0)
+            (receive (args-out al-out-alist)
+                (callable-args-out->scm callback clb-args)
+              (case return-type
+                ((boolean)
+                 (if (gi-strip-boolean-result? name)
+                     (if (callable-return-value->scm callback)
+                         (apply values args-out)
+                         (error " " name " failed."))
                      (apply values
-                            (map callable-arg-out->scm (!args-out callback)))
-                     (error " " name " failed."))
+                            (cons (callable-return-value->scm callback
+                                                              #:al-alist al-out-alist)
+                                  args-out))))
+                ((void)
+                 (apply values args-out))
+                (else
                  (apply values
-                        (cons (callable-return-value->scm callback)
-                              (map callable-arg-out->scm (!args-out callback))))))
-            ((void)
-             (apply values
-                    (map callable-arg-out->scm (!args-out callback))))
-            (else
-             (let ((args-out (map callable-arg-out->scm (!args-out callback))))
-               (apply values
-                      (cons (callable-return-value->scm callback #:args-out args-out)
-                            args-out)))))
-          (case return-type
-            ((void) (values))
-            (else
-             (callable-return-value->scm callback)))))))
+                        (cons (callable-return-value->scm callback
+                                                           #:al-alist al-out-alist)
+                              args-out)))))
+            (case return-type
+              ((void) (values))
+              (else
+               (callable-return-value->scm callback)))))))
 
 
 (define-syntax vfunc

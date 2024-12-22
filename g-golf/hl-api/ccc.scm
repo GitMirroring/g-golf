@@ -59,6 +59,8 @@
           !is-method?
           !n-arg
           !al-pos
+          !al-pos-in
+          !n-al-pos-in
           !caller-owns
           !instance-ownership-transfer
           !return-type
@@ -104,6 +106,8 @@
   (is-method? #:accessor !is-method?)
   (n-arg #:accessor !n-arg)
   (al-pos #:accessor !al-pos)
+  (al-pos-in #:accessor !al-pos-in)
+  (n-al-pos-in #:accessor !n-al-pos-in)
   (caller-owns #:accessor !caller-owns)
   (instance-ownership-transfer #:accessor !instance-ownership-transfer)
   (return-type #:accessor !return-type)
