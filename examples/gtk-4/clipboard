@@ -119,7 +119,7 @@ exec guile -e main -s "$0" "$@"
              (lambda (b)
                (let* ((content-provider (get-content clipboard))
                       (value (and content-provider
-                                  (dimfi 'value (get-value content-provider)))))
+                                  (get-value content-provider))))
                  (and value
                       (if (is-a? value <string>)
                           (set-text entry-to value)
