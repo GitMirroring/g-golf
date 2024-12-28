@@ -1000,12 +1000,14 @@
                        (make class #:g-inst foreign)))))))))))
     ((array)
      (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
-            (foreign (if is-caller-allocate?
-                         gi-arg-val
-                         (if is-pointer?
-                             (and gi-arg-val
-                                  (dereference-pointer gi-arg-val))
-                             gi-arg-val))))
+            (foreign (and gi-arg-val
+                          (if is-caller-allocate?
+                              gi-arg-val
+                              (case direction
+                                ((inout out)
+                                 (dereference-pointer gi-arg-val))
+                                (else
+                                 gi-arg-val))))))
        (and foreign
             (gi-array->scm foreign
                            (list type-desc
