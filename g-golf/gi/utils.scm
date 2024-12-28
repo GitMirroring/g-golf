@@ -385,6 +385,8 @@
                      (%gi-type-tag->bv-acc param-tag)
                    (let* ((ffi-type (case param-tag
                                       ((gtype) size_t)
+                                      ((boolean) int)
+                                      ((unichar) uint32)
                                       (else
                                        (primitive-eval param-tag))))
                           (size- (if (= fixed-size -1)
