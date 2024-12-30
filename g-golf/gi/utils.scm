@@ -133,22 +133,22 @@
 ;;; gi->scm procedures
 ;;;
 
-(define* (gi->scm value type #:optional (cmpl #f))
+(define* (gi->scm value type #:optional (compl #f))
   (case type
     ((boolean) (gi-boolean->scm value))
     ((string) (gi-string->scm value))
-    ((n-string) (gi-n-string->scm value cmpl))
+    ((n-string) (gi-n-string->scm value compl))
     ((strings) (gi-strings->scm value))
     ((csv-string) (gi-csv-string->scm value))
     ((pointer) (gi-pointer->scm value))
-    ((n-pointer) (gi-n-pointer->scm value cmpl))
+    ((n-pointer) (gi-n-pointer->scm value compl))
     ((pointers) (gi-pointers->scm value))
     ((glist) (gi-glist->scm value))
     ((gslist) (gi-gslist->scm value))
     ((gtypes) (gi-gtypes->scm value))
-    ((n-gtype) (gi-n-gtype->scm value cmpl))
-    ((struct) (gi-struct->scm value cmpl))
-    ((array) (gi-array->scm value cmpl))
+    ((n-gtype) (gi-n-gtype->scm value compl))
+    ((struct) (gi-struct->scm value compl))
+    ((array) (gi-array->scm value compl))
     (else
      (error "No such type: " type))))
 
@@ -290,8 +290,8 @@
                     (cons (gtypevector-ref bv i)
                           results)))))))
 
-(define (gi-struct->scm foreign cmpl)
-  (match cmpl
+(define (gi-struct->scm foreign compl)
+  (match compl
     ((gi-struct transfer)
      (let* ((scm-types (!scm-types gi-struct))
             (result (fold-right gi-struct-field->scm
@@ -363,10 +363,18 @@
                   (case type
                     ;; ((object) ...)
                     ((struct)
-                     (let ((s-size (!size gi-struct))
-                           (n-item fixed-size))
-                       (gi-array-struct->scm foreign n-item s-size
-                                             (list gi-struct transfer))))
+                     (if is-zero-terminated
+                         ;; we assume an array of pointers to structs
+                         (map (lambda (w-ptr)
+                                (gi-struct->scm w-ptr (list gi-struct transfer)))
+                           (gi-pointers->scm foreign))
+                         ;; as opposed to an array of contiguous structs
+                         (let ((s-size (!size gi-struct))
+                               (n-item (if (= fixed-size -1)
+                                           (assq-ref al-alist param-n)
+                                           fixed-size)))
+                           (gi-array-struct->scm foreign n-item s-size
+                                                 (list gi-struct transfer)))))
                     (else
                      (error "Unimplemented array interface: " type))))))
               ((utf8
@@ -389,11 +397,11 @@
                                       ((unichar) uint32)
                                       (else
                                        (primitive-eval param-tag))))
-                          (size- (if (= fixed-size -1)
+                          (n-item (if (= fixed-size -1)
                                      (assq-ref al-alist param-n)
                                      fixed-size))
                           (bv (pointer->bytevector foreign
-                                                   (* (sizeof ffi-type) size-))))
+                                                   (* (sizeof ffi-type) n-item))))
                      (map (lambda (index)
                             (let ((val (bv-ref bv index)))
                               (case param-tag
@@ -401,11 +409,11 @@
                                  (if (= val 1) #t #f))
                                 (else
                                  val))))
-                       (iota size-))))))
+                       (iota n-item))))))
               (else
                (error "What array is this? " param-tag)))))))))
 
-(define (gi-array-struct->scm foreign n-item s-size cmpl)
+(define (gi-array-struct->scm foreign n-item s-size compl)
   (let loop ((i 0)
              (w-ptr foreign)
              (result '()))
@@ -413,7 +421,7 @@
         (reverse result)
         (loop (+ i 1)
               (gi-pointer-inc w-ptr s-size)
-              (cons (gi-struct->scm w-ptr cmpl)
+              (cons (gi-struct->scm w-ptr compl)
                     result)))))
 
 
@@ -421,22 +429,22 @@
 ;;; scm->gi procedures
 ;;;
 
-(define* (scm->gi value type #:optional (cmpl #f))
+(define* (scm->gi value type #:optional (compl #f))
   (case type
     ((boolean) (scm->gi-boolean value))
     ((string) (scm->gi-string value))
-    ((n-string) (scm->gi-n-string value cmpl))
+    ((n-string) (scm->gi-n-string value compl))
     ((strings) (scm->gi-strings value))
     #;((csv-string) (scm->gi-csv-string value))
     ((pointer) (scm->gi-pointer value))
-    ((n-pointer) (scm->gi-n-pointer value cmpl))
+    ((n-pointer) (scm->gi-n-pointer value compl))
     ((pointers) (scm->gi-pointers value))
     #;((glist) (scm->gi-glist value))
     ((gslist) (scm->gi-gslist value))
-    ((n-gtype) (scm->gi-n-gtype value cmpl))
+    ((n-gtype) (scm->gi-n-gtype value compl))
     ((gtypes) (scm->gi-gtypes value))
-    ((struct) (scm->gi-struct value cmpl))
-    ((array) (scm->gi-array value cmpl))
+    ((struct) (scm->gi-struct value compl))
+    ((array) (scm->gi-array value compl))
     (else
      (error "No such type: " type))))
 
@@ -587,8 +595,8 @@
              (loop rest
                    (+ i 1))))))))
 
-(define (scm->gi-struct scm-vals cmpl)
-  (match cmpl
+(define (scm->gi-struct scm-vals compl)
+  (match compl
     ((gi-struct transfer)
      (let* ((scm-types (!scm-types gi-struct))
             (foreign (make-c-struct scm-types
@@ -657,12 +665,22 @@
                             (!g-inst (module-ref module '!g-inst)))
                        (scm->gi-pointers (map !g-inst vals))))
                     ((struct)
-                     (let ((s-size (!size gi-struct))
-                           (n-item (if (= fixed-size -1)
-                                       (length vals)
-                                       fixed-size)))
-                       (scm->gi-array-struct vals n-item s-size
-                                             (list gi-struct transfer))))
+                     (cond (is-zero-terminated
+                            ;; a zero terminated array of pointers to gi-struct instances
+                            (scm->gi-array-struct-ptrs vals
+                                                       (list gi-struct transfer)
+                                                       #:is-zero-terminated? #t))
+                            ((and (= fixed-size -1)
+                                  (= param-n -1))
+                             ;; an array of n pointers to gi-struct instances
+                             (scm->gi-array-struct-ptrs vals
+                                                        (list gi-struct transfer)))
+                            (else
+                             ;; the heuristic this should be an array of
+                             ;; contiguous gi-struct instances isn't safe
+                             #;(scm->gi-array-structs vals (list gi-struct transfer))
+                             (scm->gi-array-struct-ptrs vals
+                                                        (list gi-struct transfer)))))
                     ((enum)
                      (scm->gi-array-enum vals array-type-desc))
                     ((flags)
@@ -713,23 +731,57 @@
               (else
                (error "what array is this?")))))))))
 
-(define (scm->gi-array-struct items n-item s-size cmpl)
-  (if (= (length items) n-item)
-      (let ((structs (map (lambda (item)
-                            (scm->gi-struct item cmpl))
-                       items)))
-        (match cmpl
-          ((gi-struct transfer)
-           (case transfer
-             ((everything)
-              (let* ((copies (map (lambda (foreign)
-                                    (g-boxed-copy (!g-type gi-struct) foreign))
-                               structs))
-                     (foreign (scm->gi-n-pointer copies n-item)))
-                (g-memdup foreign (* n-item (sizeof '*)))))
-             (else
-              (scm->gi-n-pointer structs n-item))))))
-      (error "Wrong number of args: " items)))
+(define* (scm->gi-array-struct-ptrs items compl
+                                    #:key (is-zero-terminated? #f))
+  (let* ((structs (map (lambda (item)
+                         (scm->gi-struct item compl))
+                    items))
+         (n-item (length structs)))
+    (match compl
+      ((gi-struct transfer)
+       (case transfer
+         ((everything)
+          (let* ((copies (map (lambda (foreign)
+                                (g-boxed-copy (!g-type gi-struct) foreign))
+                           structs))
+                 (foreign (if is-zero-terminated?
+                              (scm->gi-pointers copies)
+                              (scm->gi-n-pointer copies n-item))))
+            (g-memdup foreign (if is-zero-terminated?
+                                  (* (+ n-item 1) (sizeof '*))
+                                  (* n-item (sizeof '*))))))
+         (else
+          (if is-zero-terminated?
+              (scm->gi-pointers structs)
+              (scm->gi-n-pointer structs n-item))))))))
+
+(define (scm->gi-array-structs vals compl)
+  (match compl
+    ((gi-struct transfer)
+     (let* ((struct-ptrs (map (lambda (item)
+                                (scm->gi-struct item compl))
+                           vals))
+            (s-size (!size gi-struct))
+            (n-item (length vals))
+            (struct-bvs (map (lambda (struct-ptr)
+                               (pointer->bytevector struct-ptr s-size))
+                          struct-ptrs))
+            (bv (make-bytevector (* n-item s-size))))
+       (let loop ((struct-bvs struct-bvs)
+                  (offset 0))
+         (match struct-bvs
+           (() 'done)
+           ((struct-bv . rest)
+            (bytevector-copy! struct-bv 0 bv offset s-size)
+            (loop rest
+                  (+ offset s-size)))))
+       (match compl
+         ((gi-struct transfer)
+          (case transfer
+            ((everything)
+             (g-memdup (bytevector->pointer bv) (* n-item s-size)))
+            (else
+             (bytevector->pointer bv)))))))))
 
 (define (scm->gi-array-enum vals array-type-desc)
   (match array-type-desc
