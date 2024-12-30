@@ -229,10 +229,10 @@
        (list 'callback #f iface-info #f #f))
       (else
        (if (is-registered? iface-type)
-           (receive (id name gi-type confirmed?)
+           (receive (g-type name gi-type confirmed?)
                (registered-type->gi-type iface-info iface-type)
              (g-base-info-unref iface-info)
-             (list iface-type name gi-type id confirmed?))
+             (list iface-type name gi-type g-type confirmed?))
            (begin
              (g-base-info-unref iface-info)
              iface-type))))))
