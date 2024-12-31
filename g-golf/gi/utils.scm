@@ -344,7 +344,7 @@
 
 (define (gi-array->scm foreign compl)
   ;; compl(ement) pattern is
-  ;;   (type-desc array-type-desc transfer al-alist)
+  ;;   (type-desc sub-type-desc transfer al-alist)
   ;; for example
   ;;   ((c -1 #f 0 int32) int32 nothing ((0 . 4)))
   ;; or
@@ -353,12 +353,12 @@
   (if (null-pointer? foreign)
       #f
       (match compl
-        ((type-desc array-type-desc transfer al-alist)
+        ((type-desc sub-type-desc transfer al-alist)
          (match type-desc
            ((array fixed-size is-zero-terminated param-n param-tag)
             (case param-tag
               ((interface)
-               (match array-type-desc
+               (match sub-type-desc
                  ((type r-name gi-struct id confirmed?)
                   (case type
                     ;; ((object) ...)
@@ -652,12 +652,12 @@
       %null-pointer
       ;; (c 4 #f -1 int32) or (c 4 #f -1 interface)
       (match compl
-        ((type-desc array-type-desc transfer)
+        ((type-desc sub-type-desc transfer)
          (match type-desc
            ((array fixed-size is-zero-terminated param-n param-tag)
             (case param-tag
               ((interface)
-               (match array-type-desc
+               (match sub-type-desc
                  ((type r-name gi-struct id confirmed?)
                   (case type
                     ((object)
@@ -682,9 +682,9 @@
                              (scm->gi-array-struct-ptrs vals
                                                         (list gi-struct transfer)))))
                     ((enum)
-                     (scm->gi-array-enum vals array-type-desc))
+                     (scm->gi-array-enum vals sub-type-desc))
                     ((flags)
-                     (scm->gi-array-flags vals array-type-desc))
+                     (scm->gi-array-flags vals sub-type-desc))
                     (else
                      (error "Unimplemented array interface: " type))))))
               ((utf8
@@ -783,15 +783,15 @@
             (else
              (bytevector->pointer bv)))))))))
 
-(define (scm->gi-array-enum vals array-type-desc)
-  (match array-type-desc
+(define (scm->gi-array-enum vals sub-type-desc)
+  (match sub-type-desc
     ((type r-name gi-enum id confirmed?)
      (scm->gi-array-int (map (lambda (val)
                                (enum->value gi-enum val))
                           vals)))))
 
-(define (scm->gi-array-flags vals array-type-desc)
-  (match array-type-desc
+(define (scm->gi-array-flags vals sub-type-desc)
+  (match sub-type-desc
     ((type r-name gi-flags id confirmed?)
      (scm->gi-array-int (map (lambda (val)
                                (flags->integer gi-flags val))

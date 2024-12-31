@@ -69,7 +69,7 @@
           !type-desc
           !is-enum?
           !al-arg?
-          !array-type-desc
+          !sub-type-desc
           !forced-type
           !string-pointer
           !callback-closure
@@ -107,7 +107,7 @@
   (type-desc #:accessor !type-desc #:init-keyword #:type-desc)
   (is-enum? #:accessor !is-enum? #:init-keyword #:is-enum?)
   (al-arg? #:accessor !al-arg? #:init-value #f)
-  (array-type-desc #:accessor !array-type-desc)
+  (sub-type-desc #:accessor !sub-type-desc)
   (forced-type #:accessor !forced-type #:init-keyword #:forced-type)
   (string-pointer #:accessor !string-pointer)
   (callback-closure #:accessor !callback-closure)
@@ -153,7 +153,7 @@
               (is-return-value? (g-arg-info-is-return-value info))
               (is-skip? (g-arg-info-is-skip info))
               (forced-type (arg-info-forced-type direction type-tag is-pointer?)))
-         (receive (type-desc array-type-desc)
+         (receive (type-desc sub-type-desc)
              (type-description type-info
                                #:type-tag type-tag #:is-method? is-method?)
            #;(g-base-info-unref type-info)
@@ -174,7 +174,7 @@
                                         ((type name gi-type g-type confirmed?)
                                          (or (eq? type 'enum)
                                              (eq? type 'flags)))))
-                       'array-type-desc array-type-desc
+                       'sub-type-desc sub-type-desc
                        'forced-type forced-type
                        'is-pointer? is-pointer?
                        'may-be-null? may-be-null?

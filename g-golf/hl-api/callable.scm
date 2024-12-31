@@ -76,7 +76,7 @@
          (is-method? (g-callable-info-is-method info))
          (iot (g-callable-info-get-instance-ownership-transfer info)))
     (next-method)
-    (receive (type-desc array-type-desc)
+    (receive (type-desc sub-type-desc)
         (type-description return-type-info
                           #:type-tag return-type
                           #:is-method? is-method?)
@@ -91,7 +91,7 @@
                   'instance-ownership-transfer iot
                   'return-type return-type
                   'type-desc type-desc
-                  'array-type-desc array-type-desc
+                  'sub-type-desc sub-type-desc
                   'is-enum? (and (eq? return-type 'interface)
                                       (match type-desc
                                         ((type name gi-type g-type confirmed?)
@@ -569,7 +569,7 @@
                (error "Invalid array argument: " value))
            (let* ((array (scm->gi-array value
                                         (list type-desc
-                                              (!array-type-desc clb/arg)
+                                              (!sub-type-desc clb/arg)
                                               transfer)))
                   (array-ptr (if (pointer? array)
                                  ;; scm->gi-array may return a pointer already,
@@ -778,7 +778,7 @@
                                           (case param-tag
                                             ((interface)
                                              ;; likely an array of struct
-                                             (match (!array-type-desc arg-out)
+                                             (match (!sub-type-desc arg-out)
                                                ((type r-name gi-struct id confirmed?)
                                                 (case type
                                                   ((struct)
@@ -1011,7 +1011,7 @@
        (and foreign
             (gi-array->scm foreign
                            (list type-desc
-                                 (!array-type-desc clb/arg)
+                                 (!sub-type-desc clb/arg)
                                  transfer
                                  ;; the array length can be given by an out arg
                                  al-alist)))))

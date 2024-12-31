@@ -331,7 +331,7 @@ stored in the g-value.
        (if param-arg
            (let ((type-tag (!type-tag param-arg))
                  (type-desc (!type-desc param-arg))
-                 (array-type-desc (!array-type-desc param-arg)))
+                 (sub-type-desc (!sub-type-desc param-arg)))
              (case type-tag
                ((array)
                 (match type-desc
@@ -346,7 +346,7 @@ stored in the g-value.
                                                                  param-args
                                                                  param-n))))
                      ((interface)
-                      (match array-type-desc
+                      (match sub-type-desc
                         ((type name gi-type g-type confirmed?)
                          (map (lambda (pointer)
                                 (make gi-type #:g-inst pointer))
