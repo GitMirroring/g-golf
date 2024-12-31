@@ -211,7 +211,7 @@
              ((interface
                object)
               (match (!type-desc argument)
-                ((type name gi-type g-type confirmed?)
+                ((type name gi-type g-type)
                  (case type
                    ((object
                      interface)

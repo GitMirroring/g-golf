@@ -347,7 +347,7 @@ stored in the g-value.
                                                                  param-n))))
                      ((interface)
                       (match sub-type-desc
-                        ((type name gi-type g-type confirmed?)
+                        ((type name gi-type g-type)
                          (map (lambda (pointer)
                                 (make gi-type #:g-inst pointer))
                            (if is-zero-terminated

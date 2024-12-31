@@ -171,7 +171,7 @@
                        'type-desc type-desc
                        'is-enum? (and (eq? type-tag 'interface)
                                       (match type-desc
-                                        ((type name gi-type g-type confirmed?)
+                                        ((type name gi-type g-type)
                                          (or (eq? type 'enum)
                                              (eq? type 'flags)))))
                        'sub-type-desc sub-type-desc
@@ -205,10 +205,15 @@
                       (g-type-info-get-tag info))))
     (case type-tag
       ((interface)
-       (values (type-description-interface info)
-               #f))
+       (receive (iface-type name gi-type g-type)
+           (type-description-interface info)
+         (values (list iface-type name gi-type g-type)
+                 #f)))
       ((array)
-       (type-description-array info is-method?))
+       (receive (type-desc sub-type-desc)
+           (type-description-array info is-method?)
+         (values type-desc
+                 sub-type-desc)))
       ((glist
         gslist)
        (values (type-description-glist info type-tag)
@@ -226,16 +231,16 @@
        ;; (g-base-info-)unref, as it's needed to prepare the callback
        ;; every time the function (method) holding this argument is
        ;; called.
-       (list 'callback #f iface-info #f #f))
+       (values 'callback #f iface-info #f))
       (else
        (if (is-registered? iface-type)
-           (receive (g-type name gi-type confirmed?)
+           (receive (g-type name gi-type)
                (registered-type->gi-type iface-info iface-type)
              (g-base-info-unref iface-info)
-             (list iface-type name gi-type g-type confirmed?))
+             (values iface-type name gi-type g-type))
            (begin
              (g-base-info-unref iface-info)
-             iface-type))))))
+             (values iface-type #f #f #f)))))))
 
 (define (type-description-array info is-method?)
   (let* ((type (g-type-info-get-array-type info))
@@ -246,32 +251,32 @@
          (param-tag (g-type-info-get-tag param-type)))
     (case param-tag
       ((interface)
-       (let ((i-desc (type-description-interface param-type)))
+       (receive (iface-type name gi-type g-type)
+           (type-description-interface param-type)
          (g-base-info-unref param-type)
          (values (list type
                        fixed-size
                        is-zero-terminated
                        (if is-method? (+ param-n 1) param-n)
                        param-tag)
-                 i-desc)))
+                 (list iface-type name gi-type g-type))))
       (else
        (g-base-info-unref param-type)
-       (values
-        (list type
-              fixed-size
-              is-zero-terminated
-              ;; Unless g-type-info-get-array-length returns -1
-              ;; (fixed-sized or zero-terminated arrays), when the
-              ;; callable is a method, we must add 1 to the above call
-              ;; result because GI typelibs do not take the first method
-              ;; argument into account, added by GI lang bindings, and
-              ;; hence, for methods, GI typelibs param-n values are off
-              ;; by one.
-              (if (= param-n -1)
-                  param-n
-                  (if is-method? (+ param-n 1) param-n))
-              param-tag)
-               param-tag)))))
+       (values (list type
+                     fixed-size
+                     is-zero-terminated
+                     ;; Unless g-type-info-get-array-length returns -1
+                     ;; (fixed-sized or zero-terminated arrays), when the
+                     ;; callable is a method, we must add 1 to the above call
+                     ;; result because GI typelibs do not take the first method
+                     ;; argument into account, added by GI lang bindings, and
+                     ;; hence, for methods, GI typelibs param-n values are off
+                     ;; by one.
+                     (if (= param-n -1)
+                         param-n
+                         (if is-method? (+ param-n 1) param-n))
+                     param-tag)
+               (list param-tag #f #f #f))))))
 
 (define (type-description-glist info type-tag)
   (let* ((param-type (g-type-info-get-param-type info 0))
@@ -279,15 +284,16 @@
          (is-pointer? (g-type-info-is-pointer param-type)))
     (case param-tag
       ((interface)
-       (let ((i-desc (type-description-interface param-type)))
+       (receive (iface-type name gi-type g-type)
+           (type-description-interface param-type)
          (g-base-info-unref param-type)
-         i-desc))
+         (list iface-type name gi-type g-type)))
       (else
        (g-base-info-unref param-type)
        (list param-tag
              #f
              #f
-             is-pointer?)))))
+             #f)))))
 
 (define (registered-type->gi-type info type)
   (let* ((g-type (g-registered-type-info-get-g-type info))
@@ -298,26 +304,22 @@
        (values g-type
                name
                (or (gi-cache-ref 'enum name)
-                   (gi-import-enum info))
-               #t))
+                   (gi-import-enum info))))
       ((flags)
        (values g-type
                name
                (or (gi-cache-ref 'flags name)
-                   (gi-import-flags info))
-               #t))
+                   (gi-import-flags info))))
       ((struct)
        (values g-type
                name
                (or (gi-cache-ref 'boxed name)
-                   (gi-import-struct info))
-               #t))
+                   (gi-import-struct info))))
       ((union)
        (values g-type
                name
                (or (gi-cache-ref 'boxed name)
-                   (gi-import-union info))
-               #t))
+                   (gi-import-union info))))
       ((object)
        (let* ((module (resolve-module '(g-golf hl-api gobject)))
               (c-name (g-name->class-name g-name))
@@ -326,22 +328,7 @@
                           ((@ (g-golf hl-api object) gi-import-object) info))))
          (values g-type
                  c-name
-                 c-inst
-                 ;; we can't rely on GI to tell us, at import time, the
-                 ;; exact class name of the returned instance. As an
-                 ;; example, at import time, the WebKit2 typelib pretend
-                 ;; that webkit-web-view-new returned value signature
-                 ;; says the returned value is a GtkWidget instance
-                 ;; (which by the way is not even instantiable), but it
-                 ;; should say it is a WebKitWebView.
-                 ;; So, below, a boolean, initialized to #f, which
-                 ;; indicates, to those procedures that will refer to
-                 ;; this type-spec if it has been confirmed - that is,
-                 ;; if c-name here above is equal to calling
-                 ;; g-object-type-name on the instance pointer
-                 ;; returned by a function call that uses this
-                 ;; type-spec.
-                 #f)))
+                 c-inst)))
       ((interface)
        (let* ((module (resolve-module '(g-golf hl-api gobject)))
               (c-name (g-name->class-name g-name))
@@ -350,10 +337,9 @@
                           ((@ (g-golf hl-api object) gi-import-interface) info))))
          (values g-type
                  c-name
-                 c-inst
-                 #t)))
+                 c-inst)))
       (else
-       (values g-type name #f #f)))))
+       (values g-type name #f)))))
 
 (define (is-registered? type-tag)
   (memq type-tag '(enum flags interface object struct union)))

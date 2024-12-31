@@ -94,7 +94,7 @@
                   'sub-type-desc sub-type-desc
                   'is-enum? (and (eq? return-type 'interface)
                                       (match type-desc
-                                        ((type name gi-type g-type confirmed?)
+                                        ((type name gi-type g-type)
                                          (or (eq? type 'enum)
                                              (eq? type 'flags)))))
 
@@ -470,7 +470,7 @@
     (case type-tag
       ((interface)
        (match type-desc
-         ((type name gi-type g-type confirmed?)
+         ((type name gi-type g-type)
           (case type
             ((enum)
              (let ((e-val (enum->value gi-type value)))
@@ -606,7 +606,7 @@
                (gi-argument-set! gi-argument 'v-pointer #f)
                (error "Invalid gslist argument: " value))
            (match type-desc
-             ((type name gi-type g-type confirmed?)
+             ((type name gi-type g-type)
               (case type
                 ((object)
                  (gi-argument-set! gi-argument 'v-pointer
@@ -736,7 +736,7 @@
                      (case type-tag
                        ((interface)
                         (match type-desc
-                          ((type name gi-type g-type confirmed?)
+                          ((type name gi-type g-type)
                            (case type
                              ((enum
                                flags)
@@ -779,7 +779,7 @@
                                             ((interface)
                                              ;; likely an array of struct
                                              (match (!sub-type-desc arg-out)
-                                               ((type r-name gi-struct id confirmed?)
+                                               ((type r-name gi-struct id)
                                                 (case type
                                                   ((struct)
                                                    (let* ((s-size (!size gi-struct))
@@ -914,7 +914,7 @@
   (case type-tag
     ((interface)
      (match type-desc
-       ((type name gi-type g-type confirmed?)
+       ((type name gi-type g-type)
         (case type
           ((enum)
            (let ((val
@@ -987,16 +987,6 @@
                      (not (null-pointer? foreign))
                      (receive (class name g-type)
                          (g-object-find-class foreign)
-                       ;; We used to update the clb/arg 'type-desc
-                       ;; argument when it wasn't confirmed?, but that
-                       ;; actually won't work anymore, see the comment
-                       ;; labeled [1] in (g-golf hl-api gobject) for a
-                       ;; complete description. However, I'll keep the
-                       ;; code, commented, for now, until I clear all
-                       ;; occurrences of the confirmed? pattern entries.
-                       #;(unless confirmed?
-                         (set! (!type-desc clb/arg)
-                               (list 'object name class g-type #t)))
                        (make class #:g-inst foreign)))))))))))
     ((array)
      (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
@@ -1022,7 +1012,7 @@
        (if (null? lst)
            lst
            (match type-desc
-             ((type name gi-type g-type confirmed?)
+             ((type name gi-type g-type)
               (case type
                 ((object)
                  (match lst
@@ -1101,7 +1091,7 @@
          (g-name (g-base-info-get-name container))
          (name (g-name->name g-name))
          (type (g-base-info-get-type container)))
-    (receive (g-type r-name gi-type confirmed?)
+    (receive (g-type r-name gi-type)
         (registered-type->gi-type container type)
       (g-base-info-unref container)
       (make <argument>
@@ -1110,7 +1100,7 @@
         #:name name
         #:direction 'in
         #:type-tag 'interface
-        #:type-desc (list type r-name gi-type g-type confirmed?)
+        #:type-desc (list type r-name gi-type g-type)
         #:is-enum? #f
         #:forced-type 'pointer
         #:is-pointer? #t

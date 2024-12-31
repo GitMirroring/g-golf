@@ -359,7 +359,7 @@
             (case param-tag
               ((interface)
                (match sub-type-desc
-                 ((type r-name gi-struct id confirmed?)
+                 ((type r-name gi-struct id)
                   (case type
                     ;; ((object) ...)
                     ((struct)
@@ -658,7 +658,7 @@
             (case param-tag
               ((interface)
                (match sub-type-desc
-                 ((type r-name gi-struct id confirmed?)
+                 ((type r-name gi-struct id)
                   (case type
                     ((object)
                      (let* ((module (resolve-module '(g-golf hl-api gtype)))
@@ -785,14 +785,14 @@
 
 (define (scm->gi-array-enum vals sub-type-desc)
   (match sub-type-desc
-    ((type r-name gi-enum id confirmed?)
+    ((type r-name gi-enum id)
      (scm->gi-array-int (map (lambda (val)
                                (enum->value gi-enum val))
                           vals)))))
 
 (define (scm->gi-array-flags vals sub-type-desc)
   (match sub-type-desc
-    ((type r-name gi-flags id confirmed?)
+    ((type r-name gi-flags id)
      (scm->gi-array-int (map (lambda (val)
                                (flags->integer gi-flags val))
                           vals)))))
