@@ -1101,7 +1101,7 @@
          (g-name (g-base-info-get-name container))
          (name (g-name->name g-name))
          (type (g-base-info-get-type container)))
-    (receive (id r-name gi-type confirmed?)
+    (receive (g-type r-name gi-type confirmed?)
         (registered-type->gi-type container type)
       (g-base-info-unref container)
       (make <argument>
@@ -1110,7 +1110,7 @@
         #:name name
         #:direction 'in
         #:type-tag 'interface
-        #:type-desc (list type r-name gi-type id confirmed?)
+        #:type-desc (list type r-name gi-type g-type confirmed?)
         #:is-enum? #f
         #:forced-type 'pointer
         #:is-pointer? #t
