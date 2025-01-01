@@ -355,7 +355,7 @@
       (match compl
         ((type-desc sub-type-desc transfer al-alist)
          (match type-desc
-           ((array fixed-size is-zero-terminated param-n param-tag)
+           ((array fixed-size is-zero-terminated param-n param-tag ptr-array)
             (case param-tag
               ((interface)
                (match sub-type-desc
@@ -654,7 +654,7 @@
       (match compl
         ((type-desc sub-type-desc transfer)
          (match type-desc
-           ((array fixed-size is-zero-terminated param-n param-tag)
+           ((array fixed-size is-zero-terminated param-n param-tag ptr-array)
             (case param-tag
               ((interface)
                (match sub-type-desc
@@ -676,11 +676,10 @@
                              (scm->gi-array-struct-ptrs vals
                                                         (list gi-struct transfer)))
                             (else
-                             ;; the heuristic this should be an array of
-                             ;; contiguous gi-struct instances isn't safe
-                             #;(scm->gi-array-structs vals (list gi-struct transfer))
-                             (scm->gi-array-struct-ptrs vals
-                                                        (list gi-struct transfer)))))
+                             (if ptr-array
+                                 (scm->gi-array-struct-ptrs vals
+                                                            (list gi-struct transfer))
+                                 (scm->gi-array-structs vals (list gi-struct transfer))))))
                     ((enum)
                      (scm->gi-array-enum vals sub-type-desc))
                     ((flags)

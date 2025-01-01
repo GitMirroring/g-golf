@@ -206,7 +206,7 @@
     (case type-tag
       ((array)
        (match (!type-desc clb/arg)
-         ((array fixed-size is-zero-terminated param-n param-tag)
+         ((array fixed-size is-zero-terminated param-n param-tag ptr-array)
           (if (= param-n -1)
               al-pos
               (if (is-a? clb/arg <callable>)
@@ -773,7 +773,7 @@
                                                     %null-pointer)))))))
                        ((array)
                         (match type-desc
-                          ((array fixed-size is-zero-terminated param-n param-tag)
+                          ((array fixed-size is-zero-terminated param-n param-tag ptr-array)
                            (let* ((bv (if is-caller-allocate?
                                           (case param-tag
                                             ((interface)

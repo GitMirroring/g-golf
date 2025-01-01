@@ -335,7 +335,7 @@ stored in the g-value.
              (case type-tag
                ((array)
                 (match type-desc
-                  ((array fixed-size is-zero-terminated param-n param-tag)
+                  ((array fixed-size is-zero-terminated param-n param-tag ptr-array)
                    (case param-tag
                      ((utf8
                        filename)

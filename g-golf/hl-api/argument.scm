@@ -248,6 +248,7 @@
          (is-zero-terminated (g-type-info-is-zero-terminated info))
          (param-n (g-type-info-get-array-length info))
          (param-type (g-type-info-get-param-type info 0))
+         (ptr-array (g-type-info-is-pointer param-type))
          (param-tag (g-type-info-get-tag param-type)))
     (case param-tag
       ((interface)
@@ -258,7 +259,8 @@
                        fixed-size
                        is-zero-terminated
                        (if is-method? (+ param-n 1) param-n)
-                       param-tag)
+                       param-tag
+                      ptr-array)
                  (list iface-type name gi-type g-type))))
       (else
        (g-base-info-unref param-type)
@@ -275,7 +277,8 @@
                      (if (= param-n -1)
                          param-n
                          (if is-method? (+ param-n 1) param-n))
-                     param-tag)
+                     param-tag
+                     ptr-array)
                (list param-tag #f #f #f))))))
 
 (define (type-description-glist info type-tag)
