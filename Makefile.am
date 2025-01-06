@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2016 - 2024
+#### Copyright (C) 2016 - 2025
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -58,6 +58,7 @@ SOURCES = \
 	g-golf/glib/quarks.scm			\
 	g-golf/glib/simple-xml-subset-parser.scm \
 	g-golf/glib/date-and-time-functions.scm \
+	g-golf/glib/type-conversion.scm		\
 	g-golf/glib.scm				\
 	g-golf/gobject/type-info.scm		\
 	g-golf/gobject/gobject.scm		\

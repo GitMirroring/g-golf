@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2016 - 2024
+#### Copyright (C) 2016 - 2025
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -75,6 +75,7 @@ g_golf_TEXINFOS = \
   cr-glib-quarks.texi		\
   cr-glib-simple-xml-parser.texi \
   cr-glib-date-and-time-functions.texi \
+  cr-glib-type-conversion.texi	\
   cr-gobject.texi		\
   cr-gobject-type-info.texi	\
   cr-gobject-gobject.texi	\

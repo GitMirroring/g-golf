@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2024 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2025 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -34,6 +34,7 @@ though they might be some exception in the future.
 * Quarks:: Two way association between a string and a unique integer identifier
 * Simple XML Subset Parser:: Parses a subset of XML
 * Date and Time Functions:: Calendrical calculations and miscellaneous time stuff
+* Type Conversion:: Portably storing integers in pointer variables
 @end menu
 
 @include cr-glib-version-information.texi
@@ -48,3 +49,4 @@ though they might be some exception in the future.
 @include cr-glib-quarks.texi
 @include cr-glib-simple-xml-parser.texi
 @include cr-glib-date-and-time-functions.texi
+@include cr-glib-type-conversion.texi

@@ -1,7 +1,7 @@
-/*  -*- mode: C; coding: utf-8 -*-
+;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023 - 2025
+;;;; Copyright (C) 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -21,29 +21,40 @@
 ;;;; <https://www.gnu.org/licenses/lgpl.html>.
 ;;;;
 
-*/
+;;; Commentary:
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <limits.h>
-#include <float.h>
-#include <math.h>
-
-#include <glib.h>
-#include <glib-object.h>
+;;; Code:
 
 
-/*
- * Glib
- *
-*/
+(define-module (g-golf glib type-conversion)
+  #:use-module (oop goops)
+  #:use-module (system foreign)
+  #:use-module (g-golf init)
+  #:use-module (g-golf support libg-golf)
 
-uint
-g_source_ref_count (GSource *source);
+  #:duplicates (merge-generics
+		replace
+		warn-override-core
+		warn
+		last)
 
-gpointer
-gint_to_pointer (gint32 i);
+  #:export (gint-to-pointer
+            guint-to-pointer))
 
-gpointer
-guint_to_pointer (guint32 i);
+
+;;;
+;;; Glib Low level API
+;;;
+
+;; from libg-golf
+(define (gint-to-pointer i)
+  (gint_to_pointer i))
+
+;; from libg-golf
+(define (guint-to-pointer i)
+  (guint_to_pointer i))
+
+
+;;;
+;;; Glib Bindings
+;;;

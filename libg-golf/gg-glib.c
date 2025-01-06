@@ -1,7 +1,7 @@
 /*  -*- mode: C; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023 - 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -43,4 +43,16 @@ uint
 g_source_ref_count (GSource *source)
 {
   return (source->ref_count);
+}
+
+gpointer
+gint_to_pointer (gint32 i)
+{
+  return (GINT_TO_POINTER (i));
+}
+
+gpointer
+guint_to_pointer (guint32 i)
+{
+  return (GUINT_TO_POINTER (i));
 }

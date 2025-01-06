@@ -57,6 +57,7 @@
   #:use-module (g-golf glib quarks)
   #:use-module (g-golf glib simple-xml-subset-parser)
   #:use-module (g-golf glib date-and-time-functions)
+  #:use-module (g-golf glib type-conversion)
 
  #:duplicates (merge-generics
 		replace
@@ -86,4 +87,5 @@
                               (g-golf glib byte-arrays)
                               (g-golf glib quarks)
                               (g-golf glib simple-xml-subset-parser)
-                              (g-golf glib date-and-time-functions)))
+                              (g-golf glib date-and-time-functions)
+                              (g-golf glib type-conversion)))
