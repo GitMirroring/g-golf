@@ -592,33 +592,30 @@
                               'bv-cache array
                               'bv-cache-ptr array-ptr))
                 (gi-argument-set! gi-argument 'v-pointer array-ptr))))))
-      ((glist)
+      ((glist
+        gslist)
        (if (or (not value)
                (null? value))
            (if may-be-null?
                (gi-argument-set! gi-argument 'v-pointer #f)
                (error "Invalid glist argument: " value))
-           (let ((g-list (scm->gi-glist value type-desc)))
+           (let ((g-first (case type-tag
+                            ((glist)
+                             (scm->gi-glist value type-desc))
+                            ((gslist)
+                             (scm->gi-gslist value type-desc)))))
              (case direction
                ((inout)
                 ;; we need 1 further indirection
                 (let* ((bv (make-bytevector (sizeof '*) 0))
                        (bv-ptr (bytevector->pointer bv)))
                   (slot-set! clb/arg 'bv-cache-ptr bv-ptr)
-                  (bv-ptr-set! bv-ptr g-list)
+                  (bv-ptr-set! bv-ptr g-first)
                   (gi-argument-set! gi-argument 'v-pointer bv-ptr)))
                (else
                 (unless (eq? transfer 'everything)
-                  (slot-set! clb/arg 'bv-cache-ptr g-list))
-                (gi-argument-set! gi-argument 'v-pointer g-list))))))
-      ((gslist)
-       (if (or (not value)
-               (null? value))
-           (if may-be-null?
-               (gi-argument-set! gi-argument 'v-pointer #f)
-               (error "Invalid gslist argument: " value))
-           (gi-argument-set! gi-argument 'v-pointer
-                             (scm->gi-gslist value type-desc))))
+                  (slot-set! clb/arg 'bv-cache-ptr g-first))
+                (gi-argument-set! gi-argument 'v-pointer g-first))))))
       ((ghash
         error)
        (if (not value)
@@ -1017,7 +1014,8 @@
                                  transfer
                                  ;; the array length can be given by an out arg
                                  al-alist)))))
-    ((glist)
+    ((glist
+      gslist)
      (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
             (g-first (and gi-arg-val
                           (if is-caller-allocate?
@@ -1028,10 +1026,11 @@
                                 (else
                                  gi-arg-val))))))
        (and g-first
-            (gi-glist->scm g-first (list type-desc transfer)))))
-    ((gslist)
-     (let ((g-first (gi-argument-ref gi-argument 'v-pointer)))
-       (gi-gslist->scm g-first (list type-desc transfer))))
+            (case type-tag
+              ((glist)
+               (gi-glist->scm g-first (list type-desc transfer)))
+              ((gslist)
+               (gi-gslist->scm g-first (list type-desc transfer)))))))
     ((ghash
       error)
      (warning "Unimplemented type" (symbol->string type-tag)))

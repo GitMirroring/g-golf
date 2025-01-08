@@ -300,6 +300,9 @@
                      (match (parse-proc g-head type)
                        ((data next prev)
                         (loop next
+                              (cons data result)))
+                       ((data next)
+                        (loop next
                               (cons data result))))))))))))
 
 (define (gi-gtypes->scm pointer)
@@ -592,6 +595,16 @@
                    rest)))))))
 
 (define (scm->gi-glist lst compl)
+  (scm->gi-glist-gslist lst
+                        g-list-prepend
+                        compl))
+
+(define (scm->gi-gslist lst compl)
+  (scm->gi-glist-gslist lst
+                        g-slist-prepend
+                        compl))
+
+(define (scm->gi-glist-gslist lst prepend-proc compl)
   (if (null? lst)
       %null-pointer
       (let ((items (match compl ;; a type-desc
@@ -610,25 +623,13 @@
                         (else
                          (warning "Unimplemented gslist type" type)))))))
         (let loop ((items (reverse items))
-                   (g-list #f))
+                   (g-first #f))
           (match items
             (()
-             g-list)
+             g-first)
             ((x . rest)
              (loop rest
-                   (g-list-prepend g-list x))))))))
-
-(define (scm->gi-gslist lst compl)
-  (if (null? lst)
-      %null-pointer
-      (let loop ((items (reverse lst))
-                 (g-slist #f))
-        (match items
-          (()
-           g-slist)
-          ((x . rest)
-           (loop rest
-                 (g-slist-prepend g-slist x)))))))
+                   (prepend-proc g-first x))))))))
 
 (define* (scm->gi-n-gtype lst #:optional (n-gtype #f))
   (if (null? lst)
