@@ -34,6 +34,7 @@
   #:use-module (system foreign)
   #:use-module (srfi srfi-1)
   #:use-module (srfi srfi-4)
+  #:use-module (g-golf init)
   #:use-module (g-golf support utils)
   #:use-module (g-golf support enum)
   #:use-module (g-golf support flags)
@@ -42,6 +43,7 @@
   #:use-module (g-golf glib mem-alloc)
   #:use-module (g-golf glib glist)
   #:use-module (g-golf glib gslist)
+  #:use-module (g-golf glib type-conversion)
   #:use-module (g-golf gobject type-info)
   #:use-module (g-golf gobject boxed-types)
 
@@ -80,7 +82,7 @@
             scm->gi-pointer
             scm->gi-n-pointer
             scm->gi-pointers
-            #;scm->gi-glist
+            scm->gi-glist
             scm->gi-gslist
             scm->gi-n-gtype
             scm->gi-gtypes
@@ -143,8 +145,8 @@
     ((pointer) (gi-pointer->scm value))
     ((n-pointer) (gi-n-pointer->scm value compl))
     ((pointers) (gi-pointers->scm value))
-    ((glist) (gi-glist->scm value))
-    ((gslist) (gi-gslist->scm value))
+    ((glist) (gi-glist->scm value compl))
+    ((gslist) (gi-gslist->scm value compl))
     ((gtypes) (gi-gtypes->scm value))
     ((n-gtype) (gi-n-gtype->scm value compl))
     ((struct) (gi-struct->scm value compl))
@@ -232,31 +234,73 @@
                                                   result)))))))
         (gi-pointers->scm-1 pointer '()))))
 
-(define (gi-glist->scm g-list)
+(define (gi-glist->scm g-list compl)
   (glist-gslist->scm g-list
-                     g-list-next
-                     g-list-data))
+                     g-list-parse
+                     compl))
 
-(define (gi-gslist->scm g-slist)
+(define (gi-gslist->scm g-slist compl)
   (glist-gslist->scm g-slist
-                     g-slist-next
-                     g-slist-data))
+                     g-slist-parse
+                     compl))
 
-(define (glist-gslist->scm g-first next-acc data-acc)
+(define (glist-gslist->scm g-first parse-proc compl)
   ;; The reason g-first can be #f is that the caller may have already
   ;; processed its value, which is what gi-argument-ref does for
   ;; 'v-pointer fields for example. In this case, gi-pointer->scm has
-  ;; been called, which returns #f its argument is a %null-pointer.
+  ;; been called, which returns #f when passed a %null-pointer.
   (if (or (not g-first)
           (null-pointer? g-first))
-      '()
-      (let loop ((g-next g-first)
-                 (result '()))
-          (if (null-pointer? g-next)
-              (reverse! result)
-              (loop (next-acc g-next)
-                    (cons (data-acc g-next)
-                          result))))))
+         '()
+         (match compl
+           ((type-desc transfer)
+            (match type-desc
+              ((type name gi-type g-type)
+               (let loop ((g-head g-first)
+                          (result '()))
+                 (if (null-pointer? g-head)
+                     (let* ((i-result (reverse result))
+                            (result (case type
+                                      ((object)
+                                       (let* ((module
+                                               (resolve-module '(g-golf hl-api gobject)))
+                                              (g-object-find-class
+                                               (module-ref module 'g-object-find-class)))
+                                         (match i-result
+                                           ((x . rest)
+                                            (receive (class name g-type)
+                                                (g-object-find-class x)
+                                              (map (lambda (item)
+                                                     (make class #:g-inst item))
+                                                i-result))))))
+                                      ((utf8)
+                                       (map (lambda (item)
+                                              (pointer->string item -1 "utf8"))
+                                         i-result))
+                                      (else
+                                       i-result))))
+                       (case transfer
+                         ((nothing)
+                          result)
+                         ((container)
+                          (g-list-free g-first)
+                          result)
+                         ((everything)
+                          ;; this fails
+                          #;(let ((foreign (make-pointer (pointer-address g-first))))
+                            (case type
+                              ((object)
+                               (g-list-free-full foreign
+                                                 (dynamic-func "g_object_unref" %libgobject)))
+                              (else
+                               (g-list-free-full foreign #f)))
+                          result)
+                          (g-list-free g-first)
+                          result)))
+                     (match (parse-proc g-head type)
+                       ((data next prev)
+                        (loop next
+                              (cons data result))))))))))))
 
 (define (gi-gtypes->scm pointer)
   (if (or (not pointer)
@@ -439,8 +483,8 @@
     ((pointer) (scm->gi-pointer value))
     ((n-pointer) (scm->gi-n-pointer value compl))
     ((pointers) (scm->gi-pointers value))
-    #;((glist) (scm->gi-glist value))
-    ((gslist) (scm->gi-gslist value))
+    ((glist) (scm->gi-glist value compl))
+    ((gslist) (scm->gi-gslist value compl))
     ((n-gtype) (scm->gi-n-gtype value compl))
     ((gtypes) (scm->gi-gtypes value))
     ((struct) (scm->gi-struct value compl))
@@ -547,7 +591,34 @@
              (loop (gi-pointer-inc w-ptr)
                    rest)))))))
 
-(define (scm->gi-gslist lst)
+(define (scm->gi-glist lst compl)
+  (if (null? lst)
+      %null-pointer
+      (let ((items (match compl ;; a type-desc
+                     ((type name gi-type g-type)
+                      (case type
+                        ((object)
+                         (let* ((module (resolve-module '(g-golf hl-api gtype)))
+                                (!g-inst (module-ref module '!g-inst)))
+                           (map !g-inst lst)))
+                        ((int32)
+                         (map gint-to-pointer lst))
+                        ((uint32)
+                         (map guint-to-pointer lst))
+                        ((utf8)
+                         (map string->pointer lst))
+                        (else
+                         (warning "Unimplemented gslist type" type)))))))
+        (let loop ((items (reverse items))
+                   (g-list #f))
+          (match items
+            (()
+             g-list)
+            ((x . rest)
+             (loop rest
+                   (g-list-prepend g-list x))))))))
+
+(define (scm->gi-gslist lst compl)
   (if (null? lst)
       %null-pointer
       (let loop ((items (reverse lst))

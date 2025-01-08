@@ -598,21 +598,27 @@
            (if may-be-null?
                (gi-argument-set! gi-argument 'v-pointer #f)
                (error "Invalid glist argument: " value))
-           (warning "Unimplemented type" (symbol->string type-tag))))
+           (let ((g-list (scm->gi-glist value type-desc)))
+             (case direction
+               ((inout)
+                ;; we need 1 further indirection
+                (let* ((bv (make-bytevector (sizeof '*) 0))
+                       (bv-ptr (bytevector->pointer bv)))
+                  (slot-set! clb/arg 'bv-cache-ptr bv-ptr)
+                  (bv-ptr-set! bv-ptr g-list)
+                  (gi-argument-set! gi-argument 'v-pointer bv-ptr)))
+               (else
+                (unless (eq? transfer 'everything)
+                  (slot-set! clb/arg 'bv-cache-ptr g-list))
+                (gi-argument-set! gi-argument 'v-pointer g-list))))))
       ((gslist)
        (if (or (not value)
                (null? value))
            (if may-be-null?
                (gi-argument-set! gi-argument 'v-pointer #f)
                (error "Invalid gslist argument: " value))
-           (match type-desc
-             ((type name gi-type g-type)
-              (case type
-                ((object)
-                 (gi-argument-set! gi-argument 'v-pointer
-                                   (scm->gi-gslist (map !g-inst value))))
-                (else
-                 (warning "Unimplemented gslist subtype" type-desc)))))))
+           (gi-argument-set! gi-argument 'v-pointer
+                             (scm->gi-gslist value type-desc))))
       ((ghash
         error)
        (if (not value)
@@ -798,8 +804,14 @@
                                          'bv-cache-ptr bv-ptr)
                              (gi-argument-set! gi-argument-out 'v-pointer bv-ptr)))))
                        ((glist
-                         gslist
-                         ghash
+                         gslist)
+                        (if is-pointer?
+                            (let ((bv (make-bytevector (sizeof '*) 0)))
+                              (gi-argument-set! gi-argument-out 'v-pointer
+                                                (bytevector->pointer bv)))
+                            (gi-argument-set! gi-argument-out 'v-pointer
+                                              %null-pointer)))
+                       ((ghash
                          error)
                         (warning "Unimplemented type" (symbol->string type-tag))
                         (gi-argument-set! gi-argument-out 'v-pointer %null-pointer))
@@ -1005,27 +1017,21 @@
                                  transfer
                                  ;; the array length can be given by an out arg
                                  al-alist)))))
-    ((glist
-      gslist)
-     (let* ((g-first (gi-argument-ref gi-argument 'v-pointer))
-            (lst (gi->scm g-first type-tag)))
-       (if (null? lst)
-           lst
-           (match type-desc
-             ((type name gi-type g-type)
-              (case type
-                ((object)
-                 (match lst
-                   ((x . rest)
-                    (receive (class name g-type)
-                        (g-object-find-class x)
-                      (map (lambda (item)
-                             (make class #:g-inst item))
-                        lst)))))
-                (else
-                 (warning "Unprocessed g-list/g-slist"
-                          (format #f "~S" type-desc))
-                 lst)))))))
+    ((glist)
+     (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
+            (g-first (and gi-arg-val
+                          (if is-caller-allocate?
+                              gi-arg-val
+                              (case direction
+                                ((inout out)
+                                 (dereference-pointer gi-arg-val))
+                                (else
+                                 gi-arg-val))))))
+       (and g-first
+            (gi-glist->scm g-first (list type-desc transfer)))))
+    ((gslist)
+     (let ((g-first (gi-argument-ref gi-argument 'v-pointer)))
+       (gi-gslist->scm g-first (list type-desc transfer))))
     ((ghash
       error)
      (warning "Unimplemented type" (symbol->string type-tag)))
