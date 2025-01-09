@@ -89,7 +89,7 @@
   (g_closure_invoke closure
                     return-value
                     n-param
-                    param-vals
+                    (scm->gi param-vals 'pointer)
                     (scm->gi invocation-hint 'pointer)))
 
 (define (g-closure-add-invalidate-notifier closure data function)
