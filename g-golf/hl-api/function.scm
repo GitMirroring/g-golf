@@ -72,6 +72,9 @@
 
 (define (%i-func f-inst)
   (lambda args
+    (when (%debug)
+      (dimfi (!name f-inst))
+      (dimfi (format #f "~4,,,' @A" "<=") args))
     (let ((f-inst f-inst)
           (info (!info f-inst))
           (name (!name f-inst))
@@ -84,9 +87,6 @@
           (clb-args (if (memq 'skip-prepare-gi-arguments args)
                         args
                         (callable-prepare-gi-arguments f-inst args))))
-      (when (%debug)
-          (dimfi name)
-          (dimfi (format #f "~4,,,' @A" "<=") args))
         (with-gerror g-error
           (g-function-info-invoke info
                                   gi-args-in
