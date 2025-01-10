@@ -458,9 +458,7 @@
     (dimfi (format #f "~20,,,' @A:" 'type-desc) type-desc)
     (dimfi (format #f "~20,,,' @A:" 'forced-type) forced-type)
     (dimfi (format #f "~20,,,' @A:" 'ffi-arg?) ffi-arg?))
-  (let ((%g-golf-callback-closure
-         (@ (g-golf hl-api callback) g-golf-callback-closure))
-        (may-be-null? (may-be-null-acc clb/arg)))
+  (let ((may-be-null? (may-be-null-acc clb/arg)))
     ;; clearing references kept from a previous call.
     (mslot-set! clb/arg
                 'string-pointer #f
@@ -548,19 +546,21 @@
                                        %null-pointer
                                        (error "Invalid argument: " value)))))
             ((callback)
-             (gi-argument-set! gi-argument 'v-pointer
-                               (if value
-                                   (receive (native-ptr callback-closure)
-                                       (%g-golf-callback-closure gi-type value)
-                                     (set! (!callback-closure clb/arg) callback-closure)
-                                     native-ptr)
-                                   (if (or may-be-null?
-                                           (>= (!destroy clb/arg) 0)
-                                           ;; caution, check against the clb/arg name,
-                                           ;; not the type-desc name, which is #f
-                                           (maybe-null-exception? (!name clb/arg)))
-                                       #f
-                                       (error "Invalid argument: " value)))))))))
+             (let ((%g-golf-callback-closure
+                    (@ (g-golf hl-api callback) g-golf-callback-closure)))
+               (gi-argument-set! gi-argument 'v-pointer
+                                 (if value
+                                     (receive (native-ptr callback-closure)
+                                         (%g-golf-callback-closure gi-type value)
+                                       (set! (!callback-closure clb/arg) callback-closure)
+                                       native-ptr)
+                                     (if (or may-be-null?
+                                             (>= (!destroy clb/arg) 0)
+                                             ;; caution, check against the clb/arg name,
+                                             ;; not the type-desc name, which is #f
+                                             (maybe-null-exception? (!name clb/arg)))
+                                         #f
+                                         (error "Invalid argument: " value))))))))))
       ((array)
        (if (or (not value)
                (null? value))
