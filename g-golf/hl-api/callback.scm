@@ -130,22 +130,20 @@
 
 (define (callback-ffi-cif callback)
   (let ((n-arg (!n-arg callback)))
-    (if (= n-arg 0)
-        (values #f %null-pointer)
-        (receive (ffi-cif-bv ffi-cif r-type a-types-bv a-types)
-            (ffi-prep-cif-elements callback n-arg)
-          (let loop ((arguments (!arguments callback))
-                     (w-ptr a-types))
-            (match arguments
-              (()
-               (ffi-prep-cif ffi-cif n-arg r-type a-types)
-               (values ffi-cif-bv ffi-cif))
-              ((argument . rest)
-               (bv-ptr-set! w-ptr
-                            (gi-type-tag-get-ffi-type (!type-tag argument)
-                                                      (!is-pointer? argument)))
-               (loop rest
-                     (gi-pointer-inc w-ptr)))))))))
+    (receive (ffi-cif-bv ffi-cif r-type a-types-bv a-types)
+        (ffi-prep-cif-elements callback n-arg)
+      (let loop ((arguments (!arguments callback))
+                 (w-ptr a-types))
+        (match arguments
+          (()
+           (ffi-prep-cif ffi-cif n-arg r-type a-types)
+           (values ffi-cif-bv ffi-cif))
+          ((argument . rest)
+           (bv-ptr-set! w-ptr
+                        (gi-type-tag-get-ffi-type (!type-tag argument)
+                                                  (!is-pointer? argument)))
+           (loop rest
+                 (gi-pointer-inc w-ptr))))))))
 
 (define (g-callable-info-make-closure info
                                       ffi-cif
