@@ -470,33 +470,33 @@
        (match type-desc
          ((type name gi-type g-type)
           (case type
-            ((enum)
-             (let ((e-val (enum->value gi-type value)))
-               (if e-val
-                   (case direction
-                     ((inout)
-                      ;; we need 1 further indirection
-                      (receive (make-bv bv-ref bv-set!)
-                          (gi-type-tag->bv-acc 'int32)
-                        (let* ((bv-cache (!bv-cache clb/arg))
-                               (bv-cache-ptr (!bv-cache-ptr clb/arg))
-                               (bv (or bv-cache (make-bv 1 0)))
-                               (bv-ptr (or bv-cache-ptr
-                                           (bytevector->pointer bv))))
-                          (unless bv-cache
-                            (mslot-set! clb/arg
-                                        'bv-cache bv
-                                        'bv-cache-ptr bv-ptr))
-                          (bv-set! bv 0 e-val)
-                          (gi-argument-set! gi-argument 'v-pointer bv-ptr))))
-                     (else
-                      (gi-argument-set! gi-argument 'v-int e-val)))
-                   (error "No such symbol " value " in " gi-type))))
-            ((flags)
-             (let ((f-val (flags->integer gi-type value)))
-               (if f-val
-                   (gi-argument-set! gi-argument 'v-int f-val)
-                   (error "No such flag(s) " value " in " gi-type))))
+            ((enum
+              flags)
+             (let ((val (case type
+                          ((enum)
+                           (or (enum->value gi-type value)
+                               (error "No such symbol " value " in " gi-type)))
+                          ((flags)
+                           (or (flags->integer gi-type value)
+                               (error "No such flags " value " in " gi-type))))))
+               (case direction
+                 ((inout)
+                  ;; we need 1 further indirection
+                  (receive (make-bv bv-ref bv-set!)
+                      (gi-type-tag->bv-acc 'int32)
+                    (let* ((bv-cache (!bv-cache clb/arg))
+                           (bv-cache-ptr (!bv-cache-ptr clb/arg))
+                           (bv (or bv-cache (make-bv 1 0)))
+                           (bv-ptr (or bv-cache-ptr
+                                       (bytevector->pointer bv))))
+                      (unless bv-cache
+                        (mslot-set! clb/arg
+                                    'bv-cache bv
+                                    'bv-cache-ptr bv-ptr))
+                      (bv-set! bv 0 val)
+                      (gi-argument-set! gi-argument 'v-pointer bv-ptr))))
+                 (else
+                  (gi-argument-set! gi-argument 'v-int val)))))
             ((struct)
              (let ((foreign
                     (case name
@@ -925,7 +925,8 @@
      (match type-desc
        ((type name gi-type g-type)
         (case type
-          ((enum)
+          ((enum
+            flags)
            (let ((val
                   (case direction
                     ((inout out)
@@ -934,17 +935,11 @@
                        (s32vector-ref bv 0)))
                     (else
                      (gi-argument-ref gi-argument 'v-int)))))
-             (or (enum->symbol gi-type val)
-                 (error "No such " name " value: " val))))
-          ((flags)
-           (let ((val (case forced-type
-                        ((pointer)
-                         (let* ((foreign (gi-argument-ref gi-argument 'v-pointer))
-                                (bv (pointer->bytevector foreign (sizeof int))))
-                           (s32vector-ref bv 0)))
-                        (else
-                         (gi-argument-ref gi-argument 'v-int)))))
-             (integer->flags gi-type val)))
+             (case type
+               ((enum)
+                (enum->symbol gi-type val))
+               ((flags)
+                (integer->flags gi-type val)))))
           ((struct)
            (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
                   (foreign (if is-pointer?
