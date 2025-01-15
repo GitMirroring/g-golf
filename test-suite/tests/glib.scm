@@ -163,9 +163,8 @@
          (g-first (assert (g-slist-append #f a)))
          (g-first (assert (g-slist-append g-first b))))
     (assert-true (equal? (list "hello" "world!")
-                         (map (lambda (str)
-                                (pointer->string str -1 "utf8"))
-                           (gi->scm g-first 'gslist))))))
+                         (gi-gslist->scm g-first
+                                         '((utf8 #f #f #f) nothing))))))
 
 (define-method (test-g-slist-prepend (self <g-golf-test-glib>))
   (let* ((a (string->pointer "hello" "utf8"))
@@ -173,9 +172,8 @@
          (g-first (assert (g-slist-prepend #f b)))
          (g-first (assert (g-slist-prepend g-first a))))
     (assert-true (equal? (list "hello" "world!")
-                         (map (lambda (str)
-                                (pointer->string str -1 "utf8"))
-                           (gi->scm g-first 'gslist))))))
+                         (gi-gslist->scm g-first
+                                         '((utf8 #f #f #f) nothing))))))
 
 
 (exit-with-summary (run-all-defined-test-cases))
