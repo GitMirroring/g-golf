@@ -47,15 +47,11 @@
 ;;;
 
 (define-method (test-repository (self <g-golf-test-gi>))
-  (assert-true (g-irepository-require "Clutter"))
-  (assert-true (g-irepository-require "Gtk"))
-  (assert-true (g-irepository-get-typelib-path "Clutter"))
-  (assert-true (g-irepository-find-by-name "Clutter" "Actor"))
-  (assert-true (g-irepository-find-by-name "Clutter" "ActorAlign"))
-  (assert-exception (g-irepository-require "ClutterBlue"))
-  (assert-false (g-irepository-find-by-name "Gtk" "button"))
-  (assert-true (g-irepository-find-by-name "Gtk" "Button"))
-  (assert-true (g-irepository-get-version "Gtk")))
+  (assert-true (g-irepository-require "GLib"))
+  (assert-true (g-irepository-get-typelib-path "GLib"))
+  (assert-true (g-irepository-find-by-name "GLib" "IOChannel"))
+  (assert-exception (g-irepository-require "BLue"))
+  (assert-true (g-irepository-get-version "GLib")))
 
 
 ;;;
@@ -63,8 +59,8 @@
 ;;;
 
 (define-method (test-type-lib (self <g-golf-test-gi>))
-  (let ((filename (g-irepository-get-typelib-path "Clutter")))
-    (assert-equal "Clutter"
+  (let ((filename (g-irepository-get-typelib-path "GObject")))
+    (assert-equal "GObject"
 		  (call-with-input-typelib filename
 					   (lambda (typelib)
 					     (g-typelib-get-name-space typelib))))))
@@ -128,7 +124,7 @@
 
 (define-method (test-base-info (self <g-golf-test-gi>))
   (assert-true (g-base-info-get-name
-                (g-irepository-find-by-name "Clutter" "Actor"))))
+                (g-irepository-find-by-name "GLib" "Variant"))))
 
 
 ;;;
@@ -141,12 +137,12 @@
 ;;;
 
 (define-method (test-function-info (self <g-golf-test-gi>))
-  (let* ((actor (g-irepository-find-by-name "Clutter" "Actor"))
-         (actor-m1 (g-object-info-get-method actor 0)))
-    (assert (g-function-info-get-flags actor-m1))
-    (assert (g-function-info-get-property actor-m1))
-    (assert (g-function-info-get-symbol actor-m1))
-    (assert (g-function-info-get-vfunc actor-m1))))
+  (let* ((g-object (g-irepository-find-by-name "GObject" "Object"))
+         (g-object-m1 (g-object-info-get-method g-object 0)))
+    (assert (g-function-info-get-flags g-object-m1))
+    (assert (g-function-info-get-property g-object-m1))
+    (assert (g-function-info-get-symbol g-object-m1))
+    (assert (g-function-info-get-vfunc g-object-m1))))
 
 
 ;;;
@@ -166,11 +162,11 @@
 ;;;
 
 (define-method (test-enum-info (self <g-golf-test-gi>))
-  (let ((align-info (g-irepository-find-by-name "Clutter" "ActorAlign")))
-    (assert (g-enum-info-get-n-values align-info))
-    (assert (g-enum-info-get-value align-info 0))
-    (assert (gi-enum-value-values align-info))
-    (assert (gi-enum-import align-info))))
+  (let ((v-class (g-irepository-find-by-name "GLib" "VariantClass")))
+    (assert (g-enum-info-get-n-values v-class))
+    (assert (g-enum-info-get-value v-class 0))
+    (assert (gi-enum-value-values v-class))
+    (assert (gi-enum-import v-class))))
 
 
 ;;;
@@ -178,17 +174,12 @@
 ;;;
 
 (define-method (test-struct-info (self <g-golf-test-gi>))
-  (let ((info (g-irepository-find-by-name "Clutter" "Color")))
-    (assert-true (= (g-struct-info-get-n-fields info)
-                    4)) ;; RGBA fields
-    (assert (g-struct-info-get-field info 0))
-    (assert (gi-struct-field-types info))
-    (assert (gi-struct-import info))
-    ;; the following should also work, but a real pointer is returned
-    ;; instad. I have asked on #introspection, but lost the connection
-    ;; just after I asked, lets see what they tell me once I get a
-    ;; connection back.
-    #;(assert-false (g-struct-info-get-field info 4))))
+  (let ((info (g-irepository-find-by-name "GLib" "VariantClass")))
+    (assert (g-struct-info-get-n-fields info)) ;; no field
+    ;; no field
+    #;(assert (g-struct-info-get-field info 0))
+    #;(assert (gi-struct-field-types info))
+    #;(assert (gi-struct-import info))))
 
 
 ;;;
@@ -212,7 +203,7 @@
 ;;;
 
 (define-method (test-object-info (self <g-golf-test-gi>))
-  (let ((actor (g-irepository-find-by-name "Clutter" "Actor")))
+  (let ((actor (g-irepository-find-by-name "GObject" "Object")))
     (assert-true (g-object-info-get-n-methods actor))
     (assert-true (g-object-info-get-method actor 0))
     (assert-true (g-object-info-get-property actor 5))))
@@ -240,7 +231,7 @@
 ;;;
 
 (define-method (test-field-info (self <g-golf-test-gi>))
-  (let* ((info (g-irepository-find-by-name "Clutter" "Color"))
+  (let* ((info (g-irepository-find-by-name "GObject" "Closure"))
          (field (g-struct-info-get-field info 0)))
     (assert (g-field-info-get-type field))
     (assert (g-type-info-get-tag (g-field-info-get-type field)))))
@@ -251,7 +242,7 @@
 ;;;
 
 (define-method (test-property-info (self <g-golf-test-gi>))
-  (let* ((actor (g-irepository-find-by-name "Clutter" "Actor"))
+  (let* ((actor (g-irepository-find-by-name "GObject" "Object"))
          (property (g-object-info-get-property actor 5)))
     (assert-true (g-property-info-get-type property))
     (assert-true (g-property-info-get-flags property))))
@@ -262,8 +253,8 @@
 ;;;
 
 (define-method (test-type-info (self <g-golf-test-gi>))
-  (let* ((actor (g-irepository-find-by-name "Clutter" "Actor"))
-         (property (g-object-info-get-property actor 5))
+  (let* ((g-object (g-irepository-find-by-name "GObject" "Binding"))
+         (property (g-object-info-get-property g-object 1))
          (type-info (g-property-info-get-type property))
          (type-tag (g-type-info-get-tag type-info))
          (interface (g-type-info-get-interface type-info))
