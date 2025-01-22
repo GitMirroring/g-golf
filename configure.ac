@@ -6,7 +6,7 @@ dnl
 
 define(G_GOLF_CONFIGURE_COPYRIGHT,[[
 
-Copyright (C) 2016 - 2024
+Copyright (C) 2016 - 2025
 Free Software Foundation, Inc.
 
 This file is part of GNU G-Golf
@@ -45,7 +45,6 @@ AM_MAINTAINER_MODE([enable])
 AM_SILENT_RULES([yes])
 
 AC_PROG_CC
-AC_STDC_HEADERS
 LT_INIT([disable-static])
 
 AC_COPYRIGHT(G_GOLF_CONFIGURE_COPYRIGHT)
