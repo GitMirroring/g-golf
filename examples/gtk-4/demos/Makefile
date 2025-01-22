@@ -47,7 +47,9 @@ all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	$(CC) $(CFLAGS) -shared -o $(TARGET) $(OBJECTS) $(LIBS)
+	chmod a-x $@
 
+.DELETE_ON_ERROR:
 
 clean:
 	rm -f $(OBJECTS)
