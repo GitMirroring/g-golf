@@ -151,6 +151,11 @@ CLEANFILES = \
 	$(GOBJECTS)
 # 	$(bin_SCRIPTS)
 
+clean-local:
+	rm -f $(top_srcdir)/examples/gtk-4/demos/libfpt.so
+	rm -f $(top_srcdir)/examples/gtk-4/demos/*.o
+
+
 ETAGS_ARGS = \
 	$(SOURCES)
 # g-golf
