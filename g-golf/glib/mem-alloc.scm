@@ -33,7 +33,7 @@
   #:export (g-malloc
 	    g-malloc0
 	    g-free
-            g-steal-pointer
+            #;g-steal-pointer
 	    g-memdup))
 
 
@@ -60,7 +60,8 @@
 (define (g-free mem)
   (g_free mem))
 
-(define (g-steal-pointer foreign)
+;; g_steal_pointer is unavailable in %libglib
+#;(define (g-steal-pointer foreign)
   (g_steal_pointer foreign))
 
 (define (g-memdup mem n-bytes)
