@@ -985,7 +985,8 @@
                                (dereference-pointer gi-arg-val)
                                gi-arg-val)))
              (case name
-               ((<g-param>) foreign)
+               ((<g-param>)
+                (gi-pointer->scm foreign))
                (else
                 (and foreign
                      (not (null-pointer? foreign))
