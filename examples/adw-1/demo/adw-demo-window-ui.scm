@@ -268,7 +268,7 @@
           (property (@ (name "child"))
             (object (@ (class "AdwNavigationSplitView")
                        (id "split-view"))
-              (property (@ (name "min-sidebar-width")) 240)
+              (property (@ (name "min-sidebar-width")) 200)
               (property (@ (name "sidebar"))
                 ,%adw-demo-window-sidebar)
               (property (@ (name "content"))
