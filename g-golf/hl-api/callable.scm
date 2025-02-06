@@ -1037,7 +1037,7 @@
                               gi-arg-val
                               (case direction
                                 ((inout out)
-                                 (dereference-pointer gi-arg-val))
+                                 (gi-pointer->scm (dereference-pointer gi-arg-val)))
                                 (else
                                  gi-arg-val))))))
        (and foreign

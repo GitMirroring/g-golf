@@ -337,17 +337,19 @@
                           results)))))))
 
 (define (gi-struct->scm foreign compl)
-  (match compl
-    ((gi-struct transfer)
-     (let* ((scm-types (!scm-types gi-struct))
-            (result (fold-right gi-struct-field->scm
-                                '()
-                                (parse-c-struct foreign scm-types)
-                                (!field-desc gi-struct))))
-       (case transfer
-         ((everything)
-          (g-boxed-free (!g-type gi-struct) foreign)))
-       result))))
+  (and foreign
+       (not (null-pointer? foreign))
+       (match compl
+         ((gi-struct transfer)
+          (let* ((scm-types (!scm-types gi-struct))
+                 (result (fold-right gi-struct-field->scm
+                                     '()
+                                     (parse-c-struct foreign scm-types)
+                                     (!field-desc gi-struct))))
+            (case transfer
+              ((everything)
+               (g-boxed-free (!g-type gi-struct) foreign)))
+            result)))))
 
 (define (gi-struct-field->scm field-val field-desc prev)
   (cons (match field-desc
