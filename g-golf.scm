@@ -252,7 +252,8 @@
                  (gi-import-by-name "GLib" name
                                     #:force? force?
                                     #:with-methods? with-methods?))))
-      '(("IOChannel" #t #f)
+      '(("Error" #t #f)
+        ("IOChannel" #t #f)
         ("SpawnFlags" #t #f)
         ("VariantClass" #t #f)
         ("Variant" #t #t)
