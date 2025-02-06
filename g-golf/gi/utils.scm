@@ -46,6 +46,7 @@
   #:use-module (g-golf glib type-conversion)
   #:use-module (g-golf gobject type-info)
   #:use-module (g-golf gobject boxed-types)
+  #:use-module (g-golf gi cache-gi)
 
   #:duplicates (merge-generics
 		replace
@@ -124,8 +125,9 @@
 	   (begin
 	     (g-free ?var)
 	     result)
-           (let ((gi-struct (gi-cache-ref 'boxed 'g-error))
-                 (g-error (gi-struct->scm d-pointer)))
+           (let* ((gi-struct (gi-cache-ref 'boxed 'g-error))
+                  (g-error (gi-struct->scm d-pointer
+                                           (list gi-struct 'everything))))
 	     (g-free ?var)
 	     (error "GError raised " g-error)))))))
 
