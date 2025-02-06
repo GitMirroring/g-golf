@@ -124,11 +124,10 @@
 	   (begin
 	     (g-free ?var)
 	     result)
-	   (match (parse-c-struct d-pointer
-				  (list uint32 int8 '*))
-	     ((domain code message)
-	      (g-free ?var)
-	      (error (pointer->string message -1 "utf8")))))))))
+           (let ((gi-struct (gi-cache-ref 'boxed 'g-error))
+                 (g-error (gi-struct->scm d-pointer)))
+	     (g-free ?var)
+	     (error "GError raised " g-error)))))))
 
 
 ;;;
