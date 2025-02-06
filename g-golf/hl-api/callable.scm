@@ -808,10 +808,11 @@
                                                 (bytevector->pointer bv)))
                             (gi-argument-set! gi-argument-out 'v-pointer
                                               %null-pointer)))
-                       ((ghash
-                         error)
+                       ((ghash)
                         (warning "Unimplemented type" (symbol->string type-tag))
                         (gi-argument-set! gi-argument-out 'v-pointer %null-pointer))
+                       ((error)
+                        (gi-argument-set! gi-argument-out 'v-pointer (gi-pointer-new)))
                        ((utf8
                          filename)
                         (if is-pointer?
@@ -1027,9 +1028,22 @@
                (gi-glist->scm g-first (list type-desc transfer)))
               ((gslist)
                (gi-gslist->scm g-first (list type-desc transfer)))))))
-    ((ghash
-      error)
+    ((ghash)
      (warning "Unimplemented type" (symbol->string type-tag)))
+    ((error)
+     (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
+            (foreign (and gi-arg-val
+                          (if is-caller-allocate?
+                              gi-arg-val
+                              (case direction
+                                ((inout out)
+                                 (dereference-pointer gi-arg-val))
+                                (else
+                                 gi-arg-val))))))
+       (and foreign
+            (gi-struct->scm foreign
+                            (list (gi-cache-ref 'boxed 'g-error)
+                                  transfer)))))
     ((utf8
       filename)
      (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
