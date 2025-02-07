@@ -4,7 +4,7 @@
 
 #+BEGIN_COMMENT
 
-Copyright (C) 2016 - 2024
+Copyright (C) 2016 - 2025
 Free Software Foundation, Inc.
 
 This document is part of GNU G-Golf.
@@ -25,6 +25,91 @@ warranty.
 
 
 * Latest News
+
+** Feb 2025
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0 is released.
+
+This is the ninth release candidate of the upcoming 0.8.0 release, now
+available for testing.
+
+*** Noteworthy changes in 0.8.0-rc9
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** New interfaces
+
+  g-boxed-copy
+  scm->gi-struct, scm->gi-struct-field
+  gi-struct->scm, gi-struct-field->scm
+  in-out->clb-c-arg-list
+
+The GError struct is now imported, and can be retreived calling by
+(gi-cache-ref 'boxed 'g-error).
+
+**** Examples
+
+***** Adwaita Demo
+
+The adwaita-1-demo script has been fixed, so its compile-g-resource
+procedure calls system, not system* (which was reported to (currently)
+fail on homebrew).
+
+AdwNavigationSplitView updated (upstream changes port(s)).
+
+***** Gtk-4
+
+The revealer example was fixed, as the (add-from-file builder ui) call
+returns a boolean, not an integer.
+
+
+**** Bug fixing
+
+Note: The GIMarshallingTests upstream test-suite for languae bindings is
+now implemented in G-Golf, as a separate git repo, as I still have to
+think about what would be the best way to make it either part of G-Golf,
+or as a seprate project.
+
+But the good news is, that this GIMarshallingTests upstream test-suite
+port to G-Golf has triggered numerous (unrevealed) bugs (so far), and
+largely contributed to making this release the first G-Golf stable
+release.
+
+However, not all fix can easily been reported in a noteworthy changes
+summary, so, as said above, those deeply interested may consult the [[http://git.savannah.gnu.org/cgit/g-golf.git][git
+summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+***** G-Golf <-> GI strings
+
+Enforce all strings to be UTF-8 encoded/decoded
+
+***** gi-argument->scm, scm->gi-argument
+
+[-] enhanced struct support
+[-] enhanced gslist glist support
+[-] enhanced array support
+[-] enhanced array of struct(s) support
+[-] enhanced enum/flags support
+[-] enhanced gparam support
+[-] enhanced utf8 support
+[-] GError as out arg and returned value
+
+***** gi-type-tag->ffi-type
+
+The corresponding ffi type for gtype is size_t, not unsigned-long.
+
+***** initialize-callable-arguments
+
+Updated to also calculate al-pos (array length position) for inout and
+out arguments.
+
+***** gi-type-tag->bv-acc
+
+Adding support for unichar
+
+
+* Older News
 
 ** Nov 2024
 
@@ -62,8 +147,6 @@ manager derived class.
 
 Working on the AdwDemoPageAnimations port to G-Golf revealed an
 important (now fixed) bug in the gi-argument->scm procedure.
-
-* Older News
 
 ** Oct 2024
 
