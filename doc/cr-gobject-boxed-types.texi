@@ -17,6 +17,7 @@ type system.
 @indentedblock
 @table @code
 @item @ref{g-boxed-free}
+@item @ref{g-boxed-copy}
 @item @ref{g-strv-get-type}
 @end table
 @end indentedblock
@@ -66,6 +67,13 @@ Frees the boxed structure at @var{pointer}, which is of type
 @end deffn
 
 
+@anchor{g-boxed-copy}
+@deffn Procedure g-boxed-copy g-type pointer
+
+Returns (a pointer to) the newly created copy of the boxed structure.
+@end deffn
+
+
 @anchor{g-strv-get-type}
 @deffn Procedure g-strv-get-type
 
@@ -80,3 +88,4 @@ before @code{(g-type-from-name "GStrv")} calls may be honoured.
 
 @c @subheading Types and Values
 
+The newly created copy of the boxed structure.

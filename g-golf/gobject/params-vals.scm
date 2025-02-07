@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2023
+;;;; Copyright (C) 2016 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -219,9 +219,9 @@
          (flags (or flags '(readable writable)))
          (g-param-flags
           (@ (g-golf gobject param-spec) %g-param-flags)))
-    (gi->scm (g_param_spec_boolean (string->pointer name)
-                                   (string->pointer nick)
-                                   (string->pointer blurb)
+    (gi->scm (g_param_spec_boolean (string->pointer name "utf8")
+                                   (string->pointer nick "utf8")
+                                   (string->pointer blurb "utf8")
                                    (if default 1 0)
                                    (flags->integer g-param-flags flags))
              'pointer)))
@@ -242,9 +242,9 @@
          (flags (or flags '(readable writable)))
          (g-param-flags
           (@ (g-golf gobject param-spec) %g-param-flags)))
-    (gi->scm (g_param_spec_int (string->pointer name)
-                               (string->pointer nick)
-                               (string->pointer blurb)
+    (gi->scm (g_param_spec_int (string->pointer name "utf8")
+                               (string->pointer nick "utf8")
+                               (string->pointer blurb "utf8")
                                minimum
                                maximum
                                default
@@ -266,9 +266,9 @@
          (flags (or flags '(readable writable)))
          (g-param-flags
           (@ (g-golf gobject param-spec) %g-param-flags)))
-    (gi->scm (g_param_spec_uint (string->pointer name)
-                                (string->pointer nick)
-                                (string->pointer blurb)
+    (gi->scm (g_param_spec_uint (string->pointer name "utf8")
+                                (string->pointer nick "utf8")
+                                (string->pointer blurb "utf8")
                                 minimum
                                 maximum
                                 default
@@ -290,9 +290,9 @@
          (flags (or flags '(readable writable)))
          (g-param-flags
           (@ (g-golf gobject param-spec) %g-param-flags)))
-    (gi->scm (g_param_spec_float (string->pointer name)
-                                (string->pointer nick)
-                                (string->pointer blurb)
+    (gi->scm (g_param_spec_float (string->pointer name "utf8")
+                                (string->pointer nick "utf8")
+                                (string->pointer blurb "utf8")
                                 minimum
                                 maximum
                                 default
@@ -314,9 +314,9 @@
          (flags (or flags '(readable writable)))
          (g-param-flags
           (@ (g-golf gobject param-spec) %g-param-flags)))
-    (gi->scm (g_param_spec_double (string->pointer name)
-                                (string->pointer nick)
-                                (string->pointer blurb)
+    (gi->scm (g_param_spec_double (string->pointer name "utf8")
+                                (string->pointer nick "utf8")
+                                (string->pointer blurb "utf8")
                                 minimum
                                 maximum
                                 default
@@ -339,9 +339,9 @@
          (flags (or flags '(readable writable)))
          (g-param-flags
           (@ (g-golf gobject param-spec) %g-param-flags)))
-    (gi->scm (g_param_spec_enum (string->pointer name)
-                                (string->pointer nick)
-                                (string->pointer blurb)
+    (gi->scm (g_param_spec_enum (string->pointer name "utf8")
+                                (string->pointer nick "utf8")
+                                (string->pointer blurb "utf8")
                                 g-type
                                 default
                                 (flags->integer g-param-flags flags))
@@ -382,9 +382,9 @@
          (flags (or flags '(readable writable)))
          (g-param-flags
           (@ (g-golf gobject param-spec) %g-param-flags)))
-    (gi->scm (g_param_spec_flags (string->pointer name)
-                                 (string->pointer nick)
-                                 (string->pointer blurb)
+    (gi->scm (g_param_spec_flags (string->pointer name "utf8")
+                                 (string->pointer nick "utf8")
+                                 (string->pointer blurb "utf8")
                                  g-type
                                  default
                                  (flags->integer g-param-flags flags))
@@ -415,9 +415,9 @@
          (flags (or flags '(readable writable)))
          (g-param-flags
           (@ (g-golf gobject param-spec) %g-param-flags)))
-    (gi->scm (g_param_spec_string (string->pointer name)
-                                  (string->pointer nick)
-                                  (string->pointer blurb)
+    (gi->scm (g_param_spec_string (string->pointer name "utf8")
+                                  (string->pointer nick "utf8")
+                                  (string->pointer blurb "utf8")
                                   (scm->gi default 'string)
                                   (flags->integer g-param-flags flags))
              'pointer)))
@@ -426,12 +426,12 @@
   (let ((pointer (g_value_get_string g-value)))
     (if (null-pointer? pointer)
         #f
-        (pointer->string pointer))))
+        (pointer->string pointer -1 "utf8"))))
 
 (define (g-value-set-string g-value str)
   (g_value_set_string g-value
                       (if str
-                          (string->pointer str)
+                          (string->pointer str "utf8")
                           %null-pointer)))
 
 (define (g-param-spec-param name nick blurb type flags)
@@ -440,9 +440,9 @@
          (flags (or flags '(readable writable)))
          (g-param-flags
           (@ (g-golf gobject param-spec) %g-param-flags)))
-    (gi->scm (g_param_spec_param (string->pointer name)
-                                 (string->pointer nick)
-                                 (string->pointer blurb)
+    (gi->scm (g_param_spec_param (string->pointer name "utf8")
+                                 (string->pointer nick "utf8")
+                                 (string->pointer blurb "utf8")
                                  type
                                  (flags->integer g-param-flags flags))
              'pointer)))
@@ -464,9 +464,9 @@
          (flags (or flags '(readable writable)))
          (g-param-flags
           (@ (g-golf gobject param-spec) %g-param-flags)))
-    (gi->scm (g_param_spec_boxed (string->pointer name)
-                                 (string->pointer nick)
-                                 (string->pointer blurb)
+    (gi->scm (g_param_spec_boxed (string->pointer name "utf8")
+                                 (string->pointer nick "utf8")
+                                 (string->pointer blurb "utf8")
                                  type
                                  (flags->integer g-param-flags flags))
              'pointer)))
@@ -532,9 +532,9 @@
          (flags (or flags '(readable writable)))
          (g-param-flags
           (@ (g-golf gobject param-spec) %g-param-flags)))
-    (gi->scm (g_param_spec_object (string->pointer name)
-                                  (string->pointer nick)
-                                  (string->pointer blurb)
+    (gi->scm (g_param_spec_object (string->pointer name "utf8")
+                                  (string->pointer nick "utf8")
+                                  (string->pointer blurb "utf8")
                                   g-type
                                   (flags->integer g-param-flags flags))
              'pointer)))

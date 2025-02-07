@@ -33,6 +33,7 @@
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
   #:use-module (system foreign)
+  #:use-module (srfi srfi-1)
   #:use-module (g-golf hl-api n-decl)
 
   #:export (%stow
@@ -68,7 +69,9 @@
 
             nil				;; [1]
 
-            string-replace-all))
+            string-replace-all
+
+            in-out->clb-c-arg-list))
 
 ;; [1] we need a way to inform g-golf-callback-closure-marshal to not
 ;; set an ffi-arg-out to any value.
@@ -552,3 +555,28 @@ TYPE-TAG."
                  (lp (+ end sublen))))
            (else
             (display (substring/shared str start)))))))))
+
+
+;;;
+;;; c-callable-arg-list
+;;;
+
+(define (in-out->clb-c-arg-list dirs in out)
+  (let loop ((dirs dirs)
+             (in in)
+             (out out)
+             (result '()))
+    (match dirs
+      (() (reverse result))
+      ((dir . rest)
+       (case dir
+         ((in inout)
+          (loop rest
+                (drop in 1)
+                out
+                (cons (first in) result)))
+         ((out)
+          (loop rest
+                in
+                (drop out 1)
+                (cons (first out) result))))))))

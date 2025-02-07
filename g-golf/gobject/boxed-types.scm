@@ -39,6 +39,7 @@
 		last)
 
   #:export (g-boxed-free
+            g-boxed-copy
 
             g-strv-get-type))
 
@@ -49,6 +50,10 @@
 
 (define (g-boxed-free g-type foreign)
   (g_boxed_free g-type foreign))
+
+(define (g-boxed-copy g-type foreign)
+  (g_boxed_copy g-type foreign))
+
 
 (define (g-strv-get-type)
   (g_strv_get_type))
@@ -61,6 +66,13 @@
 (define g_boxed_free
   (pointer->procedure void
                       (dynamic-func "g_boxed_free"
+				    %libgobject)
+                      (list size_t		;; g-type
+                            '*)))		;; g-pointer
+
+(define g_boxed_copy
+  (pointer->procedure '*
+                      (dynamic-func "g_boxed_copy"
 				    %libgobject)
                       (list size_t		;; g-type
                             '*)))		;; g-pointer

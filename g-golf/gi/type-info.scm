@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2022
+;;;; Copyright (C) 2016 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -60,7 +60,7 @@
   (let ((pointer (g_info_type_to_string info-type)))
     (if (null-pointer? pointer)
         #f
-        (pointer->string pointer))))
+        (pointer->string pointer -1 "utf8"))))
 
 (define (g-info-type-to-string info-type)
   (enum->name %gi-info-type info-type))

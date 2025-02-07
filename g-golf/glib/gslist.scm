@@ -32,7 +32,8 @@
   #:use-module (g-golf init)
   #:use-module (g-golf gi utils)
 
-  #:export (g-slist-data
+  #:export (g-slist-parse
+            g-slist-data
             g-slist-next
 
             g-slist-append
@@ -46,18 +47,33 @@
 ;;; Glib Low level API
 ;;;
 
-(define %g-slist-struct
+(define %g-slist-struct-ptr
   (list '* '*))
 
-(define (g-slist-parse g-slist)
-  (parse-c-struct g-slist %g-slist-struct))
+(define %g-slist-struct-int32
+  (list int32 '*))
 
-(define (g-slist-data g-slist)
-  (match (g-slist-parse g-slist)
+(define %g-slist-struct-uint32
+  (list uint32 '*))
+
+(define (g-slist-parse g-slist type)
+  (case type
+    ((object
+      utf8)
+     (parse-c-struct g-slist %g-slist-struct-ptr))
+    ((int32)
+     (parse-c-struct g-slist %g-slist-struct-int32))
+    ((uint32)
+     (parse-c-struct g-slist %g-slist-struct-uint32))
+    (else
+     (error "Unkown gslist type; " type))))
+
+(define (g-slist-data g-slist type)
+  (match (g-slist-parse g-slist type)
     ((data _) data)))
 
-(define (g-slist-next g-slist)
-  (match (g-slist-parse g-slist)
+(define (g-slist-next g-slist type)
+  (match (g-slist-parse g-slist type)
     ((_ next) next)))
 
 (define (g-slist-append g-slist data)

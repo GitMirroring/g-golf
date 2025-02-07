@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2023
+;;;; Copyright (C) 2016 - 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -53,6 +53,8 @@
 
             ;; Glib
             g_source_ref_count
+            gint_to_pointer
+            guint_to_pointer
 
             ;; GObject
             g_type_from_class
@@ -204,12 +206,23 @@
 ;;; Glib
 ;;;
 
-
 (define g_source_ref_count
   (pointer->procedure unsigned-int
                       (dynamic-func "g_source_ref_count"
                                     %libg-golf)
                       (list '*)))
+
+(define gint_to_pointer
+  (pointer->procedure '*
+                      (dynamic-func "gint_to_pointer"
+                                    %libg-golf)
+                      (list int32)))
+
+(define guint_to_pointer
+  (pointer->procedure '*
+                      (dynamic-func "guint_to_pointer"
+                                    %libg-golf)
+                      (list uint32)))
 
 
 ;;;

@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019, 2021
+;;;; Copyright (C) 2019, 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -135,7 +135,7 @@
 
 (define (g-union-info-find-method info name)
   (gi->scm (g_union_info_find_method info
-                                     (string->pointer name))
+                                     (string->pointer name "utf8"))
            'pointer))
 
 (define (g-union-info-get-size info)

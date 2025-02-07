@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2024
+;;;; Copyright (C) 2019 - 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -30,7 +30,7 @@
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
   #:use-module (ice-9 format)
-  #:use-module (srfi srfi-1)
+  #:use-module ((srfi srfi-1) #:select (filter-map))
   #:use-module (srfi srfi-4)
   #:use-module (oop goops)
   #:use-module (g-golf support)
@@ -72,6 +72,9 @@
 
 (define (%i-func f-inst)
   (lambda args
+    (when (%debug)
+      (dimfi (!name f-inst))
+      (dimfi (format #f "~4,,,' @A" "<=") args))
     (let ((f-inst f-inst)
           (info (!info f-inst))
           (name (!name f-inst))
@@ -80,47 +83,47 @@
           (gi-args-in (!gi-args-in f-inst))
           (n-gi-arg-out (!n-gi-arg-out f-inst))
           (gi-args-out (!gi-args-out f-inst))
-          (gi-arg-result (!gi-arg-result f-inst)))
-      (when (%debug)
-        (dimfi name))
-      (unless (memq 'skip-prepare-gi-arguments args)
-        (callable-prepare-gi-arguments f-inst args))
-      (with-gerror g-error
-                   (g-function-info-invoke info
-                                           gi-args-in
-                                           n-gi-arg-in
-			                   gi-args-out
-                                           n-gi-arg-out
-			                   gi-arg-result
-                                           g-error))
-      (if (> n-gi-arg-out 0)
-          (case return-type
-            ((boolean)
-             (if (gi-strip-boolean-result? name)
-                 (if (callable-return-value->scm f-inst)
+          (gi-arg-result (!gi-arg-result f-inst))
+          (clb-args (if (memq 'skip-prepare-gi-arguments args)
+                        args
+                        (callable-prepare-gi-arguments f-inst args))))
+        (with-g-error g-error
+                      (g-function-info-invoke info
+                                              gi-args-in
+                                              n-gi-arg-in
+			                      gi-args-out
+                                              n-gi-arg-out
+			                      gi-arg-result
+                                              g-error))
+        (if (> n-gi-arg-out 0)
+            (receive (args-out al-out-alist)
+                (callable-args-out->scm f-inst clb-args)
+              (case return-type
+                ((boolean)
+                 (if (gi-strip-boolean-result? name)
+                     (if (callable-return-value->scm f-inst)
+                         (apply values args-out)
+                         (error " " name " failed."))
                      (apply values
-                            (map callable-arg-out->scm (!args-out f-inst)))
-                     (error " " name " failed."))
+                            (cons (callable-return-value->scm f-inst
+                                                              #:al-alist al-out-alist)
+                                  args-out))))
+                ((void)
+                 (when (%debug)
+                   (dimfi (format #f "~4,,,' @A" "  => n/a (void)")))
+                 (apply values args-out))
+                (else
                  (apply values
-                        (cons (callable-return-value->scm f-inst)
-                              (map callable-arg-out->scm (!args-out f-inst))))))
-            ((void)
-             (when (%debug)
-               (dimfi (format #f "~4,,,' @A" "  => n/a (void)")))
-             (apply values
-                    (map callable-arg-out->scm (!args-out f-inst))))
-            (else
-             (let ((args-out (map callable-arg-out->scm (!args-out f-inst))))
-               (apply values
-                      (cons (callable-return-value->scm f-inst #:args-out args-out)
-                            args-out)))))
-          (case return-type
-            ((void)
-             (when (%debug)
-               (dimfi (format #f "~4,,,' @A" "  => n/a (void)")))
-             (values))
-            (else
-             (callable-return-value->scm f-inst)))))))
+                        (cons (callable-return-value->scm f-inst
+                                                          #:al-alist al-out-alist)
+                              args-out)))))
+            (case return-type
+              ((void)
+               (when (%debug)
+                 (dimfi (format #f "~4,,,' @A" "  => n/a (void)")))
+               (values))
+              (else
+               (callable-return-value->scm f-inst)))))))
 
 (define (%o-func f-inst i-func)
   (let* ((import-m (resolve-module '(g-golf hl-api import)))
@@ -208,7 +211,7 @@
              ((interface
                object)
               (match (!type-desc argument)
-                ((type name gi-type g-type confirmed?)
+                ((type name gi-type g-type)
                  (case type
                    ((object
                      interface)

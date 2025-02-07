@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2016 - 2024
+#### Copyright (C) 2016 - 2025
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -58,6 +58,7 @@ SOURCES = \
 	g-golf/glib/quarks.scm			\
 	g-golf/glib/simple-xml-subset-parser.scm \
 	g-golf/glib/date-and-time-functions.scm \
+	g-golf/glib/type-conversion.scm		\
 	g-golf/glib.scm				\
 	g-golf/gobject/type-info.scm		\
 	g-golf/gobject/gobject.scm		\
@@ -149,6 +150,11 @@ CLEANFILES = \
 	meta/g-golf-1.0.pc		\
 	$(GOBJECTS)
 # 	$(bin_SCRIPTS)
+
+clean-local:
+	rm -f $(top_srcdir)/examples/gtk-4/demos/libfpt.so
+	rm -f $(top_srcdir)/examples/gtk-4/demos/*.o
+
 
 ETAGS_ARGS = \
 	$(SOURCES)

@@ -331,11 +331,11 @@ stored in the g-value.
        (if param-arg
            (let ((type-tag (!type-tag param-arg))
                  (type-desc (!type-desc param-arg))
-                 (array-type-desc (!array-type-desc param-arg)))
+                 (sub-type-desc (!sub-type-desc param-arg)))
              (case type-tag
                ((array)
                 (match type-desc
-                  ((array fixed-size is-zero-terminated param-n param-tag)
+                  ((array fixed-size is-zero-terminated param-n param-tag ptr-array)
                    (case param-tag
                      ((utf8
                        filename)
@@ -346,8 +346,8 @@ stored in the g-value.
                                                                  param-args
                                                                  param-n))))
                      ((interface)
-                      (match array-type-desc
-                        ((type name gi-type g-type confirmed?)
+                      (match sub-type-desc
+                        ((type name gi-type g-type)
                          (map (lambda (pointer)
                                 (make gi-type #:g-inst pointer))
                            (if is-zero-terminated
@@ -382,25 +382,6 @@ stored in the g-value.
 
 (define (g-value-ref-param-n param-vals param-args param-n)
   (let* ((%g-value-size (g-value-size))
-         (param-n (if param-args
-                      (match param-args
-                        ((param-arg1 . rest)
-                         (if param-arg1
-                             param-n
-                             ;; When #f is the first argument 'desc', it
-                             ;; means that the closure is a method - see
-                             ;; signal-connect in (g-golf hl-api signal)
-                             ;; to see this 'in action'. In these cases,
-                             ;; the typelib GI information about
-                             ;; 'array-length' argument position must be
-                             ;; increased by one, because the GI
-                             ;; g-type-info-get-array-length returns a
-                             ;; value that does not take the first
-                             ;; method argument into account, the
-                             ;; instance upon which the method is
-                             ;; called.
-                             (+ param-n 1))))
-                      param-n))
          (g-value (gi-pointer-inc param-vals
                                   (* %g-value-size param-n)))
          (param-arg (and param-args

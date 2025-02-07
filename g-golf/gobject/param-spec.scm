@@ -44,7 +44,7 @@
 		warn
 		last)
 
-  #:export (gi-g-param-spec-show
+  #:export (g-param-spec-show
             g-param-spec-type
             g-param-spec-type-name
             g-param-spec-get-default-value
@@ -75,18 +75,18 @@
 
 ")
 
-(define* (gi-g-param-spec-show info
-                               #:optional (port (current-output-port)))
-  (let ((g-type-name (g-param-spec-type-name info)))
+(define* (g-param-spec-show p-spec
+                            #:optional (port (current-output-port)))
+  (let ((g-type-name (g-param-spec-type-name p-spec)))
     (format port "~?" %g-param-spec-fmt
-            (list info
-                  (g-param-spec-get-name info)
-                  (g-param-spec-get-nick info)
-                  (g-param-spec-get-blurb info)
-                  (g-param-spec-type info)
+            (list p-spec
+                  (g-param-spec-get-name p-spec)
+                  (g-param-spec-get-nick p-spec)
+                  (g-param-spec-get-blurb p-spec)
+                  (g-param-spec-type p-spec)
                   g-type-name
                   (g-name->name g-type-name)
-                  (g-param-spec-get-flags info)))
+                  (g-param-spec-get-flags p-spec)))
     (values)))
 
 

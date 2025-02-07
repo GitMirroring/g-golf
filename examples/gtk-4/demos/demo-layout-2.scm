@@ -110,8 +110,9 @@
                                    ;; * as matrix was built to transform points with z = 1,
                                    ;; * prepend a translation to the z = 1 plane.
                                    ;; */
-                                   (transform (gsk-transform-translate-3d transform
-                                                                          '(0 0 1))))
+                                   (point3d (graphene-point3d-init
+                                             (graphene-point3d-alloc) 0 0 1))
+                                   (transform (gsk-transform-translate-3d transform point3d)))
                               (allocate child
                                         w
                                         h

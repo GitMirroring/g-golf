@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2024
+;;;; Copyright (C) 2016 - 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -43,7 +43,7 @@
   #:use-module (rnrs bytevectors)
   #:use-module (rnrs arithmetic bitwise)
   #:use-module (system foreign)
-  #:use-module (srfi srfi-1)
+  #:use-module ((srfi srfi-1) #:hide (map))
   #:use-module (g-golf support libg-golf)
   #:use-module (g-golf support const)
   #:use-module (g-golf support float)
@@ -74,6 +74,7 @@
   #:use-module (g-golf glib quarks)
   #:use-module (g-golf glib simple-xml-subset-parser)
   #:use-module (g-golf glib date-and-time-functions)
+  #:use-module (g-golf glib type-conversion)
   #:use-module (g-golf gobject type-info)
   #:use-module (g-golf gobject gobject)
   #:use-module (g-golf gobject enum-flags)
@@ -182,6 +183,7 @@
                               (g-golf glib quarks)
                               (g-golf glib simple-xml-subset-parser)
                               (g-golf glib date-and-time-functions)
+                              (g-golf glib type-conversion)
 			      (g-golf gobject type-info)
                               (g-golf gobject gobject)
 			      (g-golf gobject enum-flags)
@@ -250,7 +252,8 @@
                  (gi-import-by-name "GLib" name
                                     #:force? force?
                                     #:with-methods? with-methods?))))
-      '(("IOChannel" #t #f)
+      '(("Error" #t #f)
+        ("IOChannel" #t #f)
         ("SpawnFlags" #t #f)
         ("VariantClass" #t #f)
         ("Variant" #t #t)

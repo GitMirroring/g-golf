@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2020 - 2022
+;;;; Copyright (C) 2020 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -203,7 +203,7 @@
 
 (define (g-interface-info-find-method info name)
   (gi->scm (g_interface_info_find_method info
-					 (string->pointer name))
+					 (string->pointer name "utf8"))
            'pointer))
 
 (define (g-interface-info-get-n-signals info)
@@ -215,7 +215,7 @@
 
 (define (g-interface-info-find-signal info name)
   (gi->scm (g_interface_info_find_signal info
-					 (string->pointer name))
+					 (string->pointer name "utf8"))
            'pointer))
 
 (define (g-interface-info-get-n-vfuncs info)
@@ -227,7 +227,7 @@
 
 (define (g-interface-info-find-vfunc info name)
   (gi->scm (g_interface_info_find_vfunc info
-					(string->pointer name))
+					(string->pointer name "utf8"))
            'pointer))
 
 (define (g-interface-info-get-n-constants info)

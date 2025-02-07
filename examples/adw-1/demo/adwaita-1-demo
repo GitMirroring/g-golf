@@ -93,4 +93,6 @@ exec guile -e main -s "$0" "$@"
     g-resources))
 
 (define* (compile-g-resources xml-file target)
-  (system* "glib-compile-resources" "--target" target xml-file))
+  (system (string-append "glib-compile-resources "
+                         "--target " target
+                         " " xml-file)))

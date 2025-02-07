@@ -72,7 +72,7 @@
 
 (define (g-object-class-find-property g-class property-name)
   (gi->scm (g_object_class_find_property g-class
-                                         (string->pointer property-name))
+                                         (string->pointer property-name "utf8"))
            'pointer))
 
 (define (g-object-class-list-properties g-class)
@@ -127,12 +127,12 @@
 
 (define* (g-object-get-property- object name g-value)
   (g_object_get_property object
-			 (string->pointer name)
+			 (string->pointer name "utf8")
 			 g-value))
 
 (define* (g-object-set-property- object name g-value)
   (g_object_set_property object
-			 (string->pointer name)
+			 (string->pointer name "utf8")
 			 g-value))
 
 

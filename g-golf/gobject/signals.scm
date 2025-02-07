@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2023
+;;;; Copyright (C) 2019 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -230,7 +230,7 @@
          (signal-id-bv (make-bytevector uint-size 0))
          (uint32-size (sizeof uint32))
          (detail-bv (make-bytevector uint32-size 0))
-         (parsed? (g_signal_parse_name (string->pointer d-signal)
+         (parsed? (g_signal_parse_name (string->pointer d-signal "utf8")
                                        g-type
                                        (bytevector->pointer signal-id-bv)
                                        (bytevector->pointer detail-bv)

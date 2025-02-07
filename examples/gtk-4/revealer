@@ -73,27 +73,28 @@ exec guile -e main -s "$0" "$@"
 (define (activate app)
   (let ((builder (make <gtk-builder>))
         (ui (string-append (getcwd) "/ui/revealer.ui")))
-    (case (add-from-file builder ui)
-      ((0)
-       (error "<gtk-builder> - add-from-file failed: " ui))
-      (else
-       (let ((window (get-object builder "window"))
-             (revealers (get-revealers builder))
-             (count 0))
-         (g-timeout-add 690
-                        (lambda ()
-                          (let ((revealer (list-ref revealers count)))
-                            (set-reveal-child revealer #t)
-                            (connect revealer
-                                     'notify::child-revealed
-                                     (lambda (r param)
-                                       (change-direction r)))
-                            (set! count (1+ count))
-                            (if (>= count 9)
-                                #f
-                                #t))))
-         (add-window app window)
-         (present window))))))
+    (if (add-from-file builder ui)
+        (let ((window (get-object builder "window"))
+              (revealers (get-revealers builder))
+              (count 0))
+          (g-timeout-add 690
+                         (lambda ()
+                           (let ((revealer (list-ref revealers count)))
+                             (set-reveal-child revealer #t)
+                             (connect revealer
+                                      'notify::child-revealed
+                                      (lambda (r param)
+                                        (change-direction r)))
+                             (set! count (1+ count))
+                             (if (>= count 9)
+                                 #f
+                                 #t))))
+          (add-window app window)
+          (present window))
+        ;; actually, the g-error has been catch by with-g-error already
+        ;; so the code below, till we define and use scheme exceptions,
+        ;; is currently a dead code.
+        (error "<gtk-builder> - add-from-file failed: " ui))))
 
 (define (main args)
   (let ((app (make <gtk-application>

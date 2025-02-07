@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2021 - 2024
+#### Copyright (C) 2021 - 2025
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -22,6 +22,18 @@
 
 
 EXTRA_DIST = \
+	animated-paintable		\
+	clipboard			\
+	css-basics			\
+	drawing-widget			\
+	hello-world			\
+	layout-manager			\
+	layout-manager-2		\
+	peg-solitaire			\
+	revealer			\
+	search-bar			\
+	shortcuts			\
+	simple-paintable		\
 	$(wildcard *.scm)		\
 	$(wildcard demos/*.scm)		\
 	$(wildcard demos/Makefile)	\

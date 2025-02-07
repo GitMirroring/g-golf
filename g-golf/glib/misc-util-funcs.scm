@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2020 - 2021
+;;;; Copyright (C) 2020 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -55,7 +55,7 @@
   (gi->scm (g_get_system_config_dirs) 'strings))
 
 (define (g-get-os-info key-name)
-  (gi->scm (g_get_os_info (string->pointer key-name))
+  (gi->scm (g_get_os_info (string->pointer key-name "utf8"))
            'string))
 
 

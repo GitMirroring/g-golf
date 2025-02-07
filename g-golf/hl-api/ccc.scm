@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -59,11 +59,14 @@
           !is-method?
           !n-arg
           !al-pos
+          !al-pos-in
+          !n-al-pos-in
           !caller-owns
+          !instance-ownership-transfer
           !return-type
           !type-desc
           !is-enum?
-          !array-type-desc
+          !sub-type-desc
           !string-pointer
           !callback-closure
           !bv-cache
@@ -103,11 +106,14 @@
   (is-method? #:accessor !is-method?)
   (n-arg #:accessor !n-arg)
   (al-pos #:accessor !al-pos)
+  (al-pos-in #:accessor !al-pos-in)
+  (n-al-pos-in #:accessor !n-al-pos-in)
   (caller-owns #:accessor !caller-owns)
+  (instance-ownership-transfer #:accessor !instance-ownership-transfer)
   (return-type #:accessor !return-type)
   (type-desc #:accessor !type-desc)
   (is-enum? #:accessor !is-enum?)
-  (array-type-desc #:accessor !array-type-desc)
+  (sub-type-desc #:accessor !sub-type-desc)
   (string-pointer #:accessor !string-pointer)
   (callback-closure #:accessor !callback-closure)
   (bv-cache #:accessor !bv-cache #:init-value #f)

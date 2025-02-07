@@ -33,6 +33,7 @@
   #:export (g-malloc
 	    g-malloc0
 	    g-free
+            #;g-steal-pointer
 	    g-memdup))
 
 
@@ -58,6 +59,10 @@
 
 (define (g-free mem)
   (g_free mem))
+
+;; g_steal_pointer is unavailable in %libglib
+#;(define (g-steal-pointer foreign)
+  (g_steal_pointer foreign))
 
 (define (g-memdup mem n-bytes)
   (if (and (exact-integer? n-bytes)
@@ -88,6 +93,12 @@
 (define g_free
   (pointer->procedure void
                       (dynamic-func "g_free"
+				    %libglib)
+                      (list '*)))
+
+#;(define g_steal_pointer
+  (pointer->procedure '*
+                      (dynamic-func "g_steal_pointer"
 				    %libglib)
                       (list '*)))
 

@@ -1,5 +1,5 @@
 ####
-#### Copyright (C) 2024
+#### Copyright (C) 2024 - 2025
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -47,7 +47,14 @@ all: $(TARGET)
 
 $(TARGET): $(OBJECTS)
 	$(CC) $(CFLAGS) -shared -o $(TARGET) $(OBJECTS) $(LIBS)
+	chmod 0644 $@
 
+# the following should be done, according to debian policy, if the libs
+# are installed - but adding to the $(TARGET): target would require root
+# privs, which is not what we want (till installed).
+# chown root:root $@
+
+.DELETE_ON_ERROR:
 
 clean:
 	rm -f $(OBJECTS)

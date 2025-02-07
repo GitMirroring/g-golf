@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2023
+;;;; Copyright (C) 2016 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -113,7 +113,7 @@
 ;;;
 
 (define (g-type-from-name name)
-  (let ((result (g_type_from_name (string->pointer name))))
+  (let ((result (g_type_from_name (string->pointer name "utf8"))))
     (if (= result 0)
         #f
         result)))

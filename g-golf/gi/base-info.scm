@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2019
+;;;; Copyright (C) 2016 - 2024
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -81,7 +81,7 @@
 
 (define (g-base-info-get-attribute info name)
   (gi->scm (g_base_info_get_attribute info
-                                      (string->pointer name))
+                                      (string->pointer name "utf8"))
            'string))
 
 (define (g-base-info-iterate-attributes info proc)

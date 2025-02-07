@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2023 - 2024
+#### Copyright (C) 2023 - 2025
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -22,6 +22,7 @@
 
 
 EXTRA_DIST = \
+	hello-world
 	$(wildcard *.scm)		\
 	$(wildcard demo/*.scm)		\
 	$(wildcard demo/*.ui)		\

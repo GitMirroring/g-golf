@@ -30,6 +30,8 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
+  #:use-module ((srfi srfi-1)
+                #:select (delete-duplicates third filter-map))
   #:use-module (oop goops)
   #:use-module (g-golf support)
   #:use-module (g-golf gi)
@@ -55,6 +57,7 @@
             callable-prepare-gi-arguments
             scm->gi-argument
             callable-return-value->scm
+            callable-args-out->scm
             callable-arg-out->scm
             gi-argument->scm))
 
@@ -69,28 +72,32 @@
          (g-name (get-keyword #:g-name initargs (g-base-info-get-name info)))
          (name (get-keyword #:name initargs (g-name->name g-name)))
          (return-type-info (g-callable-info-get-return-type info))
-         (return-type (g-type-info-get-tag return-type-info)))
-    (receive (type-desc array-type-desc)
-        (type-description return-type-info #:type-tag return-type)
+         (return-type (g-type-info-get-tag return-type-info))
+         (is-method? (g-callable-info-is-method info))
+         (iot (g-callable-info-get-instance-ownership-transfer info)))
+    (next-method)
+    (receive (type-desc sub-type-desc)
+        (type-description return-type-info
+                          #:type-tag return-type
+                          #:is-method? is-method?)
       (g-base-info-unref return-type-info)
-      (next-method)
-      (unless namespace
-        (mslot-set! self
-                    'namepace (g-base-info-get-namespace info)
-                    'g-name g-name
-                    'name name))
       (mslot-set! self
+                  'namespace (g-base-info-get-namespace info)
+                  'g-name g-name
+                  'name name
                   'can-throw-gerror (g-callable-info-can-throw-gerror info)
-                  'is-method? (g-callable-info-is-method info)
+                  'is-method? is-method?
                   'caller-owns (g-callable-info-get-caller-owns info)
+                  'instance-ownership-transfer iot
                   'return-type return-type
                   'type-desc type-desc
+                  'sub-type-desc sub-type-desc
                   'is-enum? (and (eq? return-type 'interface)
                                       (match type-desc
-                                        ((type name gi-type g-type confirmed?)
+                                        ((type name gi-type g-type)
                                          (or (eq? type 'enum)
                                              (eq? type 'flags)))))
-                  'array-type-desc array-type-desc
+
                   'may-return-null? (g-callable-info-may-return-null info))
       (initialize-callable-arguments self))))
 
@@ -132,17 +139,20 @@
                (n-gi-arg-out 0)
                (args-out '()))
       (if (= i n-arg)
-          (initialize-callable-arguments-final-steps callable
-                                                     is-method?
-                                                     n-arg
-                                                     (reverse al-pos)
-                                                     (reverse arguments)
-                                                     (reverse args-in)
-                                                     (reverse args-out)
-                                                     n-gi-arg-in
-                                                     n-gi-arg-out)
+          ;; we need to complete al-pos (array length position (arg))
+          ;; considering the returned value, which can be an array, the
+          ;; length of which could be specified by an out arg.
+          (let ((al-pos (al-pos-check callable 'out al-pos)))
+            (initialize-callable-arguments-final-steps callable
+                                                       (if is-method? (+ n-arg 1) n-arg)
+                                                       (reverse al-pos)
+                                                       (reverse arguments)
+                                                       (reverse args-in)
+                                                       (reverse args-out)
+                                                       n-gi-arg-in
+                                                       n-gi-arg-out))
           (let* ((arg-info (g-callable-info-get-arg info i))
-                 (argument (make <argument> #:info arg-info)))
+                 (argument (make <argument> #:info arg-info #:is-method? is-method?)))
             (case (!direction argument)
               ((in)
                (mslot-set! argument
@@ -152,7 +162,7 @@
                            'gi-argument-in-bv-pos n-gi-arg-in)
                (loop (+ i 1)
                      (+ arg-pos 1)
-                     (al-pos-check argument al-pos is-method?)
+                     (al-pos-check argument 'in al-pos)
                      (cons argument arguments)
                      (+ n-gi-arg-in 1)
                      (cons argument args-in)
@@ -168,7 +178,7 @@
                            'gi-argument-out-bv-pos n-gi-arg-out)
                (loop (+ i 1)
                      (+ arg-pos 1)
-                     al-pos
+                     (al-pos-check argument 'inout al-pos)
                      (cons argument arguments)
                      (+ n-gi-arg-in 1)
                      (cons argument args-in)
@@ -181,7 +191,7 @@
                            'gi-argument-out-bv-pos n-gi-arg-out)
                (loop (+ i 1)
                      (+ arg-pos 1)
-                     al-pos
+                     (al-pos-check argument 'out al-pos)
                      (cons argument arguments)
                      n-gi-arg-in
                      args-in
@@ -189,25 +199,34 @@
                      (+ n-gi-arg-out 1)
                      (cons argument args-out)))))))))
 
-(define (al-pos-check argument al-pos is-method?)
-  (case (!type-tag argument)
-    ((array)
-     (match (!type-desc argument)
-       ((array fixed-size is-zero-terminated param-n param-tag)
-        (if (= param-n -1)
-            al-pos
-            (let* ((arg-pos (!arg-pos argument))
-                   (param-n (if is-method? (+ param-n 1) param-n))
-                   (u-args-ar-pos (if (< param-n arg-pos) ;; [1]
-                                      (- arg-pos
-                                         (+ (length al-pos) 1))
-                                      (- arg-pos (length al-pos)))))
-              (cons (list u-args-ar-pos
-                          arg-pos ;; 'real' array pos [2]
-                          param-n)
-                    al-pos))))))
+(define (al-pos-check clb/arg direction al-pos)
+  (let ((type-tag (if (is-a? clb/arg <callable>)
+                      (!return-type clb/arg)
+                      (!type-tag clb/arg))))
+    (case type-tag
+      ((array)
+       (match (!type-desc clb/arg)
+         ((array fixed-size is-zero-terminated param-n param-tag ptr-array)
+          (if (= param-n -1)
+              al-pos
+              (if (is-a? clb/arg <callable>)
+                  (cons (list -1
+                              -1
+                              param-n
+                              direction)
+                        al-pos)
+                  (let* ((arg-pos (!arg-pos clb/arg))
+                         (u-args-ar-pos (if (< param-n arg-pos) ;; [1]
+                                            (- arg-pos
+                                               (+ (length al-pos) 1))
+                                            (- arg-pos (length al-pos)))))
+                    (cons (list u-args-ar-pos
+                                arg-pos ;; 'real' array pos [2]
+                                param-n
+                                direction)
+                          al-pos)))))))
       (else
-       al-pos)))
+       al-pos))))
 
 ;; [1]
 
@@ -222,8 +241,7 @@
 ;; cble-args list - we need it to construct the cble-args list
 
 (define (initialize-callable-arguments-final-steps callable
-                                                   is-method?
-                                                   n-arg	;; callable-info-n-args
+                                                   n-arg
                                                    al-pos
                                                    arguments
                                                    args-in
@@ -245,19 +263,40 @@
                              #f))
          (gi-args-out (if gi-args-out-bv
                           (bytevector->pointer gi-args-out-bv)
-                          %null-pointer)))
+                          %null-pointer))
+         ;; we need to remove duplicate entries, as shown by one of the tests
+         ;; gi_marshalling_tests_multi_array_key_value_in, in this case both
+         ;; arrays are mentionning their array-length as 0 (the array length
+         ;; arg pos in the original test function definition. but we can't
+         ;; keep both, otherwise it would provoque 2 additional args at
+         ;; runtime.
+         (al-pos (delete-duplicates al-pos
+                                    (lambda (x y)
+                                      ;; x y pattern (u-pos c-pos l-pos direction)
+                                      ;; we only keep one al-pos list per each l-pos
+                                      ;; distinct value
+                                      (= (third x) (third y)))))
+         (al-pos-in (filter-map (lambda (item)
+                                  (match item
+                                    ((u-pos c-pos l-pos direction)
+                                     (case direction
+                                       ((in inout) item)
+                                       (else #f)))))
+                        al-pos)))
     (when gi-args-in-bv
       (finalize-callable-arguments args-in gi-args-in-bv !gi-argument-in))
     (when gi-args-out-bv
       (finalize-callable-arguments args-out gi-args-out-bv !gi-argument-out))
     (for-each (lambda (item)
                 (match item
-                  ((u-pos c-pos l-pos)
-                   (set! (!al-arg? (list-ref arguments l-pos)) #t))))
+                  ((u-pos c-pos l-pos direction)
+                   (set! (!al-arg? (list-ref arguments l-pos)) item))))
         al-pos)
     (mslot-set! callable
-                'n-arg (if is-method? (+ n-arg 1) n-arg)
+                'n-arg n-arg
                 'al-pos al-pos
+                'al-pos-in al-pos-in
+                'n-al-pos-in (length al-pos-in)
                 'arguments arguments
                 'n-gi-arg-in n-gi-arg-in
                 'args-in args-in
@@ -285,18 +324,20 @@
   (let* ((args-length (length args))
          (n-arg (!n-arg callable))
          (n-arg-in (!n-gi-arg-in callable))
-         (al-pos (!al-pos callable))
-         (effective-n-arg-in (- n-arg-in (length al-pos)))
+         (al-pos-in (!al-pos-in callable))
+         (n-al-pos-in (!n-al-pos-in callable))
+         (effective-n-arg-in (- n-arg-in n-al-pos-in))
          (override? (!override? callable)))
     (if (or (and (or override?
                      (is-a? callable <callback>))
                  (= args-length n-arg))
             (= args-length effective-n-arg-in))
-        (let ((args (if (null? al-pos)
-                        args
-                        (u-args->cble-args n-arg-in args al-pos))))
-          (callable-prepare-gi-args-in callable args)
-          (callable-prepare-gi-args-out callable args args-length n-arg))
+        (let ((clb-args (if (null? al-pos-in)
+                            args
+                            (u-args->cble-args n-arg-in args al-pos-in))))
+          (callable-prepare-gi-args-in callable clb-args)
+          (callable-prepare-gi-args-out callable clb-args args-length n-arg)
+          clb-args)
         (scm-error 'wrong-arg-nb #f "Wrong number of arguments: ~A ~S"
                    (list (!name callable) args) #f))))
 
@@ -317,40 +358,50 @@
 
 ;; [1]
 
-;; 0.	u-args ar-pos
-;; 1.	cble-arg ar-pos
-;; 2.	cble-arg al-pos
+;; an al-pos (array length position) entry is made of 3 items, which are
+;; named (when calling match upon such an al-pos entry) u-pos c-pos
+;; l-pos, integers that correspond to:
+
+;;   u-pos 	the position of the array in the user args list
+;;   c-pos 	the position of the array in the callable args list
+;;   l-pos)	the position of the aray length in the callable args list
 
 !#
 
-(define (u-args->cble-args n-arg-in u-args al-pos)
-  (let loop ((i 0)
-             (args u-args)
-             (al-pos al-pos)
-             (cble-args '()))
-    (if (= i n-arg-in)
-        (reverse! cble-args)
-        (if (null? al-pos)
-            (loop (+ i 1)
-                  (cdr args)
-                  '()
-                  (cons (car args) cble-args))
-            (match (car al-pos)
-              ((u-pos c-pos l-pos)
-               (if (= i l-pos)
-                   (let ((ar (list-ref u-args u-pos)))
-                     (loop (+ i 1)
-                           args
-                           (cdr al-pos)
-                           (cons (cond ((list? ar) (length ar))
-                                       ((string? ar) -1)
-                                       (else
-                                        (error "What array is this " ar)))
-                                 cble-args)))
-                   (loop (+ i 1)
-                         (cdr args)
-                         al-pos
-                         (cons (car args) cble-args)))))))))
+(define (u-args->cble-args n-arg-in u-args al-pos-in)
+  (if (null? al-pos-in)
+      u-args
+      (let loop ((i 0)
+                 (args u-args)
+                 (al-pos-in al-pos-in)
+                 (cble-args '()))
+        (if (= i n-arg-in)
+            (reverse! cble-args)
+            (if (null? al-pos-in)
+                (loop (+ i 1)
+                      (cdr args)
+                      '()
+                      (cons (car args) cble-args))
+                (match (car al-pos-in)
+                  ((u-pos c-pos l-pos direction)
+                   (if (= i l-pos)
+                       (let ((ar (list-ref u-args u-pos)))
+                         (loop (+ i 1)
+                               args
+                               (cdr al-pos-in)
+                               (cons (cond ((list? ar) (length ar))
+                                           ((string? ar) (string-utf8-length ar))
+                                           ;; #f is also admitted as an empty array
+                                           ((not ar) 0)
+                                           (else
+                                            (error "What array is this " ar)))
+                                     cble-args)))
+                       (loop (+ i 1)
+                             (cdr args)
+                             al-pos-in
+                             (cons (car args) cble-args))))
+                  (else
+                   (error "What al-pos-in is this:" (car al-pos-in)))))))))
 
 (define %maybe-null-exceptions
   '(child-setup-data-destroy
@@ -363,13 +414,12 @@
 (define (callable-prepare-gi-args-in callable args)
   (let ((is-method? (!is-method? callable))
         (g-value-ptr? (preserve-g-value-ptr? callable)))
-    (let loop ((i 0)
-               (arguments (!args-in callable)))
+    (let loop ((arguments (!args-in callable)))
       (match arguments
         (() 'done)
         ((argument . rest)
          (let* ((arg-pos (!arg-pos argument))
-                (value (list-ref args #;i arg-pos))
+                (value (list-ref args arg-pos))
                 (is-pointer? (!is-pointer? argument))
                 (gi-argument (!gi-argument-in argument))
                 (field (!gi-argument-field argument)))
@@ -382,9 +432,10 @@
                              #:may-be-null-acc !may-be-null?
                              #:is-method? is-method?
                              #:forced-type (!forced-type argument)
-                             #:g-value-ptr? (assq-ref g-value-ptr? i))
-           (loop (+ i 1)
-                 rest)))))))
+                             #:g-value-ptr? (assq-ref g-value-ptr? arg-pos)
+                             #:direction (!direction argument)
+                             #:transfer (!transfer argument))
+           (loop rest)))))))
 
 (define* (scm->gi-argument type-tag
                            type-desc
@@ -397,17 +448,17 @@
                            (may-be-null-acc #f)
                            (is-method? #f)
                            (forced-type #f)
-                           (g-value-ptr? #f))
+                           (g-value-ptr? #f)
+                           (direction 'n/a)
+                           (transfer #f))
   (when (%debug)
     #;(dimfi " " 'scm->gi-argument)
     (dimfi (format #f "~20,,,' @A:" (!name clb/arg)) value)
-    #;(dimfi (format #f "~20,,,' @A:" 'type-tag) type-tag)
-    #;(dimfi (format #f "~20,,,' @A:" 'type-desc) type-desc)
-    #;(dimfi (format #f "~20,,,' @A:" 'forced-type) forced-type)
-    #;(dimfi (format #f "~20,,,' @A:" 'ffi-arg?) ffi-arg?))
-  (let ((%g-golf-callback-closure
-         (@ (g-golf hl-api callback) g-golf-callback-closure))
-        (may-be-null? (may-be-null-acc clb/arg)))
+    (dimfi (format #f "~20,,,' @A:" 'type-tag) type-tag)
+    (dimfi (format #f "~20,,,' @A:" 'type-desc) type-desc)
+    (dimfi (format #f "~20,,,' @A:" 'forced-type) forced-type)
+    (dimfi (format #f "~20,,,' @A:" 'ffi-arg?) ffi-arg?))
+  (let ((may-be-null? (may-be-null-acc clb/arg)))
     ;; clearing references kept from a previous call.
     (mslot-set! clb/arg
                 'string-pointer #f
@@ -417,50 +468,73 @@
     (case type-tag
       ((interface)
        (match type-desc
-         ((type name gi-type g-type confirmed?)
+         ((type name gi-type g-type)
           (case type
-            ((enum)
-             (let ((e-val (enum->value gi-type value)))
-               (if e-val
-                   (gi-argument-set! gi-argument 'v-int e-val)
-                   (error "No such symbol " value " in " gi-type))))
-            ((flags)
-             (let ((f-val (flags->integer gi-type value)))
-               (if f-val
-                   (gi-argument-set! gi-argument 'v-int f-val)
-                   (error "No such flag(s) " value " in " gi-type))))
+            ((enum
+              flags)
+             (let ((val (case type
+                          ((enum)
+                           (or (enum->value gi-type value)
+                               (error "No such symbol " value " in " gi-type)))
+                          ((flags)
+                           (or (flags->integer gi-type value)
+                               (error "No such flags " value " in " gi-type))))))
+               (case direction
+                 ((inout)
+                  ;; we need 1 further indirection
+                  (receive (make-bv bv-ref bv-set!)
+                      (gi-type-tag->bv-acc 'int32)
+                    (let* ((bv-cache (!bv-cache clb/arg))
+                           (bv-cache-ptr (!bv-cache-ptr clb/arg))
+                           (bv (or bv-cache (make-bv 1 0)))
+                           (bv-ptr (or bv-cache-ptr
+                                       (bytevector->pointer bv))))
+                      (unless bv-cache
+                        (mslot-set! clb/arg
+                                    'bv-cache bv
+                                    'bv-cache-ptr bv-ptr))
+                      (bv-set! bv 0 val)
+                      (gi-argument-set! gi-argument 'v-pointer bv-ptr))))
+                 (else
+                  (gi-argument-set! gi-argument 'v-int val)))))
             ((struct)
-             (case name
-               ((void
-                 g-value)
-                ;; Struct for which the (symbol) name is void should be
-                ;; considerd opaque.  Functions and methods that use
-                ;; GValue(s) should be overridden-ed/manually wrapped to
-                ;; initialize those g-value(s) - and here, value is
-                ;; supposed to (always) be a valid pointer to an
-                ;; initialized GValue.
-                (gi-argument-set! gi-argument 'v-pointer value))
-               ((g-closure)
-                ;; FIXME - as till this patch we accepted a pointer (to
-                ;; a GClosure), we'll keep that possibility for now, but
-                ;; later we should only accept procedure ...
-                (gi-argument-set! gi-argument 'v-pointer
-                                  (if value
-                                      (if (procedure? value)
-                                          (!g-closure (make <closure>
-                                                        #:function value
-                                                        #:g-value-ptr? g-value-ptr?))
-                                          value)
-                                      #f)))
-
-               (else
-                (gi-argument-set! gi-argument 'v-pointer
-                                  (cond ((or (!is-opaque? gi-type)
-                                             (!is-semi-opaque? gi-type))
-                                         value)
-                                        (else
-                                         (make-c-struct (!scm-types gi-type)
-                                                        value)))))))
+             (let ((foreign
+                    (case name
+                      ((void
+                        g-value)
+                       ;; Struct for which the (symbol) name is void should be
+                       ;; considerd opaque.  Functions and methods that use
+                       ;; GValue(s) should be overridden-ed/manually wrapped to
+                       ;; initialize those g-value(s) - and here, value is
+                       ;; supposed to (always) be a valid pointer to an
+                       ;; initialized GValue.
+                       (or value %null-pointer))
+                      ((g-closure)
+                       ;; FIXME - as till this patch we accepted a pointer (to
+                       ;; a GClosure), we'll keep that possibility for now, but
+                       ;; later we should only accept procedure ...
+                       (if value
+                           (if (procedure? value)
+                               (!g-closure (make <closure>
+                                             #:function value
+                                             #:g-value-ptr? g-value-ptr?))
+                               value)
+                           %null-pointer))
+                      (else
+                       (if (or (!is-opaque? gi-type)
+                               (!is-semi-opaque? gi-type))
+                           (or value %null-pointer)
+                           (scm->gi-struct value (list gi-type transfer)))))))
+               (gi-argument-set! gi-argument 'v-pointer
+                                 (case direction
+                                   ((inout)
+                                    ;; we need 1 further indirection
+                                    (let* ((bv (make-bytevector (sizeof '*) 0))
+                                           (bv-ptr (bytevector->pointer bv)))
+                                      (bv-ptr-set! bv-ptr foreign)
+                                      bv-ptr))
+                                   (else
+                                    foreign)))))
             ((union)
              (gi-argument-set! gi-argument 'v-pointer value))
             ((object
@@ -472,102 +546,76 @@
                                        %null-pointer
                                        (error "Invalid argument: " value)))))
             ((callback)
-             (gi-argument-set! gi-argument 'v-pointer
-                               (if value
-                                   (receive (native-ptr callback-closure)
-                                       (%g-golf-callback-closure gi-type value)
-                                     (set! (!callback-closure clb/arg) callback-closure)
-                                     native-ptr)
-                                   (if (or may-be-null?
-                                           (>= (!destroy clb/arg) 0)
-                                           ;; caution, check against the clb/arg name,
-                                           ;; not the type-desc name, which is #f
-                                           (maybe-null-exception? (!name clb/arg)))
-                                       #f
-                                       (error "Invalid argument: " value)))))))))
+             (let ((%g-golf-callback-closure
+                    (@ (g-golf hl-api callback) g-golf-callback-closure)))
+               (gi-argument-set! gi-argument 'v-pointer
+                                 (if value
+                                     (receive (native-ptr callback-closure)
+                                         (%g-golf-callback-closure gi-type value)
+                                       (set! (!callback-closure clb/arg) callback-closure)
+                                       native-ptr)
+                                     (if (or may-be-null?
+                                             (>= (!destroy clb/arg) 0)
+                                             ;; caution, check against the clb/arg name,
+                                             ;; not the type-desc name, which is #f
+                                             (maybe-null-exception? (!name clb/arg)))
+                                         #f
+                                         (error "Invalid argument: " value))))))))))
       ((array)
        (if (or (not value)
                (null? value))
            (if may-be-null?
                (gi-argument-set! gi-argument 'v-pointer #f)
                (error "Invalid array argument: " value))
-           (match type-desc
-             ((array fixed-size is-zero-terminated param-n param-tag)
-              (let* ((param-n (if (= param-n -1)
-                                  -1
-                                  (if is-method? (+ param-n 1) param-n)))
-                     (arg-n (if (= param-n -1)
-                                -1
-                                (list-ref args param-n))))
-                (case param-tag
-                  ((utf8
-                    filename)
-                   (gi-argument-set! gi-argument 'v-pointer
-                                     (if (or is-zero-terminated
-                                             (= arg-n -1))
-                                         (scm->gi-strings value)
-                                         (scm->gi-n-string value arg-n))))
-                  ((gtype)
-                   (gi-argument-set! gi-argument 'v-pointer
-                                     (if (or is-zero-terminated
-                                             (= arg-n -1))
-                                         (warning
-                                          "Unimplemented (prepare args-in) scm->gi-gtypes."
-                                          "")
-                                         (scm->gi-n-gtype value arg-n))))
-                  ((uint8)
-                   ;; this is most likely a string, but we will check
-                   ;; and also (blindingly) accept a pointer.
-                   (cond ((string? value)
-                          (let ((string-pointer (string->pointer value)))
-                            (set! (!string-pointer clb/arg) string-pointer)
-                            ;; don't use 'v-string, which expects a
-                            ;; string, calls string->pointer (and does
-                            ;; not keep a reference).
-                            (gi-argument-set! gi-argument 'v-pointer string-pointer)))
-                         ((pointer? value)
-                          ;; as said above, we blindingly accept a pointer
-                          (gi-argument-set! gi-argument 'v-pointer value))
-                         (else
-                          (error "Invalid (uint8 array) argument: " value))))
-                  ((interface)
-                   (match (!array-type-desc clb/arg)
-                     ((type name gi-type g-type confirmed?)
-                      (case type
-                        ((object)
-                         (let ((ptrs (map !g-inst value)))
-                           (gi-argument-set! gi-argument 'v-pointer
-                                             (if (or is-zero-terminated
-                                                     (= arg-n -1))
-                                                 (scm->gi-pointers ptrs)
-                                                 (scm->gi-n-pointer ptrs arg-n)))))
-                        (else
-                         (warning "Unimplemented (prepare args-in) type - array;"
-                                  (format #f "~S" type-desc)))))))
-                  (else
-                   (warning "Unimplemented (prepare args-in) type - array;"
-                            (format #f "~S" type-desc)))))))))
-      ((glist)
+           (let* ((array (scm->gi-array value
+                                        (list type-desc
+                                              (!sub-type-desc clb/arg)
+                                              transfer)))
+                  (array-ptr (if (pointer? array)
+                                 ;; scm->gi-array may return a pointer already,
+                                 ;; such as for strings, filename ...
+                                 array
+                                 (bytevector->pointer array))))
+             (case direction
+               ((inout)
+                ;; we need 1 further indirection
+                (let* ((bv (make-bytevector (sizeof '*) 0))
+                       (bv-ptr (bytevector->pointer bv)))
+                  (mslot-set! clb/arg
+                              'bv-cache bv
+                              'bv-cache-ptr bv-ptr)
+                  (bv-ptr-set! bv-ptr array-ptr)
+                  (gi-argument-set! gi-argument 'v-pointer bv-ptr)))
+               (else
+                (unless (eq? transfer 'everything)
+                  (mslot-set! clb/arg
+                              'bv-cache array
+                              'bv-cache-ptr array-ptr))
+                (gi-argument-set! gi-argument 'v-pointer array-ptr))))))
+      ((glist
+        gslist)
        (if (or (not value)
                (null? value))
            (if may-be-null?
                (gi-argument-set! gi-argument 'v-pointer #f)
                (error "Invalid glist argument: " value))
-           (warning "Unimplemented type" (symbol->string type-tag))))
-      ((gslist)
-       (if (or (not value)
-               (null? value))
-           (if may-be-null?
-               (gi-argument-set! gi-argument 'v-pointer #f)
-               (error "Invalid gslist argument: " value))
-           (match type-desc
-             ((type name gi-type g-type confirmed?)
-              (case type
-                ((object)
-                 (gi-argument-set! gi-argument 'v-pointer
-                                   (scm->gi-gslist (map !g-inst value))))
-                (else
-                 (warning "Unimplemented gslist subtype" type-desc)))))))
+           (let ((g-first (case type-tag
+                            ((glist)
+                             (scm->gi-glist value type-desc))
+                            ((gslist)
+                             (scm->gi-gslist value type-desc)))))
+             (case direction
+               ((inout)
+                ;; we need 1 further indirection
+                (let* ((bv (make-bytevector (sizeof '*) 0))
+                       (bv-ptr (bytevector->pointer bv)))
+                  (slot-set! clb/arg 'bv-cache-ptr bv-ptr)
+                  (bv-ptr-set! bv-ptr g-first)
+                  (gi-argument-set! gi-argument 'v-pointer bv-ptr)))
+               (else
+                (unless (eq? transfer 'everything)
+                  (slot-set! clb/arg 'bv-cache-ptr g-first))
+                (gi-argument-set! gi-argument 'v-pointer g-first))))))
       ((ghash
         error)
        (if (not value)
@@ -584,11 +632,20 @@
            (if may-be-null?
                (gi-argument-set! gi-argument 'v-pointer #f)
                (error "Invalid " type-tag " argument: " #f))
-           (let ((string-pointer (string->pointer value)))
-             (set! (!string-pointer clb/arg) string-pointer)
+           (let ((foreign (string->pointer value "utf8")))
+             (set! (!string-pointer clb/arg) foreign)
              ;; don't use 'v-string, which expects a string, calls
              ;; string->pointer (and does not keep a reference).
-             (gi-argument-set! gi-argument 'v-pointer string-pointer))))
+             (gi-argument-set! gi-argument 'v-pointer
+                                 (case direction
+                                   ((inout)
+                                    ;; we need 1 further indirection
+                                    (let* ((bv (make-bytevector (sizeof '*) 0))
+                                           (bv-ptr (bytevector->pointer bv)))
+                                      (bv-ptr-set! bv-ptr foreign)
+                                      bv-ptr))
+                                   (else
+                                    foreign))))))
       (else
        ;; Here starts fundamental types. However, we still need to check
        ;; the forced-type slot-value, and when it is a pointer, allocate
@@ -596,43 +653,45 @@
        ;; gi-argument to a pointer to the alocated mem.
        (case forced-type
          ((pointer)
-          (if (not value)
-              (if may-be-null?
-                  (gi-argument-set! gi-argument 'v-pointer #f)
-                  (error "Invalid (pointer to) " type-tag " argument: " value))
-              (case type-tag
-                ((boolean
-                  int8 uint8
-                  int16 uint16
-                  int32 uint32
-                  int64 uint64
-                  float double
-                  gtype)
-                 (receive (make-bv bv-ref bv-set!)
-                     (gi-type-tag->bv-acc type-tag)
-                   (if ffi-arg?
-                       (let* ((foreign (gi-argument-ref gi-argument 'v-pointer))
-                              (bv-ptr (dereference-pointer foreign))
-                              (bv-size (sizeof (primitive-eval type-tag)))
-                              (bv (pointer->bytevector bv-ptr bv-size)))
-                         (bv-set! bv 0 value))
-                       (let* ((bv-cache (!bv-cache clb/arg))
-                              (bv-cache-ptr (!bv-cache-ptr clb/arg))
-                              (bv (or bv-cache (make-bv 1 0)))
-                              (bv-ptr (or bv-cache-ptr
-                                          (bytevector->pointer bv))))
-                         (unless bv-cache
-                           (mslot-set! clb/arg
-                                       'bv-cache bv
-                                       'bv-cache-ptr bv-ptr))
-                         (bv-set! bv 0 value)
-                         (gi-argument-set! gi-argument 'v-pointer bv-ptr)))))
-                ((void)
-                 ;; Till proved wrong, we'll consider those opaque
-                 ;; pointers.
-                 (gi-argument-set! gi-argument 'v-pointer value))
-                (else
-                 (warning "Unimplemented (pointer to): " type-tag)))))
+          ;; in this case, unlike i wrongly tought before this patch,
+          ;; may-be-null? (can be) is #f, as we need a valid pointer,
+          ;; which is dereferenced to retreive the 'out argument value.
+          (case type-tag
+            ((boolean
+              int8 uint8
+              int16 uint16
+              int32 uint32
+              int64 uint64
+              float double
+              gtype)
+             (receive (make-bv bv-ref bv-set!)
+                 (gi-type-tag->bv-acc type-tag)
+               (if ffi-arg?
+                   (let* ((foreign (gi-argument-ref gi-argument 'v-pointer))
+                          (bv-ptr (dereference-pointer foreign))
+                          (bv-size (sizeof (primitive-eval type-tag)))
+                          (bv (pointer->bytevector bv-ptr bv-size)))
+                     (bv-set! bv 0 value))
+                   (let* ((bv-cache (!bv-cache clb/arg))
+                          (bv-cache-ptr (!bv-cache-ptr clb/arg))
+                          (bv (or bv-cache (make-bv 1 0)))
+                          (bv-ptr (or bv-cache-ptr
+                                      (bytevector->pointer bv))))
+                     (unless bv-cache
+                       (mslot-set! clb/arg
+                                   'bv-cache bv
+                                   'bv-cache-ptr bv-ptr))
+                     (bv-set! bv 0
+                              (case type-tag
+                                ((boolean) (if value 1 0))
+                                (else value)))
+                     (gi-argument-set! gi-argument 'v-pointer bv-ptr)))))
+            ((void)
+             ;; Till proved wrong, we'll consider those opaque
+             ;; pointers.
+             (gi-argument-set! gi-argument 'v-pointer value))
+            (else
+             (warning "Unimplemented (pointer to): " type-tag))))
          (else
           (gi-argument-set! gi-argument
                             (gi-type-tag->field type-tag)
@@ -680,7 +739,7 @@
                      (case type-tag
                        ((interface)
                         (match type-desc
-                          ((type name gi-type g-type confirmed?)
+                          ((type name gi-type g-type)
                            (case type
                              ((enum
                                flags)
@@ -703,7 +762,7 @@
                                      (let ((bv (make-bytevector (sizeof '*) 0)))
                                        (mslot-set! arg-out
                                                    'bv-cache #f
-                                                   'bv-cache-ptr %null-pointer)
+                                                   'bv-cache-ptr #f)
                                        (gi-argument-set! gi-argument-out 'v-pointer
                                                          (bytevector->pointer bv)))))))
 
@@ -717,16 +776,43 @@
                                                     %null-pointer)))))))
                        ((array)
                         (match type-desc
-                          ((array fixed-size is-zero-terminated param-n param-tag)
-                           ;; (gi-argument-set! gi-argument-out 'v-pointer %null-pointer)
-                           (warning "Unimplemented (prepare args-out) type - array;"
-                                    (format #f "~S" type-desc)))))
+                          ((array fixed-size is-zero-terminated param-n param-tag ptr-array)
+                           (let* ((bv (if is-caller-allocate?
+                                          (case param-tag
+                                            ((interface)
+                                             ;; likely an array of struct
+                                             (match (!sub-type-desc arg-out)
+                                               ((type r-name gi-struct id)
+                                                (case type
+                                                  ((struct)
+                                                   (let* ((s-size (!size gi-struct))
+                                                          (n-item fixed-size))
+                                                     (make-bytevector (* n-item s-size))))
+                                                  (else
+                                                   (error "what array description is this?"))))))
+                                            (else
+                                             (receive (make-bv bv-ref bv-set!)
+                                                 (gi-type-tag->bv-acc param-tag)
+                                               (make-bv fixed-size))))
+                                          (make-bytevector (sizeof '*))))
+                                  (bv-ptr (bytevector->pointer bv)))
+                             (mslot-set! arg-out
+                                         'bv-cache bv
+                                         'bv-cache-ptr bv-ptr)
+                             (gi-argument-set! gi-argument-out 'v-pointer bv-ptr)))))
                        ((glist
-                         gslist
-                         ghash
-                         error)
+                         gslist)
+                        (if is-pointer?
+                            (let ((bv (make-bytevector (sizeof '*) 0)))
+                              (gi-argument-set! gi-argument-out 'v-pointer
+                                                (bytevector->pointer bv)))
+                            (gi-argument-set! gi-argument-out 'v-pointer
+                                              %null-pointer)))
+                       ((ghash)
                         (warning "Unimplemented type" (symbol->string type-tag))
                         (gi-argument-set! gi-argument-out 'v-pointer %null-pointer))
+                       ((error)
+                        (gi-argument-set! gi-argument-out 'v-pointer (gi-pointer-new)))
                        ((utf8
                          filename)
                         (if is-pointer?
@@ -753,23 +839,58 @@
                         (gi-argument-set! gi-argument-out 'v-ulong 0))))))
             (loop (+ i 1)))))))
 
-(define (callable-arg-out->scm argument)
+(define (callable-args-out->scm callable u-args)
+  ;; some out arg(s) are array length (for other out arg(s)) and need to
+  ;; be retrieved first, as they are required to build the corresponding
+  ;; array.
+  (receive (al-out-args out-args)
+      (split-out-args (!args-out callable))
+    (let* ((al-out-arg-vals (map (lambda (arg)
+                                   (let ((arg-pos (!arg-pos arg)))
+                                     (cons arg-pos
+                                           (callable-arg-out->scm arg))))
+                              al-out-args))
+           (out-arg-vals (map (lambda (arg)
+                                (cons (!arg-pos arg)
+                                      (callable-arg-out->scm arg
+                                                             #:al-alist al-out-arg-vals)))
+                           out-args))
+           (out-args (sort (append al-out-arg-vals
+                                   out-arg-vals)
+                           (lambda (a b)
+                             (< (car a) (car b))))))
+      (values (map cdr out-args)
+              al-out-arg-vals))))
+
+(define* (callable-arg-out->scm argument
+                                #:key (al-alist '()))
   (let* ((type-tag (!type-tag argument))
          (type-desc (!type-desc argument))
          (gi-argument (!gi-argument-out argument))
+         (is-caller-allocate? (!is-caller-allocate? argument))
          (forced-type (!forced-type argument))
          (is-pointer? (!is-pointer? argument))
          (value (gi-argument->scm type-tag
                                   type-desc
                                   gi-argument
                                   argument ;; the type-desc instance 'owner'
+                                  #:is-caller-allocate? is-caller-allocate?
                                   #:forced-type forced-type
-                                  #:is-pointer? is-pointer?)))
+                                  #:is-pointer? is-pointer?
+                                  #:direction (!direction argument)
+                                  #:transfer (!transfer argument)
+                                  #:al-alist al-alist)))
     (when (%debug)
-      (dimfi (format #f "~20,,,' @A:" (!name argument)) value " [ out arg ]"))
+      (let ((n-pos (string-length (format #f "~A" value))))
+        (dimfi (format #f "~?"
+                       (string-append "~A ~"
+                                      (number->string (- 30 n-pos))
+                                      ",,,' @A")
+                       (list (format #f "~20,,,' @A: ~S" (!name argument) value)
+                             " [ out arg ]")))))
     value))
 
-(define* (callable-return-value->scm callable #:key (args-out #f))
+(define* (callable-return-value->scm callable #:key (al-alist '()))
   (let* ((type-tag (!return-type callable))
          (type-desc (!type-desc callable))
          (gi-argument (!gi-arg-result callable))
@@ -777,17 +898,22 @@
                                   type-desc
                                   gi-argument
                                   callable ;; the type-desc instance 'owner'
-                                  #:args-out args-out)))
+                                  #:transfer (!caller-owns callable)
+                                  #:al-alist al-alist)))
     (when (%debug)
       #;(dimfi (format #f "~4,,,' @A" " =>") value "[" (!name callable) "]")
       (dimfi (format #f "~4,,,' @A" " =>") value))
     value))
 
 (define* (gi-argument->scm type-tag type-desc gi-argument clb/arg
-                           #:key (forced-type #f)
+                           #:key
+                           (is-caller-allocate? #f)
+                           (forced-type #f)
                            (is-pointer? #f)
-                           (args-out #f)
-                           (g-value-ptr? #f))
+                           (g-value-ptr? #f)
+                           (direction 'n/a)
+                           (transfer #f)
+                           (al-alist '()))
   ;; forced-type is only used for 'inout and 'out arguments, in which
   ;; case it is 'pointer - see 'simple' types below.
 
@@ -798,32 +924,29 @@
   (case type-tag
     ((interface)
      (match type-desc
-       ((type name gi-type g-type confirmed?)
+       ((type name gi-type g-type)
         (case type
-          ((enum)
-           (let ((val (case forced-type
-                        ((pointer)
-                         (let* ((foreign (gi-argument-ref gi-argument 'v-pointer))
-                                (bv (pointer->bytevector foreign (sizeof int))))
-                           (s32vector-ref bv 0)))
-                        (else
-                         (gi-argument-ref gi-argument 'v-int)))))
-             (or (enum->symbol gi-type val)
-                 (error "No such " name " value: " val))))
-          ((flags)
-           (let ((val (case forced-type
-                        ((pointer)
-                         (let* ((foreign (gi-argument-ref gi-argument 'v-pointer))
-                                (bv (pointer->bytevector foreign (sizeof int))))
-                           (s32vector-ref bv 0)))
-                        (else
-                         (gi-argument-ref gi-argument 'v-int)))))
-             (integer->flags gi-type val)))
+          ((enum
+            flags)
+           (let ((val
+                  (case direction
+                    ((inout out)
+                     (let* ((foreign (gi-argument-ref gi-argument 'v-pointer))
+                            (bv (pointer->bytevector foreign (sizeof int))))
+                       (s32vector-ref bv 0)))
+                    (else
+                     (gi-argument-ref gi-argument 'v-int)))))
+             (case type
+               ((enum)
+                (enum->symbol gi-type val))
+               ((flags)
+                (integer->flags gi-type val)))))
           ((struct)
            (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
                   (foreign (if is-pointer?
                                (and gi-arg-val
-                                    (dereference-pointer gi-arg-val))
+                                    (gi->scm (dereference-pointer gi-arg-val)
+                                             'pointer))
                                gi-arg-val)))
              (and foreign
                   (case name
@@ -844,7 +967,7 @@
                                ;; memory is allocated by the callee, so we don't
                                ;; need (g-boxed-ga-guard foreign g-type)
                                foreign))
-                         (parse-c-struct foreign (!scm-types gi-type))))))))
+                         (gi-struct->scm foreign (list gi-type transfer))))))))
           ((union)
            (let ((foreign (gi-argument-ref gi-argument 'v-pointer)))
              (case name
@@ -863,62 +986,64 @@
                                (dereference-pointer gi-arg-val)
                                gi-arg-val)))
              (case name
-               ((<g-param>) foreign)
+               ((<g-param>)
+                (gi-pointer->scm foreign))
                (else
                 (and foreign
                      (not (null-pointer? foreign))
                      (receive (class name g-type)
                          (g-object-find-class foreign)
-                       ;; We used to update the clb/arg 'type-desc
-                       ;; argument when it wasn't confirmed?, but that
-                       ;; actually won't work anymore, see the comment
-                       ;; labeled [1] in (g-golf hl-api gobject) for a
-                       ;; complete description. However, I'll keep the
-                       ;; code, commented, for now, until I clear all
-                       ;; occurrences of the confirmed? pattern entries.
-                       #;(unless confirmed?
-                         (set! (!type-desc clb/arg)
-                               (list 'object name class g-type #t)))
                        (make class #:g-inst foreign)))))))))))
     ((array)
-     (match type-desc
-       ((array fixed-size is-zero-terminated param-n param-tag)
-        (case param-tag
-          ((utf8
-            filename)
-           (gi->scm (gi-argument-ref gi-argument 'v-pointer) 'strings))
-          ((gtype)
-           (let ((array-ptr (gi-argument-ref gi-argument 'v-pointer)))
-             (if is-zero-terminated
-                 (gi->scm array-ptr 'gtypes)
-                 (gi->scm array-ptr 'n-gtype (list-ref args-out param-n)))))
-          (else
-           (warning "Unimplemented (arg-out->scm) type - array;"
-                    (format #f "~S" type-desc)))))))
+     (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
+            (foreign (and gi-arg-val
+                          (if is-caller-allocate?
+                              gi-arg-val
+                              (case direction
+                                ((inout out)
+                                 (dereference-pointer gi-arg-val))
+                                (else
+                                 gi-arg-val))))))
+       (and foreign
+            (gi-array->scm foreign
+                           (list type-desc
+                                 (!sub-type-desc clb/arg)
+                                 transfer
+                                 ;; the array length can be given by an out arg
+                                 al-alist)))))
     ((glist
       gslist)
-     (let* ((g-first (gi-argument-ref gi-argument 'v-pointer))
-            (lst (gi->scm g-first type-tag)))
-       (if (null? lst)
-           lst
-           (match type-desc
-             ((type name gi-type g-type confirmed?)
-              (case type
-                ((object)
-                 (match lst
-                   ((x . rest)
-                    (receive (class name g-type)
-                        (g-object-find-class x)
-                      (map (lambda (item)
-                             (make class #:g-inst item))
-                        lst)))))
-                (else
-                 (warning "Unprocessed g-list/g-slist"
-                          (format #f "~S" type-desc))
-                 lst)))))))
-    ((ghash
-      error)
+     (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
+            (g-first (and gi-arg-val
+                          (if is-caller-allocate?
+                              gi-arg-val
+                              (case direction
+                                ((inout out)
+                                 (dereference-pointer gi-arg-val))
+                                (else
+                                 gi-arg-val))))))
+       (and g-first
+            (case type-tag
+              ((glist)
+               (gi-glist->scm g-first (list type-desc transfer)))
+              ((gslist)
+               (gi-gslist->scm g-first (list type-desc transfer)))))))
+    ((ghash)
      (warning "Unimplemented type" (symbol->string type-tag)))
+    ((error)
+     (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
+            (foreign (and gi-arg-val
+                          (if is-caller-allocate?
+                              gi-arg-val
+                              (case direction
+                                ((inout out)
+                                 (gi-pointer->scm (dereference-pointer gi-arg-val)))
+                                (else
+                                 gi-arg-val))))))
+       (and foreign
+            (gi-struct->scm foreign
+                            (list (gi-cache-ref 'boxed 'g-error)
+                                  transfer)))))
     ((utf8
       filename)
      (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
@@ -926,9 +1051,6 @@
                          (dereference-pointer gi-arg-val)
                          gi-arg-val)))
        (gi->scm foreign 'string)))
-    ((gtype)
-     (gi-argument-ref gi-argument
-                      (gi-type-tag->field 'gtype)))
     ((void)
      (let* ((gi-arg-val (gi-argument-ref gi-argument 'v-pointer))
             (foreign (if is-pointer?
@@ -984,7 +1106,7 @@
          (g-name (g-base-info-get-name container))
          (name (g-name->name g-name))
          (type (g-base-info-get-type container)))
-    (receive (id r-name gi-type confirmed?)
+    (receive (g-type r-name gi-type)
         (registered-type->gi-type container type)
       (g-base-info-unref container)
       (make <argument>
@@ -993,7 +1115,7 @@
         #:name name
         #:direction 'in
         #:type-tag 'interface
-        #:type-desc (list type r-name gi-type id confirmed?)
+        #:type-desc (list type r-name gi-type g-type)
         #:is-enum? #f
         #:forced-type 'pointer
         #:is-pointer? #t
@@ -1021,3 +1143,25 @@
        (6 . (1 2))))     ;; transform-from	input output
     (else
      #f)))
+
+
+;;;
+;;; utils
+;;;
+
+(define (split-out-args args)
+  (let loop ((args args)
+             (al-out-args '())
+             (out-args '()))
+    (match args
+      (()
+       (values (reverse al-out-args)
+               (reverse out-args)))
+      ((arg . rest)
+       (if (!al-arg? arg)
+           (loop rest
+                 (cons arg al-out-args)
+                 out-args)
+           (loop rest
+                 al-out-args
+                 (cons arg out-args)))))))
