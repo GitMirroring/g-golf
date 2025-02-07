@@ -114,7 +114,6 @@
 		       %null-pointer
 		       %null-pointer
 		       %null-pointer)))
-
 (define-syntax with-gerror
   (syntax-rules ()
     ((with-gerror ?var ?body)
@@ -129,7 +128,7 @@
                   (g-error (gi-struct->scm d-pointer
                                            (list gi-struct 'everything))))
 	     (g-free ?var)
-	     (error "GError raised " g-error)))))))
+	     (error "GError:" g-error)))))))
 
 
 ;;;
