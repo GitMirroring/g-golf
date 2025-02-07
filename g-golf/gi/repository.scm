@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016, 2024
+;;;; Copyright (C) 2016, 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -97,15 +97,15 @@
 (define* (g-irepository-require namespace
                                 #:key (version #f)
                                 (repository #f))
-  (with-gerror g-error
-	       (g_irepository_require (or repository
-                                          %null-pointer)
-				      (string->pointer namespace "utf8")
-				      (if version
-					  (string->pointer version "utf8")
-					  %null-pointer)
-				      0
-				      g-error)))
+  (with-g-error g-error
+	        (g_irepository_require (or repository
+                                           %null-pointer)
+				       (string->pointer namespace "utf8")
+				       (if version
+					   (string->pointer version "utf8")
+					   %null-pointer)
+				       0
+				       g-error)))
 
 (define* (g-irepository-get-c-prefix namespace
                                      #:key (repository #f))

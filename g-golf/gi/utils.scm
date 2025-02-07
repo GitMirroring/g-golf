@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2024
+;;;; Copyright (C) 2016 - 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -58,7 +58,7 @@
 	    gi-pointer-new
 	    gi-pointer-inc
 	    gi-attribute-iter-new
-	    with-gerror
+	    with-g-error
 	    gi->scm
             gi-boolean->scm
             gi-string->scm
@@ -114,9 +114,9 @@
 		       %null-pointer
 		       %null-pointer
 		       %null-pointer)))
-(define-syntax with-gerror
+(define-syntax with-g-error
   (syntax-rules ()
-    ((with-gerror ?var ?body)
+    ((with-g-error ?var ?body)
      (let* ((?var (gi-pointer-new))
 	    (result ?body)
 	    (d-pointer (dereference-pointer ?var)))

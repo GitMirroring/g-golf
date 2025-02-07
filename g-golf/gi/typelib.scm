@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2016 - 2018
+;;;; Copyright (C) 2016 - 2015
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -51,8 +51,8 @@
 	 (bv-pointer (bytevector->pointer bv))
 	 (bv-length (bytevector-length bv))
 	 (g-bv (g-memdup bv-pointer bv-length)))
-    (with-gerror gerror
-		 (g-typelib-new-from-memory g-bv bv-length gerror))))
+    (with-g-error g-error
+		  (g-typelib-new-from-memory g-bv bv-length g-error))))
 
 (define (call-with-typelib proc typelib)
   (call-with-values
@@ -69,8 +69,8 @@
 ;;; Low level API
 ;;;
 
-(define (g-typelib-new-from-memory bv-pointer bv-length gerror)
-  (g_typelib_new_from_memory bv-pointer bv-length gerror))
+(define (g-typelib-new-from-memory bv-pointer bv-length g-error)
+  (g_typelib_new_from_memory bv-pointer bv-length g-error))
 
 (define (g-typelib-free typelib)
   (g_typelib_free typelib))

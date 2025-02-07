@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2024
+;;;; Copyright (C) 2019 - 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -87,14 +87,14 @@
           (clb-args (if (memq 'skip-prepare-gi-arguments args)
                         args
                         (callable-prepare-gi-arguments f-inst args))))
-        (with-gerror g-error
-          (g-function-info-invoke info
-                                  gi-args-in
-                                  n-gi-arg-in
-			          gi-args-out
-                                  n-gi-arg-out
-			          gi-arg-result
-                                  g-error))
+        (with-g-error g-error
+                      (g-function-info-invoke info
+                                              gi-args-in
+                                              n-gi-arg-in
+			                      gi-args-out
+                                              n-gi-arg-out
+			                      gi-arg-result
+                                              g-error))
         (if (> n-gi-arg-out 0)
             (receive (args-out al-out-alist)
                 (callable-args-out->scm f-inst clb-args)

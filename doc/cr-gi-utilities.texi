@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2021 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2025 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -20,7 +20,7 @@ G-Golf GObject Introspetion Utilities low level API.@*
 @item @ref{gi-pointer-new}
 @item @ref{gi-pointer-inc}
 @item @ref{gi-attribute-iter-new}
-@item @ref{with-gerror}
+@item @ref{with-g-error}
 @item @ref{gi->scm}
 @item @ref{gi-boolean->scm}
 @item @ref{gi-string->scm}
@@ -99,8 +99,8 @@ to @code{%null-pointer}).
 @end deffn
 
 
-@anchor{with-gerror}
-@deffn Syntax with-gerror var body
+@anchor{with-g-error}
+@deffn Syntax with-g-error var body
 
 Returns the result of the execution of @var{body}, or raises an
 exception.
@@ -119,7 +119,7 @@ returned.
 @c (define* (g-irepository-require namespace
 @c                                 #:key (version #f)
 @c                                 (repository %null-pointer))
-@c   (with-gerror g-error
+@c   (with-g-error g-error
 @c 	       (g_irepository_require repository
 @c 				      (string->pointer namespace)
 @c 				      (if version

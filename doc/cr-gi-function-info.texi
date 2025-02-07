@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2022 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2025 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -170,7 +170,7 @@ must be the @code{%null-pointer}.
 @item @emph{g-error}
 a pointer to a newly allocated (and @samp{empty}) @code{GError} (the
 recommended way for procedure calls that need such a pointer is to
-@samp{surround} the call using @ref{with-gerror}).
+@samp{surround} the call using @ref{with-g-error}).
 @end table
 @end indentedblock
 

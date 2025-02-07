@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2022 - 2023
+;;;; Copyright (C) 2022 - 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -360,17 +360,17 @@ situations a VFunc (method) long name is mandatory and ~S is invalid.")
           (gi-args-out (!gi-args-out callback))
           (gi-arg-result (!gi-arg-result callback))
           (clb-args (callable-prepare-gi-arguments callback args)))
-      (with-gerror g-error
-        (g-callable-info-invoke info
-                                function
-                                gi-args-in
-                                n-gi-arg-in
-			        gi-args-out
-                                n-gi-arg-out
-			        gi-arg-result
-                                (!is-method? callback)
-                                (!can-throw-gerror callback)
-                                g-error))
+      (with-g-error g-error
+                    (g-callable-info-invoke info
+                                            function
+                                            gi-args-in
+                                            n-gi-arg-in
+			                    gi-args-out
+                                            n-gi-arg-out
+			                    gi-arg-result
+                                            (!is-method? callback)
+                                            (!can-throw-gerror callback)
+                                            g-error))
         (if (> n-gi-arg-out 0)
             (receive (args-out al-out-alist)
                 (callable-args-out->scm callback clb-args)
