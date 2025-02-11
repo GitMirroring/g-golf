@@ -63,7 +63,7 @@ Gtk-4.0 examples:
 G-Golf currently needs the following additional software to run its
 Adw-1 examples:
 
-  Adw-1 >= 1.5.0
+  Adw-1 >= 1.7.0
 
 ** Install from the tarball
 
