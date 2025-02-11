@@ -90,7 +90,8 @@
   #:child-ids '("title-entry"))
 
 (define-method (initialize (self <adw-tab-view-demo-page>) initargs)
-  (let ((last-icon (get-keyword #:last-icon initargs #f)))
+  (let ((last-icon (get-keyword #:last-icon initargs #f))
+        (color (get-keyword #:color initargs #f)))
     (next-method)
 
     (bind-properties self)
@@ -99,21 +100,25 @@
       ;; making a new instance, not a duplicate
       (set! (!icon self) (get-random-icon))
       (set! (!last-icon self) (!icon self)))
-    (set-color self (get-random-color))))
+
+    (if color
+        (set-color self color)
+        (set-color self (get-random-color)))))
 
 (define-method (set-color (self <adw-tab-view-demo-page>) a-color)
   (let ((color (!color self)))
-    (unless (= color a-color)
-      (when (> color 0)
-        (remove-css-class self
-                          (format #f "tab-page-color-~A" color)))
-      (when (> a-color 0)
-        (add-css-class self
-                       (format #f "tab-page-color-~A" a-color))))))
+    (when (> color 0)
+      (remove-css-class self
+                        (format #f "tab-page-color-~A" color)))
+    (when (> a-color 0)
+      (add-css-class self
+                     (format #f "tab-page-color-~A" a-color)))
+    (set! (!color self) a-color)))
 
 (define-method (duplicate (self <adw-tab-view-demo-page>))
   (make <adw-tab-view-demo-page>
     #:title (!title self)
+    #:color (!color self)
     #:icon (!icon self)
     #:last-icon (!last-icon self)
     #:icon? (!icon? self)
