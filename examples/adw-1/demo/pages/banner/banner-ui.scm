@@ -42,7 +42,7 @@
      (property (@ (name "title")
                   (translatable "yes")) Title)
      (property (@ (name "use-underline")) True)
-     (property (@ (name "text")) "Metered connection – updates paused")
+     (property (@ (name "text")) "Metered connection — updates paused")
      (property (@ (name "input-hints")) "spellcheck | word-completion | uppercase-sentences")))
 
 (define %banner-pg-child-3
