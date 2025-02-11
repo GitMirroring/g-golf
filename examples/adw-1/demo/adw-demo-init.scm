@@ -1,5 +1,5 @@
 ;;;;
-;;;; Copyright (C) 2024
+;;;; Copyright (C) 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -142,7 +142,8 @@
         "BottomSheet"
         "Layout"
         "LayoutSlot"
-        "SpinnerPaintable")))
+        "SpinnerPaintable"
+        "BannerButtonStyle")))
 
 
 (define %adw-demo-path

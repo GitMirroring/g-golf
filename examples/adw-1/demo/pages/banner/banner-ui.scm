@@ -65,6 +65,18 @@
            (property (@ (name "valign")) center)
            (property (@ (name "active")) True)))))
 
+(define %banner-pg-child-4
+  '(object (@ (class "AdwSwitchRow")
+              (id "button-style-row"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Suggested Style")
+     (property (@ (name "sensitive")
+                  (bind-source "label-switch")
+                  (bind-property "active")
+                  (bind-flags "sync-create")))
+     ;; signal - notify::active - button-style-notify-active-cb - swapped
+     ))
+
 
 (define %banner-page
   `(interface
@@ -108,7 +120,8 @@
                           (object (@ (class "AdwPreferencesGroup"))
                             (child ,%banner-pg-child-1)
                             (child ,%banner-pg-child-2)
-                            (child ,%banner-pg-child-3))))))))))))))
+                            (child ,%banner-pg-child-3)
+                            (child ,%banner-pg-child-4))))))))))))))
 
 
 (define (make-ui)
