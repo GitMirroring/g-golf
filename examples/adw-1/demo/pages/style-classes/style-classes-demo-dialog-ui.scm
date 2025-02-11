@@ -618,7 +618,17 @@ The \"opaque\" style class allows to create buttons with custom colors that look
            (property (@ (name "wrap-mode")) word-char)
            (property (@ (name "max-width-chars")) 25)
            (property (@ (name "tooltip-text")) caption)
-           (style (class (@ (name "caption"))))))))
+           (style (class (@ (name "caption"))))))
+     (child
+         (object (@ (class "GtkLabel"))
+           (property (@ (name "label")
+                        (translatable "yes")) "This is a dimmed paragraph, mostly used for secondary labels or descriptions.")
+           (property (@ (name "xalign")) 0)
+           (property (@ (name "wrap")) True)
+           (property (@ (name "wrap-mode")) word-char)
+           (property (@ (name "max-width-chars")) 25)
+           (property (@ (name "tooltip-text")) dimmed)
+           (style (class (@ (name "dimmed"))))))))
 
 (define %labels
   `(object (@ (class "AdwPreferencesGroup"))
