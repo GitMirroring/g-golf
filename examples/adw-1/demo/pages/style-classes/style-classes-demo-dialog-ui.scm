@@ -827,7 +827,7 @@ The \"card\" style class can be used to achieve the same style with GtkBox or si
      (property (@ (name "title")
                   (translatable "yes")) "Check Buttons")
      (property (@ (name "description")
-                  (translatable "yes")) "The \"selection-mode\" style class makes can be used with GtkCheckButton to make them large and round.")
+                  (translatable "yes")) "The \"selection-mode\" style class can be used with GtkCheckButton to make them large and round.")
      (child
          (object (@ (class "GtkGrid"))
            (property (@ (name "row-spacing")) 6)
