@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023 - 2024
+;;;; Copyright (C) 2023 - 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -82,7 +82,8 @@
 
 (define (install-actions demo-window)
   (let ((action-map (make <g-simple-action-group>))
-        (a-undo (make <g-simple-action> #:name "undo")))
+        (a-undo (make <g-simple-action> #:name "undo"))
+        (a-adaptive-preview (make <g-simple-action> #:name "adaptive-preview")))
 
     (add-action action-map a-undo)
     (connect a-undo
@@ -92,10 +93,25 @@
 
     (insert-action-group demo-window
                          "toast"
+                         action-map)
+
+    (add-action action-map a-adaptive-preview)
+    (connect a-adaptive-preview
+             'activate
+             (lambda (s-action g-variant)
+               (window/adaptive-preview demo-window)))
+
+    (insert-action-group demo-window
+                         "window"
                          action-map)))
 
 (define (toast/undo demo-window)
   (undo (!toasts-page demo-window)))
+
+(define (window/adaptive-preview demo-window)
+  (let ((open (get-adaptive-preview demo-window)))
+    (set-adaptive-preview demo-window (not open))))
+
 
 (define (install-app-actions app)
   (let ((a-inspector (make <g-simple-action> #:name "inspector"))

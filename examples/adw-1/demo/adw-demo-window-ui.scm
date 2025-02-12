@@ -1,7 +1,7 @@
 ;; -*- mode: sxml-ui; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023 - 2024
+;;;; Copyright (C) 2023 - 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -35,7 +35,11 @@
        (item
          (attribute (@ (name "label")
                        (translatable "yes")) _Inspector)
-         (attribute (@ (name "action")) app.inspector)))
+         (attribute (@ (name "action")) app.inspector))
+       (item
+         (attribute (@ (name "label")
+                       (translatable "yes")) "A_daptive Preview")
+         (attribute (@ (name "action")) window.adaptive-preview)))
      (section
        (item
          (attribute (@ (name "label")
