@@ -194,6 +194,13 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageSpinner"))))))
 
+(define %toggle-groups-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Toggle Groups")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageToggleGroups"))))))
+
 (define %adw-demo-window-sidebar
   `(object (@ (class "AdwNavigationPage"))
      (property (@ (name "title")
@@ -248,7 +255,8 @@
          (child ,%banner-page)
          (child ,%bottom-sheets-page)
          (child ,%multi-layout-page)
-         (child ,%spinner-page)))))
+         (child ,%spinner-page)
+         (child ,%toggle-groups-page)))))
 
 (define %adw-demo-window
   `(interface

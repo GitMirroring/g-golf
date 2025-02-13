@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023 - 2024
+;;;; Copyright (C) 2023 - 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -48,6 +48,7 @@
   #:use-module (pages bottom-sheets bottom-sheets)
   #:use-module (pages multi-layout multi-layout)
   #:use-module (pages spinner spinner)
+  #:use-module (pages toggle-groups toggle-groups)
 
   #:duplicates (merge-generics
 		replace
@@ -76,4 +77,5 @@
                               (pages banner banner)
                               (pages bottom-sheets bottom-sheets)
                               (pages multi-layout multi-layout)
-                              (pages spinner spinner)))
+                              (pages spinner spinner)
+                              (pages toggle-groups toggle-groups)))
