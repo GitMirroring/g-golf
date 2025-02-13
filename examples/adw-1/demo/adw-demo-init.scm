@@ -143,7 +143,8 @@
         "Layout"
         "LayoutSlot"
         "SpinnerPaintable"
-        "BannerButtonStyle")))
+        "BannerButtonStyle"
+        "ViewStack")))
 
 
 (define %adw-demo-path
