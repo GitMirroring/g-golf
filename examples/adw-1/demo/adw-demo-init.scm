@@ -48,7 +48,11 @@
         "Icon"
         "ThemedIcon"
         "File"
-         "FileQueryInfoFlags"))
+        "FileQueryInfoFlags"))
+  (g-irepository-require "Pango" #:version "1.0")
+  (for-each (lambda (name)
+              (gi-import-by-name "Pango" name))
+      '("EllipsizeMode"))
   (g-irepository-require "Gtk" #:version "4.0")
   (for-each (lambda (name)
               (gi-import-by-name "Gsk" name))
@@ -144,7 +148,8 @@
         "LayoutSlot"
         "SpinnerPaintable"
         "BannerButtonStyle"
-        "ViewStack")))
+        "ViewStack"
+        "WrapBox")))
 
 
 (define %adw-demo-path

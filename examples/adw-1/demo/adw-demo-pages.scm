@@ -49,6 +49,7 @@
   #:use-module (pages multi-layout multi-layout)
   #:use-module (pages spinner spinner)
   #:use-module (pages toggle-groups toggle-groups)
+  #:use-module (pages wrap-box wrap-box)
 
   #:duplicates (merge-generics
 		replace
@@ -78,4 +79,5 @@
                               (pages bottom-sheets bottom-sheets)
                               (pages multi-layout multi-layout)
                               (pages spinner spinner)
-                              (pages toggle-groups toggle-groups)))
+                              (pages toggle-groups toggle-groups)
+                              (pages wrap-box wrap-box)))

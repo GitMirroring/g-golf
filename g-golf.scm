@@ -43,7 +43,7 @@
   #:use-module (rnrs bytevectors)
   #:use-module (rnrs arithmetic bitwise)
   #:use-module (system foreign)
-  #:use-module ((srfi srfi-1) #:hide (map))
+  #:use-module ((srfi srfi-1) #:hide (map remove))
   #:use-module (g-golf support libg-golf)
   #:use-module (g-golf support const)
   #:use-module (g-golf support float)
@@ -144,7 +144,8 @@
                           delete
                           member
                           map
-                          for-each)
+                          for-each
+                          remove)
   (re-export-public-interface (oop goops)
                               (oop goops describe)
 			      (ice-9 match)

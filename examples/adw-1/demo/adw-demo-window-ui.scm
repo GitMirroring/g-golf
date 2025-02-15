@@ -201,6 +201,13 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageToggleGroups"))))))
 
+(define %wrap-box-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Wrap Box")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageWrapBox"))))))
+
 (define %adw-demo-window-sidebar
   `(object (@ (class "AdwNavigationPage"))
      (property (@ (name "title")
@@ -256,7 +263,8 @@
          (child ,%bottom-sheets-page)
          (child ,%multi-layout-page)
          (child ,%spinner-page)
-         (child ,%toggle-groups-page)))))
+         (child ,%toggle-groups-page)
+         (child ,%wrap-box-page)))))
 
 (define %adw-demo-window
   `(interface
