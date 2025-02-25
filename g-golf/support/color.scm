@@ -133,7 +133,7 @@ the [0,1] range, and 1.0 for the alpha channel."
 	(cc-chan cc 0)
         1.0))
 
-(define (rgba-cc>color cc)
+(define (rgba-cc->color cc)
   "Returns a color, composed of the red, green, blue, alpha values for
 CC, in the [0,1] range."
   (list (cc-chan cc 24)
