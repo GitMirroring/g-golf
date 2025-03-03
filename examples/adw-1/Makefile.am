@@ -22,7 +22,7 @@
 
 
 EXTRA_DIST = \
-	hello-world
+	hello-world                     \
 	$(wildcard *.scm)		\
 	$(wildcard demo/*.scm)		\
 	$(wildcard demo/*.ui)		\
