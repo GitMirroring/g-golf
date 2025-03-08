@@ -40,7 +40,8 @@
 (eval-when (expand load eval)
   (for-each (lambda (name)
               (gi-import-by-name "Gio" name))
-      '("SimpleActionGroup"
+      '("Resource"
+        "SimpleActionGroup"
         "SimpleAction"
         "ActionMap"
         "Menu"
