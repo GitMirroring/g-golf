@@ -38,7 +38,7 @@
   #:use-module (ice-9 format)
   #:use-module (ice-9 match)
   #:use-module (ice-9 receive)
-  #:use-module ((srfi srfi-1) #:select (filter-map find))
+  #:use-module ((srfi srfi-1) #:select (filter-map find remove))
   #:use-module (oop goops)
   #:use-module (g-golf support)
   #:use-module (g-golf glib)
@@ -49,7 +49,8 @@
   #:use-module (g-golf hl-api iface)
 
   #:replace (connect
-             map)
+             map
+             remove)
 
   #:duplicates (merge-generics
 		replace
@@ -100,6 +101,13 @@
 (define-method (map . args)
   "The core Guile implementation of the map call"
   (apply %map args))
+
+(define %remove
+  (module-ref (resolve-module '(srfi srfi-1)) 'remove))
+
+(define-method (remove . args)
+  "The core Guile implementation of the remove call"
+  (apply %remove args))
 
 ;; Same as above, in order to avoid the following warning [1], the
 ;; disconnect gf must be added and exported from this module. This is

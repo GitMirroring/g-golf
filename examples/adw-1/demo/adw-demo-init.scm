@@ -1,5 +1,5 @@
 ;;;;
-;;;; Copyright (C) 2024
+;;;; Copyright (C) 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -40,7 +40,8 @@
 (eval-when (expand load eval)
   (for-each (lambda (name)
               (gi-import-by-name "Gio" name))
-      '("SimpleActionGroup"
+      '("Resource"
+        "SimpleActionGroup"
         "SimpleAction"
         "ActionMap"
         "Menu"
@@ -48,7 +49,11 @@
         "Icon"
         "ThemedIcon"
         "File"
-         "FileQueryInfoFlags"))
+        "FileQueryInfoFlags"))
+  (g-irepository-require "Pango" #:version "1.0")
+  (for-each (lambda (name)
+              (gi-import-by-name "Pango" name))
+      '("EllipsizeMode"))
   (g-irepository-require "Gtk" #:version "4.0")
   (for-each (lambda (name)
               (gi-import-by-name "Gsk" name))
@@ -142,7 +147,10 @@
         "BottomSheet"
         "Layout"
         "LayoutSlot"
-        "SpinnerPaintable")))
+        "SpinnerPaintable"
+        "BannerButtonStyle"
+        "ViewStack"
+        "WrapBox")))
 
 
 (define %adw-demo-path

@@ -215,7 +215,7 @@
          ,%sidebar-content))
      (child
          (object (@ (class "AdwBreakpoint"))
-           (condition "max-width: 450sp")
+           (condition "max-width: 400sp")
            (setter (@ (object "sidebar-split-view")
                       (property "collapsed")) True)
            (setter (@ (object "sidebar-list")
@@ -403,6 +403,59 @@ The \"opaque\" style class allows to create buttons with custom colors that look
            (child ,%entry-box-1)
            (child ,%entry-box-2)))))
 
+(define %toggle-group-box-1
+  '(object (@ (class "AdwToggleGroup"))
+     (property (@ (name "tooltip-text")) flat)
+     (style (class (@ (name "flat"))))
+     (child
+         (object (@ (class "AdwToggle"))
+           (property (@ (name "label")
+                        (translatable "yes")) Flat)))
+     (child
+         (object (@ (class "AdwToggle"))
+           (property (@ (name "label")
+                        (translatable "yes")) Flat)))))
+
+(define %toggle-group-box-2
+  '(object (@ (class "AdwToggleGroup"))
+     (property (@ (name "tooltip-text")) round)
+     (style (class (@ (name "round"))))
+     (child
+         (object (@ (class "AdwToggle"))
+           (property (@ (name "label")
+                        (translatable "yes")) Round)))
+     (child
+         (object (@ (class "AdwToggle"))
+           (property (@ (name "label")
+                        (translatable "yes")) Round)))))
+
+(define %toggle-group-box-3
+  '(object (@ (class "AdwToggleGroup"))
+     (property (@ (name "tooltip-text")) osd)
+     (style (class (@ (name "osd"))))
+     (child
+         (object (@ (class "AdwToggle"))
+           (property (@ (name "label")
+                        (translatable "yes")) OSD)))
+     (child
+         (object (@ (class "AdwToggle"))
+           (property (@ (name "label")
+                        (translatable "yes")) OSD)))))
+
+(define %toggle-groups
+  `(object (@ (class "AdwPreferencesGroup"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Toggle Groups")
+     (property (@ (name "description")
+                  (translatable "yes")) "The \"flat\", \"round\" and \"osd\" style classes action can all be used together.")
+     (child
+         (object (@ (class "GtkBox")
+                    (id "toggle-group-box"))
+           (property (@ (name "spacing")) 6)
+           (property (@ (name "homogeneous")) True)
+           (child ,%toggle-group-box-1)
+           (child ,%toggle-group-box-2)
+           (child ,%toggle-group-box-3)))))
 
 (define %linked-controls-box-1
   '(object (@ (class "GtkBox"))
@@ -618,7 +671,17 @@ The \"opaque\" style class allows to create buttons with custom colors that look
            (property (@ (name "wrap-mode")) word-char)
            (property (@ (name "max-width-chars")) 25)
            (property (@ (name "tooltip-text")) caption)
-           (style (class (@ (name "caption"))))))))
+           (style (class (@ (name "caption"))))))
+     (child
+         (object (@ (class "GtkLabel"))
+           (property (@ (name "label")
+                        (translatable "yes")) "This is a dimmed paragraph, mostly used for secondary labels or descriptions.")
+           (property (@ (name "xalign")) 0)
+           (property (@ (name "wrap")) True)
+           (property (@ (name "wrap-mode")) word-char)
+           (property (@ (name "max-width-chars")) 25)
+           (property (@ (name "tooltip-text")) dimmed)
+           (style (class (@ (name "dimmed"))))))))
 
 (define %labels
   `(object (@ (class "AdwPreferencesGroup"))
@@ -827,7 +890,7 @@ The \"card\" style class can be used to achieve the same style with GtkBox or si
      (property (@ (name "title")
                   (translatable "yes")) "Check Buttons")
      (property (@ (name "description")
-                  (translatable "yes")) "The \"selection-mode\" style class makes can be used with GtkCheckButton to make them large and round.")
+                  (translatable "yes")) "The \"selection-mode\" style class can be used with GtkCheckButton to make them large and round.")
      (child
          (object (@ (class "GtkGrid"))
            (property (@ (name "row-spacing")) 6)
@@ -1032,6 +1095,7 @@ The \"raised\" style class can be used to make a button inside a toolbar use def
                       "Hover over widgets to see their exact style class names.")
                     (child ,%buttons)
                     (child ,%entries)
+                    (child ,%toggle-groups)
                     (child ,%linked-controls)
                     (child ,%labels)
                     (child ,%cards-and-boxed-lists)
@@ -1042,12 +1106,14 @@ The \"raised\" style class can be used to make a button inside a toolbar use def
                     (child ,%misc)))))))
       (child
           (object (@ (class "AdwBreakpoint"))
-            (condition "max-width: 500sp")
+            (condition "max-width: 550sp")
             (setter (@ (object "button-box-1")
                        (property "orientation")) vertical)
             (setter (@ (object "entry-box-1")
                        (property "orientation")) vertical)
             (setter (@ (object "entry-box-2")
+                       (property "orientation")) vertical)
+            (setter (@ (object "toggle-group-box")
                        (property "orientation")) vertical)
             (setter (@ (object "label-box")
                        (property "orientation")) vertical)

@@ -246,9 +246,15 @@
       ((ease-in-bounce) "Ease-in (Bounce)")
       ((ease-out-bounce) "Ease-out (Bounce)")
       ((ease-in-out-bounce) "Ease-in-out (Bounce)")
+      ((ease) "Ease")
+      ((ease-in) "Ease-in")
+      ((ease-out) "Ease-out")
+      ((ease-in-out) "Ease-in-out")
       (else
-       (displayln "Warning: unprocessed adwaita easing name.")
-       (enum->name adw-easing value)))))
+       (let ((name (enum->name adw-easing value)))
+       (displayln (string-append "Warning - Unprocessed adwaita easing name: "
+                                 name))
+       name)))))
 
 
 ;;;

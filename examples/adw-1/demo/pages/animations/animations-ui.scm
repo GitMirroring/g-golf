@@ -1,7 +1,7 @@
 ;; -*- mode: sxml-ui; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023 - 2024
+;;;; Copyright (C) 2023 - 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -97,10 +97,12 @@
             (class (@ (name "flat"))))))
 
 (define %stack-switcher
-  '(object (@ (class "GtkStackSwitcher"))
+  '(object (@ (class "AdwInlineViewSwitcher"))
      (property (@ (name "stack")) "animation-prefs-stack")
-     (property (@ (name "margin-bottom")) 32)
-     (property (@ (name "halign")) center)))
+     (property (@ (name "homogeneous")) True)
+     (property (@ (name "halign")) center)
+     (property (@ (name "width-request")) 250)
+     (property (@ (name "margin-bottom")) 32)))
 
 (define %ta-easing
   '(object (@ (class "AdwComboRow")
@@ -152,12 +154,13 @@
                   (translatable "yes")) "Alternate")))
 
 (define %stack-page-1
-  `(object (@ (class "GtkStackPage"))
+  `(object (@ (class "AdwViewStackPage"))
      (property (@ (name "title")
                   (translatable "yes")) Timed)
      (property (@ (name "name")) Timed)
      (property (@ (name "child"))
        (object (@ (class "AdwPreferencesGroup"))
+         (property (@ (name "valign")) start)
          (child ,%ta-easing)
          (child ,%ta-duration)
          (child ,%ta-repeat-count)
@@ -242,12 +245,13 @@
                   (translatable "yes")) Clamp)))
 
 (define %stack-page-2
-  `(object (@ (class "GtkStackPage"))
+  `(object (@ (class "AdwViewStackPage"))
      (property (@ (name "title")
                   (translatable "yes")) Spring)
      (property (@ (name "name")) Spring)
      (property (@ (name "child"))
        (object (@ (class "AdwPreferencesGroup"))
+         (property (@ (name "valign")) start)
          (child ,%sa-velocity)
          (child ,%sa-damping)
          (child ,%sa-mass)
@@ -299,8 +303,10 @@
                         (property (@ (name "maximum-size")) 400)
                         (property (@ (name "tightening-threshold")) 300)
                         (property (@ (name "child"))
-                          (object (@ (class "GtkStack")
+                          (object (@ (class "AdwViewStack")
                                      (id "animation-prefs-stack"))
+                            (property (@ (name "vhomogeneous")) False)
+                            (property (@ (name "enable-transitions")) True)
                             ;; signal
                             ;;   notify::visible-child-name
                             ;;   timed-animation-reset

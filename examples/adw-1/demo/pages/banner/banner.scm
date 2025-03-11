@@ -47,12 +47,14 @@
   ;; child-id slot(s)
   (banner #:accessor !banner #:child-id "banner")
   (button-label-row #:accessor !button-label-row #:child-id "button-label-row")
+  (button-style-row #:accessor !button-style-row #:child-id "button-style-row")
   ;; slot(s)
   ;; class options
   #:template (string-append %adw-demo-path
                             "/pages/banner/banner-ui.ui")
   #:child-ids '("banner"
-                "button-label-row")
+                "button-label-row"
+                "button-style-row")
   #:g-signal `(add-toast	;; name
                none		;; return-type	
                (,<adw-toast>)	;; param-types
@@ -77,6 +79,11 @@
            'notify::editable
            (lambda (. args)
              (update-button-cb self)))
+
+  (connect (!button-style-row self)
+           'notify::active
+           (lambda (. args)
+             (button-style-cb self)))
 
   (install-actions self)
   ;; the following shouldn't be necessary, as things are properly set in
@@ -125,6 +132,14 @@
         (set-button-label (!banner self)
                           (get-text button-label-row))
         (set-button-label (!banner self) #f))))
+
+(define (button-style-cb demo-page-banner)
+  (let* ((self demo-page-banner)
+         (button-style-row (!button-style-row self))
+         (active? (get-active button-style-row)))
+    (if active?
+        (set-button-style (!banner self) 'suggested)
+        (set-button-style (!banner self) 'default))))
 
 
 ;;;

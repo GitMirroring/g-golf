@@ -1,7 +1,7 @@
 ;; -*- mode: sxml-ui; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023 - 2024
+;;;; Copyright (C) 2023 - 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -35,7 +35,11 @@
        (item
          (attribute (@ (name "label")
                        (translatable "yes")) _Inspector)
-         (attribute (@ (name "action")) app.inspector)))
+         (attribute (@ (name "action")) app.inspector))
+       (item
+         (attribute (@ (name "label")
+                       (translatable "yes")) "A_daptive Preview")
+         (attribute (@ (name "action")) window.adaptive-preview)))
      (section
        (item
          (attribute (@ (name "label")
@@ -190,6 +194,20 @@
      (property (@ (name "child"))
        (object (@ (class "AdwDemoPageSpinner"))))))
 
+(define %toggle-groups-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Toggle Groups")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageToggleGroups"))))))
+
+(define %wrap-box-page
+  '(object (@ (class "GtkStackPage"))
+     (property (@ (name "title")
+                  (translatable "yes")) "Wrap Box")
+     (property (@ (name "child"))
+       (object (@ (class "AdwDemoPageWrapBox"))))))
+
 (define %adw-demo-window-sidebar
   `(object (@ (class "AdwNavigationPage"))
      (property (@ (name "title")
@@ -244,7 +262,9 @@
          (child ,%banner-page)
          (child ,%bottom-sheets-page)
          (child ,%multi-layout-page)
-         (child ,%spinner-page)))))
+         (child ,%spinner-page)
+         (child ,%toggle-groups-page)
+         (child ,%wrap-box-page)))))
 
 (define %adw-demo-window
   `(interface
