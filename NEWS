@@ -26,6 +26,43 @@ warranty.
 
 * Latest News
 
+** Mar 2025
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.1 is released.
+
+*** Noteworthy changes in 0.8.1
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** Dependencies
+
+***** Adwaita examples
+
+  Adw-1  >=  1.7.0
+
+**** Examples
+
+***** Adwaita Demo
+
+The upstream demo changes for 1.7.0 were all ported to the
+adwaita-1-demo g-golf port.
+
+Worth mentioning that these updates include the quite impressive
+adaptive preview mode (adwaita-1-demo main (hamburger) menu, second
+entry).
+
+**** Bug fixing
+
+***** Release tarball missing the adw-1/demo subdir
+
+Adding a missing \ on the examples/adw-1/Makefile.am, hello-world
+entry. This fixes the tarball, which was missing the adw1/demo subdir
+entirely. Thanks to Matija Obid <matija.obid@posteo.net> who spotted and
+reported the problem.
+
+* Older News
+
 ** Feb 2025
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.0 is released.
@@ -107,9 +144,6 @@ out arguments.
 ***** gi-type-tag->bv-acc
 
 Adding support for unichar
-
-
-* Older News
 
 ** Nov 2024
 

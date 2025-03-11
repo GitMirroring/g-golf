@@ -63,14 +63,14 @@ Gtk-4.0 examples:
 G-Golf currently needs the following additional software to run its
 Adw-1 examples:
 
-  Adw-1 >= 1.7.0
+  Adw-1				>= 1.7.0
 
 ** Install from the tarball
 
 G-Golf release are [[http://ftp.gnu.org/gnu/g-golf/][here]].  The latest tarballs are:
 
-	g-golf-0.8.0.tar.gz
-	g-golf-0.8.0.tar.gz.sig
+	g-golf-0.8.1.tar.gz
+	g-golf-0.8.1.tar.gz.sig
 
 	[ GPG Key: A3057AD7
 	[ gpg --keyserver keys.gnupg.net --recv-keys A3057AD7
@@ -79,8 +79,8 @@ Assuming you have satisfied the dependencies, open a terminal and
 proceed with the following steps:
 
 	cd <download-path>
-	tar zxf g-golf-0.8.0.tar.gz
-	cd g-golf-0.8.0
+	tar zxf g-golf-0.8.1.tar.gz
+	cd g-golf-0.8.1
 	./configure [--prefix=/your/prefix] [--with-guile-site]
 	make
 	make install
