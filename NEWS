@@ -26,6 +26,36 @@ warranty.
 
 * Latest News
 
+** Jun 2025
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.2 is released.
+
+*** Noteworthy changes in 0.8.2
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** Enhancement
+
+***** g-golf-callback-closure-marshal
+
+Error message enhancement. Raising an error, when a callback is expected
+to return a value but g-golf-callback-closure-marshal received none.
+
+**** Bug fixing
+
+***** g-inst-get-property
+
+For object and interface instances, when the instance isn't in the
+cache, in order to create the appropriate proxi instance, we need to
+find the proxi class definition, and for this call (g-object-find-class
+value), not (g-type-cache-ref g-type). This is because the g-value->scm
+g-type argument is the one given by the property g-param spec, but the
+instance being processed here could be of a sublass. Fixed.
+
+
+* Older News
+
 ** Mar 2025
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.1 is released.
@@ -60,8 +90,6 @@ Adding a missing \ on the examples/adw-1/Makefile.am, hello-world
 entry. This fixes the tarball, which was missing the adw1/demo subdir
 entirely. Thanks to Matija Obid <matija.obid@posteo.net> who spotted and
 reported the problem.
-
-* Older News
 
 ** Feb 2025
 
