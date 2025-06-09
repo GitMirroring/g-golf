@@ -186,16 +186,21 @@
              (unless (= n-arg-out 0)
                (scm->ffi-args-out callback ffi-args r-vals))
              (unless (eq? return-type 'void)
-               (scm->gi-argument return-type
-                                 (!type-desc callback)
-                                 return-value
-                                 (car r-vals) ;; by design
-                                 callback
-                                 args ;; required, but won't be used
-                                 #:ffi-arg? #t
-                                 #:may-be-null-acc !may-return-null?
-                                 #:is-method? (!is-method? callback)
-                                 #:forced-type return-type)))))
+               (match r-vals
+                 (()
+                  (error (format #f "Missing returned value. All ~A callback must return a ~A, but g-golf-callback-closure-marshel received none."
+                                 (!name callback) return-type)))
+                 ((r-val . tail)
+                  (scm->gi-argument return-type
+                                    (!type-desc callback)
+                                    return-value
+                                    (car r-vals) ;; by design
+                                    callback
+                                    args ;; required, but won't be used
+                                    #:ffi-arg? #t
+                                    #:may-be-null-acc !may-return-null?
+                                    #:is-method? (!is-method? callback)
+                                    #:forced-type return-type)))))))
         ((argument . rests)
          (loop rests
                (gi-pointer-inc ffi-arg)

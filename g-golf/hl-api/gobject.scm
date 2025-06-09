@@ -596,7 +596,10 @@ vfunc, so those newly added properties won't work as expected.
                (null-pointer? value))
            #f
            (or (g-inst-cache-ref value)
-               (let ((class (g-type-cache-ref g-type)))
+               ;; the instance class could be a subclass of the one
+               ;; given by g-type (which is the one given by the property
+               ;; g-param specs
+               (let ((class (g-object-find-class value)))
                  (make class #:g-inst value))))))
     (else
      (g-value-ref g-value))))
