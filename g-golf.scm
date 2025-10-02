@@ -145,7 +145,8 @@
                           member
                           map
                           for-each
-                          remove)
+                          remove
+                          list-index)
   (re-export-public-interface (oop goops)
                               (oop goops describe)
 			      (ice-9 match)
