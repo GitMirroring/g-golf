@@ -67,8 +67,9 @@
 
 
 (g-export describe
-          !id
           !name
+          !id
+          !detail
           !flags
           !iface-type
           !iface-class
@@ -80,6 +81,40 @@
           connect-after
           disconnect
           emit)
+
+
+;;;
+;;; The <signal> class, accesors and methods
+;;;
+
+(define-class <signal> ()
+  (name #:accessor !name #:init-keyword #:name)
+  (id #:accessor !id #:init-keyword #:id #:init-value #f)
+  (detail #:accessor !detail #:init-keyword #:detail #:init-value 0)
+  (iface-type #:accessor !iface-type #:init-keyword #:iface-type)
+  (iface-class #:accessor !iface-class #:init-keyword #:iface-class)
+  (flags #:accessor !flags #:init-keyword #:flags)
+  (return-type #:accessor !return-type #:init-keyword #:return-type)
+  (n-param #:accessor !n-param #:init-keyword #:n-param)
+  (param-types #:accessor !param-types #:init-keyword #:param-types)
+  (param-args #:accessor !param-args #:init-keyword #:param-args #:init-value #f))
+
+(define-method (initialize (self <signal>) initargs)
+  (next-method)
+  (let* ((iface-type (!iface-type self))
+         (iface-class (g-type-cache-ref iface-type)))
+    (mslot-set! self
+                'iface-class iface-class)))
+
+(define-method (describe (self <signal>))
+  (next-method)
+  (newline)
+  (let ((param-args (!param-args self)))
+    (when param-args ;; #f for user defined signals
+      (for-each (lambda (argument)
+                  (describe argument)
+                  (newline))
+          param-args))))
 
 
 ;;;
@@ -102,9 +137,16 @@
       (match (g-signal-query s-id)
         ((id name iface-type flags return-type n-param param-types)
          (let* ((signal (or (gi-signal-cache-ref i-class-name s-name)
-                            (make-signal s-id s-name
-                                         name i-type i-class-name
-                                         flags return-type n-param param-types)))
+                            (make-signal s-name
+                                         s-id
+                                         name
+                                         detail
+                                         i-type
+                                         i-class-name
+                                         flags
+                                         return-type
+                                         n-param
+                                         param-types)))
                 (param-args (!param-args signal))
                 (closure (make <closure>
                            #:function function
@@ -121,7 +163,7 @@
 (define-method (disconnect (inst <gtype-instance>) handler-id)
   (g-signal-handler-disconnect (!g-inst inst) handler-id))
 
-(define (make-signal id s-name name iface-type iface-name
+(define (make-signal s-name s-id name detail iface-type iface-name
                      flags return-type n-param param-types)
   (let* ((iface-info (g-irepository-find-by-gtype iface-type))
          (iface-s-info (and iface-info
@@ -129,8 +171,9 @@
          (param-args (and iface-s-info
                           (signal-arguments iface-s-info)))
          (s-inst (make <signal>
-                   #:id id
-                   #:name name
+                   #:name s-name
+                   #:id s-id
+                   #:detail detail
                    #:iface-type iface-type
                    #:flags flags
                    #:return-type return-type
@@ -167,74 +210,46 @@
 (define (signal-emit inst s-name . args)
   (let* ((i-class (class-of inst))
          (i-class-name (class-name i-class))
-         (i-type (!g-type i-class))
-         (s-id (g-signal-lookup (symbol->string s-name) i-type)))
-    (if s-id
-        (match (g-signal-query s-id)
-           ((id name iface-type flags return-type n-param param-types)
-            (let* ((%g-value-size (g-value-size))
-                   (signal (or (gi-signal-cache-ref i-class-name s-name)
-                               (make-signal s-id s-name
-                                            name i-type i-class-name
-                                            flags return-type n-param param-types)))
-                   (params (bytevector->pointer
-                            (make-bytevector (* (+ n-param 1) %g-value-size) 0))))
-              (%g_value_init params iface-type)
-              (g-value-set-object params (!g-inst inst))
-              (let loop ((i 0)
-                         (g-value (gi-pointer-inc params %g-value-size)))
-                (if (= i n-param)
-                    'done
-                    (let ((type (list-ref param-types i))
-                          (val (list-ref args i)))
-                      (%prepare-g-value-in g-value type val)
-                      (loop (+ i 1)
-                            (gi-pointer-inc g-value %g-value-size)))))
-              (case return-type
-                ((none)
-                 (g-signal-emitv params id 0 #f)
-                 (values))
-                (else
-                 (let ((return-val (bytevector->pointer
-                                    (make-bytevector %g-value-size 0))))
-                   (%prepare-return-val return-val (!return-type signal))
-                   (g-signal-emitv params id 0 return-val)
-                   (g-value-ref return-val)))))))
-        (scm-error 'invalid #f  "Unknown signal ~A on object ~A"
-                   (list s-name inst) #f))))
-
-
-;;;
-;;; The <signal> class, accesors and methods
-;;;
-
-(define-class <signal> ()
-  (id #:accessor !id #:init-keyword #:id #:init-value #f)
-  (name #:accessor !name #:init-keyword #:name)
-  (iface-type #:accessor !iface-type #:init-keyword #:iface-type)
-  (iface-class #:accessor !iface-class #:init-keyword #:iface-class)
-  (flags #:accessor !flags #:init-keyword #:flags)
-  (return-type #:accessor !return-type #:init-keyword #:return-type)
-  (n-param #:accessor !n-param #:init-keyword #:n-param)
-  (param-types #:accessor !param-types #:init-keyword #:param-types)
-  (param-args #:accessor !param-args #:init-keyword #:param-args #:init-value #f))
-
-(define-method (initialize (self <signal>) initargs)
-  (next-method)
-  (let* ((iface-type (!iface-type self))
-         (iface-class (g-type-cache-ref iface-type)))
-    (mslot-set! self
-                'iface-class iface-class)))
-
-(define-method (describe (self <signal>))
-  (next-method)
-  (newline)
-  (let ((param-args (!param-args self)))
-    (when param-args ;; #f for user defined signals
-      (for-each (lambda (argument)
-                  (describe argument)
-                  (newline))
-          param-args))))
+         (i-type (!g-type i-class)))
+    (receive (s-id detail)
+        (g-signal-parse-name s-name i-type)
+      (match (g-signal-query s-id)
+        ((id name iface-type flags return-type n-param param-types)
+         (let* ((%g-value-size (g-value-size))
+                (signal (or (gi-signal-cache-ref i-class-name s-name)
+                            (make-signal s-name
+                                         s-id
+                                         name
+                                         detail
+                                         i-type
+                                         i-class-name
+                                         flags
+                                         return-type
+                                         n-param
+                                         param-types)))
+                (params (bytevector->pointer
+                         (make-bytevector (* (+ n-param 1) %g-value-size) 0))))
+           (%g_value_init params iface-type)
+           (g-value-set-object params (!g-inst inst))
+           (let loop ((i 0)
+                      (g-value (gi-pointer-inc params %g-value-size)))
+             (if (= i n-param)
+                 'done
+                 (let ((type (list-ref param-types i))
+                       (val (list-ref args i)))
+                   (%prepare-g-value-in g-value type val)
+                   (loop (+ i 1)
+                         (gi-pointer-inc g-value %g-value-size)))))
+           (case return-type
+             ((none)
+              (g-signal-emitv params id detail #f)
+              (values))
+             (else
+              (let ((return-val (bytevector->pointer
+                                 (make-bytevector %g-value-size 0))))
+                (%prepare-return-val return-val (!return-type signal))
+                (g-signal-emitv params id detail return-val)
+                (g-value-ref return-val))))))))))
 
 
 ;;;
