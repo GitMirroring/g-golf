@@ -108,5 +108,5 @@ exec guile -e main -s "$0" "$@"
   (let ((app (make <gtk-application>
                #:application-id "org.gtk.example")))
     (connect app 'activate activate)
-    (let ((status (g-application-run app args)))
+    (let ((status (run app '())))
       (exit status))))
