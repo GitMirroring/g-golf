@@ -23,7 +23,7 @@
 
 include $(top_srcdir)/am/guile.mk
 
-
+pkgconfigdir=$(libdir)/pkgconfig
 pkgconfig_DATA=meta/g-golf-1.0.pc
 
 SOURCES = \
