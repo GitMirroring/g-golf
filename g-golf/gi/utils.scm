@@ -425,7 +425,8 @@
                            (gi-array-struct->scm foreign n-item s-size
                                                  (list gi-struct transfer)))))
                     (else
-                     (error "Unimplemented array interface: " type))))))
+                     (error
+                      (format #f "Unimplemented array interface: ~S" sub-type-desc)))))))
               ((utf8
                 filename)
                (gi-strings->scm foreign))
