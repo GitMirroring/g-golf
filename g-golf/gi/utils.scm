@@ -426,7 +426,8 @@
                                                  (list gi-struct transfer)))))
                     (else
                      (error
-                      (format #f "Unimplemented array interface: ~S" sub-type-desc)))))))
+                      (format #f "Unimplemented array interface: ~S"
+                              (list type-desc sub-type-desc))))))))
               ((utf8
                 filename)
                (gi-strings->scm foreign))
