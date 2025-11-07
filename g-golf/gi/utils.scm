@@ -408,22 +408,29 @@
             (case param-tag
               ((interface)
                (match sub-type-desc
-                 ((type r-name gi-struct id)
+                 ((type r-name gi-type id)
                   (case type
                     ;; ((object) ...)
                     ((struct)
                      (if is-zero-terminated
                          ;; we assume an array of pointers to structs
                          (map (lambda (w-ptr)
-                                (gi-struct->scm w-ptr (list gi-struct transfer)))
+                                (gi-struct->scm w-ptr (list gi-type transfer)))
                            (gi-pointers->scm foreign))
                          ;; as opposed to an array of contiguous structs
-                         (let ((s-size (!size gi-struct))
+                         (let ((s-size (!size gi-type))
                                (n-item (if (= fixed-size -1)
                                            (assq-ref al-alist param-n)
                                            fixed-size)))
                            (gi-array-struct->scm foreign n-item s-size
-                                                 (list gi-struct transfer)))))
+                                                 (list gi-type transfer)))))
+                    ((object)
+                     (if is-zero-terminated
+                         (gi-array-object->scm foreign -1 (list gi-type transfer))
+                         (let ((n-item (if (= fixed-size -1)
+                                           (assq-ref al-alist param-n)
+                                           fixed-size)))
+                           (gi-array-object->scm foreign n-item (list gi-type transfer)))))
                     (else
                      (error
                       (format #f "Unimplemented array interface: ~S"
@@ -474,6 +481,21 @@
               (gi-pointer-inc w-ptr s-size)
               (cons (gi-struct->scm w-ptr compl)
                     result)))))
+
+(define (gi-array-object->scm foreign n-item compl)
+  (match compl
+    ((class transfer)
+     (let loop ((i 0)
+                (w-ptr foreign)
+                (result '()))
+       (if (or (= i n-item)
+               (null-pointer? w-ptr))
+           (reverse result)
+           (loop (+ i 1)
+                 (gi-pointer-inc w-ptr)
+                 (let ((g-inst (dereference-pointer w-ptr)))
+                   (cons (make class #:g-inst g-inst)
+                         result))))))))
 
 
 ;;;
