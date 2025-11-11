@@ -74,6 +74,7 @@
             gi-n-gtype->scm
             gi-struct->scm
             gi-array->scm
+            gi-object->scm
             scm->gi
             scm->gi-boolean
             scm->gi-string
@@ -399,6 +400,11 @@
   ;; or
   ;;   ((c 2 #f -1 interface)
   ;;    (struct the-struct-name #<<gi-struct> 7fca4b7a44d0> 4 #t) nothing ())
+  ;; or
+  ;;   ((c -1 #t -1 interface)
+  ;;    (object <gimp-drawable>
+  ;;            #<<gobject-class> <gimp-drawable> 706e6a1c63c0>
+  ;;            109052915545360))
   (if (null-pointer? foreign)
       #f
       (match compl
@@ -425,12 +431,14 @@
                            (gi-array-struct->scm foreign n-item s-size
                                                  (list gi-type transfer)))))
                     ((object)
-                     (if is-zero-terminated
-                         (gi-array-object->scm foreign -1 (list gi-type transfer))
-                         (let ((n-item (if (= fixed-size -1)
-                                           (assq-ref al-alist param-n)
-                                           fixed-size)))
-                           (gi-array-object->scm foreign n-item (list gi-type transfer)))))
+                     (map (lambda (w-ptr)
+                            (gi-object->scm w-ptr (list gi-type transfer)))
+                       (if is-zero-terminated
+                           (gi-pointers->scm foreign)
+                           (let ((n-item (if (= fixed-size -1)
+                                             (assq-ref al-alist param-n)
+                                             fixed-size)))
+                             (gi-n-pointer->scm foreign n-item)))))
                     (else
                      (error
                       (format #f "Unimplemented array interface: ~S"
@@ -482,20 +490,10 @@
               (cons (gi-struct->scm w-ptr compl)
                     result)))))
 
-(define (gi-array-object->scm foreign n-item compl)
+(define (gi-object->scm foreign compl)
   (match compl
     ((class transfer)
-     (let loop ((i 0)
-                (w-ptr foreign)
-                (result '()))
-       (if (or (= i n-item)
-               (null-pointer? w-ptr))
-           (reverse result)
-           (loop (+ i 1)
-                 (gi-pointer-inc w-ptr)
-                 (let ((g-inst (dereference-pointer w-ptr)))
-                   (cons (make class #:g-inst g-inst)
-                         result))))))))
+     (make class #:g-inst foreign))))
 
 
 ;;;
