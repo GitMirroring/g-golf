@@ -441,8 +441,7 @@
                              (gi-n-pointer->scm foreign n-item)))))
                     (else
                      (error
-                      (format #f "Unimplemented array interface: ~S"
-                              (list type-desc sub-type-desc))))))))
+                      (format #f "Unimplemented array interface: ~S" compl)))))))
               ((utf8
                 filename)
                (gi-strings->scm foreign))
