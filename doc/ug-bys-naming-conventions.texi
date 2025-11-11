@@ -58,8 +58,8 @@ would be <web-kit-web-view>.}
 GNOME libraries class properties are imported as GOOPS class slots, and
 their respective name is given by calling @ref{g-name->name}. Each
 property slot defines an @code{init-keyword} and an @code{accessor},
-following G-Golf's accessors naming conventions (@xref{GOOPS Notes
-and Conventions}).
+following G-Golf's accessors naming conventions (@xref{GOOPS Notes -
+Conventions - Recommendations}).
 
 As an example, the @code{<gtk-label>} class has a @code{label} slot,
 with the @code{#:label} init-keyword and @code{!label} accessor.

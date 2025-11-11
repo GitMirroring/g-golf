@@ -1,11 +1,11 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2020 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2025 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
-@node GOOPS Notes and Conventions
-@subsection GOOPS Notes and Conventions
+@node GOOPS Notes - Conventions - Recommendations
+@subsection GOOPS Notes - Conventions - Recommendations
 
 G-Golf extensively uses GOOPS, the Guile Object Oriented System
 (@pxref{GOOPS,,, guile, The GNU Guile Reference Manual}), in a way that
@@ -106,3 +106,72 @@ radically different from Java in its design, and therefore, we really
 wanted another character.
 
 @end itemize
+
+
+
+
+@ @ @sup{_} @strong{Recommendations}
+
+New users to GOOPS often face problems related to the way the Guile
+module system interferes with generic functions. Being regurlarly asked
+for help with this respect, here are a few rules that we think new and
+inexperienced GOOPS users should adopt:
+
+@enumerate
+
+@item better preventing then curing: when you define a module that use
+goops, always use, as exposed above:
+
+@lisp
+  #:duplicates (merge-generics
+	        replace
+		warn-override-core
+		warn
+		last)
+@end lisp
+
+@item unless you really know what you are doing, never call
+@code{define-generic} yourself@footnote{This is because (1) unlike as
+specified by the CLOS/MOP protocol, which states that redefining a
+generic is an error, in GOOPS, it not only will not raise an exception,
+but define a new module variable, silently hidding any imported generic
+function from other modules; and (2) @code{define-method} will call
+@code{define-generic} if there is no corresponding generic function.};
+@ifhtml
+@*@*
+@end ifhtml
+
+@item always use @code{#:export} for class names, and make sure class
+names are unique (guile will warn you if not, at import time, so rename
+if you have conflict, never use twice the same class name in different
+modules - unless you really know what you're doing);
+@ifhtml
+@*@*
+@end ifhtml
+
+@item always use @code{g-export} for (and only for) getters, setters,
+accessors and methods;
+@ifhtml
+@*@*
+@end ifhtml
+
+@item remember, while you are developing and testing your code, you have to
+add @code{'merge-generics} to the default-duplicate-binding-handler in
+the repl as well, after you imported goops (in the repl):
+
+@lisp
+,use (oop goops)
+(default-duplicate-binding-handler
+   '(merge-generics replace warn-override-core warn last))
+(use-modules (yourmod1) (yourmod2))
+@end lisp
+
+@end enumerate
+
+With these recommendations, you actually @samp{mimic} the CLOS
+specification, which states that anything related to CLOS lands in a
+specific package, visible to all others@footnote{Mimic because unlike
+CLOS, a generic function in a guile module will only contain methods
+that comes from that module and the one it imports, but not
+(necessarily) all methods for that name (unless the module imports all
+the others that define a method for that name of course).}.
