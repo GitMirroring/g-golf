@@ -748,6 +748,10 @@
       ;; (c 4 #f -1 int32) or (c 4 #f -1 interface)
       (match compl
         ((type-desc sub-type-desc transfer)
+         #;(dimfi 'scm->gi-array)
+         #;(dimfi " " 'type type-desc)
+         #;(dimfi " " 'subtype sub-type-desc)
+         #;(dimfi " " 'transfer transfer)
          (match type-desc
            ((array fixed-size is-zero-terminated param-n param-tag ptr-array)
             (case param-tag
@@ -760,21 +764,25 @@
                             (!g-inst (module-ref module '!g-inst)))
                        (scm->gi-pointers (map !g-inst vals))))
                     ((struct)
-                     (cond (is-zero-terminated
-                            ;; a zero terminated array of pointers to gi-struct instances
-                            (scm->gi-array-struct-ptrs vals
-                                                       (list gi-struct transfer)
-                                                       #:is-zero-terminated? #t))
-                            ((and (= fixed-size -1)
-                                  (= param-n -1))
-                             ;; an array of n pointers to gi-struct instances
-                             (scm->gi-array-struct-ptrs vals
-                                                        (list gi-struct transfer)))
-                            (else
-                             (if ptr-array
-                                 (scm->gi-array-struct-ptrs vals
-                                                            (list gi-struct transfer))
-                                 (scm->gi-array-structs vals (list gi-struct transfer))))))
+                     (case r-name
+                       ((g-variant)
+                        (error "Array of GVariant are curently not supported"))
+                       (else
+                        (cond (is-zero-terminated
+                               ;; a zero terminated array of pointers to gi-struct instances
+                               (scm->gi-array-struct-ptrs vals
+                                                          (list gi-struct transfer)
+                                                          #:is-zero-terminated? #t))
+                              ((and (= fixed-size -1)
+                                    (= param-n -1))
+                               ;; an array of n pointers to gi-struct instances
+                               (scm->gi-array-struct-ptrs vals
+                                                          (list gi-struct transfer)))
+                              (else
+                               (if ptr-array
+                                   (scm->gi-array-struct-ptrs vals
+                                                              (list gi-struct transfer))
+                                   (scm->gi-array-structs vals (list gi-struct transfer))))))))
                     ((enum)
                      (scm->gi-array-enum vals sub-type-desc))
                     ((flags)
