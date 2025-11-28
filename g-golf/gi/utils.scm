@@ -416,20 +416,6 @@
                (match sub-type-desc
                  ((type r-name gi-type id)
                   (case type
-                    ;; ((object) ...)
-                    ((struct)
-                     (if is-zero-terminated
-                         ;; we assume an array of pointers to structs
-                         (map (lambda (w-ptr)
-                                (gi-struct->scm w-ptr (list gi-type transfer)))
-                           (gi-pointers->scm foreign))
-                         ;; as opposed to an array of contiguous structs
-                         (let ((s-size (!size gi-type))
-                               (n-item (if (= fixed-size -1)
-                                           (assq-ref al-alist param-n)
-                                           fixed-size)))
-                           (gi-array-struct->scm foreign n-item s-size
-                                                 (list gi-type transfer)))))
                     ((object)
                      (map (lambda (w-ptr)
                             (gi-object->scm w-ptr (list gi-type transfer)))
@@ -439,6 +425,23 @@
                                              (assq-ref al-alist param-n)
                                              fixed-size)))
                              (gi-n-pointer->scm foreign n-item)))))
+                    ((struct)
+                     (case r-name
+                       ((g-variant)
+                        (gi-pointers->scm foreign))
+                       (else
+                        (if is-zero-terminated
+                            ;; we assume an array of pointers to structs
+                            (map (lambda (w-ptr)
+                                   (gi-struct->scm w-ptr (list gi-type transfer)))
+                              (gi-pointers->scm foreign))
+                            ;; as opposed to an array of contiguous structs
+                            (let ((s-size (!size gi-type))
+                                  (n-item (if (= fixed-size -1)
+                                              (assq-ref al-alist param-n)
+                                              fixed-size)))
+                              (gi-array-struct->scm foreign n-item s-size
+                                                    (list gi-type transfer)))))))
                     (else
                      (error
                       (format #f "Unimplemented array interface: ~S" compl)))))))
@@ -766,7 +769,7 @@
                     ((struct)
                      (case r-name
                        ((g-variant)
-                        (error "Array of GVariant are curently not supported"))
+                        (scm->gi-pointers vals))
                        (else
                         (cond (is-zero-terminated
                                ;; a zero terminated array of pointers to gi-struct instances
