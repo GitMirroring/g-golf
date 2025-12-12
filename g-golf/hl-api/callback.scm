@@ -283,7 +283,7 @@
                           (!gi-argument-out argument)))
          (forced-type (!forced-type argument))
          (ffi-value (ffi-arg->scm ffi-arg type-tag is-pointer? is-enum?)))
-    #;(when (%debug)
+    (when (%debug)
       (dimfi (format #f "~20,,,' @A:" (!name argument)) ffi-value '[ffi-arg]))
     (case type-tag
       ((boolean
