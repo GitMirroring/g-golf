@@ -141,7 +141,8 @@
 
 (let ((%g-studly-caps-expand-token-exception
        '(("WebKit" . "webkit")
-         ("GObject" . "g-object"))))
+         ("GObject" . "g-object")
+         ("GDBus" . "g-dbus"))))
 
   (set! g-studly-caps-expand-token-exception
         (lambda ()
