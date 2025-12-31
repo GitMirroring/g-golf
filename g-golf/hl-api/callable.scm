@@ -453,10 +453,11 @@
                            (transfer #f))
   (when (%debug)
     #;(dimfi " " 'scm->gi-argument)
-    (dimfi (format #f "~20,,,' @A:" (!name clb/arg)) value)
+    (dimfi (format #f "(-) ~16,,,' @A:" (!name clb/arg)) value)
     (dimfi (format #f "~20,,,' @A:" 'type-tag) type-tag)
     (dimfi (format #f "~20,,,' @A:" 'type-desc) type-desc)
     (dimfi (format #f "~20,,,' @A:" 'forced-type) forced-type)
+    (dimfi (format #f "~20,,,' @A:" 'direction) direction)
     (dimfi (format #f "~20,,,' @A:" 'ffi-arg?) ffi-arg?))
   (let ((may-be-null? (may-be-null-acc clb/arg)))
     ;; clearing references kept from a previous call.
