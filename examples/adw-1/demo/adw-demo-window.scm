@@ -144,6 +144,7 @@
              'activate
              (lambda (s-action g-variant)
                (app/quit app)))
+    (set-accels-for-action app "app.preferences" '("<Ctrl>comma"))
     (set-accels-for-action app "app.quit" '("<Ctrl>Q"))))
 
 
