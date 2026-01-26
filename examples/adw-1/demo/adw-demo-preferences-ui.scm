@@ -145,7 +145,7 @@
            (property (@ (name "title")
                         (translatable "yes")) Ctrl + f)
            (child
-               (object (@ (class "GtkShortcutLabel"))
+               (object (@ (class "AdwShortcutLabel"))
                  (property (@ (name "accelerator")) "<ctrl>f")
                  (property (@ (name "margin-top")) 12)
                  (property (@ (name "margin-bottom")) 12)
