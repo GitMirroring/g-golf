@@ -1,7 +1,7 @@
 ;; -*- mode: sxml-ui; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023 - 2025
+;;;; Copyright (C) 2023 - 2026
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -45,6 +45,10 @@
          (attribute (@ (name "label")
                        (translatable "yes")) _Preferences)
          (attribute (@ (name "action")) app.preferences))
+       (item
+         (attribute (@ (name "label")
+                       (translatable "yes")) "_Keyboard Shortcuts")
+         (attribute (@ (name "action")) app.shortcuts))
        (item
          (attribute (@ (name "label")
                        (translatable "yes")) _"About Adwaita Demo")

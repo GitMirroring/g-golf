@@ -32,6 +32,7 @@
   #:use-module (adw-demo-init)
   #:use-module (adw-demo-debug-info)
   #:use-module (adw-demo-preferences)
+  #:use-module (adw-demo-shortcuts)
   #:use-module (adw-demo-pages)
 
   #:duplicates (merge-generics
@@ -116,6 +117,7 @@
 (define (install-app-actions app)
   (let ((a-inspector (make <g-simple-action> #:name "inspector"))
         (a-preferences (make <g-simple-action> #:name "preferences"))
+        (a-shortcuts (make <g-simple-action> #:name "shortcuts"))
         (a-about (make <g-simple-action> #:name "about"))
         (a-quit (make <g-simple-action> #:name "quit")))
 
@@ -133,6 +135,14 @@
                      (prefs-dialog (make <adw-demo-preferences-dialog>)))
                  (present prefs-dialog active-window))))
 
+    (add-action app a-shortcuts)
+    (connect a-shortcuts
+             'activate
+             (lambda (s-action g-variant)
+               (let ((active-window (get-active-window app))
+                     (dialog (shortcuts-dialog)))
+                 (present dialog active-window))))
+
     (add-action app a-about)
     (connect a-about
              'activate
@@ -145,6 +155,7 @@
              (lambda (s-action g-variant)
                (app/quit app)))
     (set-accels-for-action app "app.preferences" '("<Ctrl>comma"))
+    (set-accels-for-action app "app.shortcuts" '("<Ctrl>question"))
     (set-accels-for-action app "app.quit" '("<Ctrl>Q"))))
 
 
