@@ -49,13 +49,9 @@ Intropection (manual) section, but there are some exceptions, such as
 
 
 @include cr-gi-repository.texi
-
 @include cr-gi-typelib.texi
-
-@include cr-gi-common-types.texi
-
 @include cr-gi-version.texi
-
+@include cr-gi-common-types.texi
 @include cr-gi-base-info.texi
 @include cr-gi-callable-info.texi
 @include cr-gi-function-info.texi
