@@ -1,6 +1,6 @@
 
 ####
-#### Copyright (C) 2023 - 2025
+#### Copyright (C) 2023 - 2026
 #### Free Software Foundation, Inc.
 
 #### This file is part of GNU G-Golf
@@ -31,7 +31,6 @@ EXTRA_DIST = \
 	demo/adwaita-1-demo		\
 	demo/g-resources.xml		\
 	demo/style.css			\
-	demo/style-dark.css		\
 	demo/sxml-ui.el			\
 	demo/Makefile
 
