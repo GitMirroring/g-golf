@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2019 - 2020 Free Software Foundation, Inc.
+@c Copyright (C) 2019 - 2025 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -94,7 +94,7 @@ Directs slots are:
 @end indentedblock
 
 Instances of the @code{<gi-struct>} are immutable (to be precise, there
-are not meant to be mutated, see @ref{GOOPS Notes and Conventions},
+are not meant to be mutated, see @ref{GOOPS Notes - Conventions - Recommendations},
 'Slots are not Immutable').
 @end deftp
 

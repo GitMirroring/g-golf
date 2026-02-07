@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2019 - 2023
+;;;; Copyright (C) 2019 - 2025
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -332,6 +332,36 @@
       (assert-true (equal? lst1
                            lst2
                            (list item-1 item-2))))))
+
+
+;;;
+;;; gi-arrray->scm - object
+;;;
+
+;; called by gi-argument->scm, but for now, this test prepares an array
+;; with a few <gobject> instances, then call gi-arrray->scm twice, one
+;; passing the type-desc for a zero-terminated array and once for a
+;; fixed-size array
+
+(define-method (test-gi-array->scm (self <g-golf-test-hl-api>))
+  (let* ((g-objects-in (list (make <gobject>) (make <gobject>) (make <gobject>)))
+         (g-insts (map !g-inst g-objects-in))
+         (array-in (scm->gi-pointers g-insts))
+         (g-objects-out-1 (gi-array->scm array-in
+                                         `((c 3 #f -1 interface #t)
+                                           (object <gobject> ,<gobject> ,(!g-type <gobject>))
+                                           nothing
+                                           ())))
+         (g-objects-out-2 (gi-array->scm array-in
+                                         `((c -1 #t -1 interface #t)
+                                           (object <gobject> ,<gobject> ,(!g-type <gobject>))
+                                           nothing
+                                           ()))))
+    (map (lambda (i)
+           (let ((obj (list-ref g-objects-in i)))
+             (assert-equal obj (list-ref g-objects-out-1 i))
+             (assert-equal obj (list-ref g-objects-out-2 i))))
+      (iota 3))))
 
 
 (exit-with-summary (run-all-defined-test-cases))

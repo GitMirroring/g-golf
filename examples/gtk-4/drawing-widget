@@ -91,7 +91,7 @@ exec guile -e main -s "$0" "$@"
               (let ((app (make <gtk-application>
                            #:application-id "org.gnu.g-golf.drawing-widget")))
                 (connect app 'activate activate)
-                (let ((status (g-application-run app '())))
+                (let ((status (run app '())))
                   #;(exit status)
                   (dimfi 'status status))))))
     (if debug?

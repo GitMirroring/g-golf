@@ -174,7 +174,9 @@
          (return-type (!return-type callback)))
     (when (%debug)
       (dimfi 'g-golf-callback-closure-marshal)
-      (dimfi " --" (!name callback) "-- "))
+      (dimfi " --" (!name callback) "-- ")
+      (dimfi "     !! values listed below are 'brute' - ffi-arg->scm results !!")
+      (dimfi "     !! some are further processed before to call the callback !!"))
     (let loop ((arguments (!args-in callback))
                (ffi-arg ffi-args)
                (args '()))
@@ -283,8 +285,8 @@
                           (!gi-argument-out argument)))
          (forced-type (!forced-type argument))
          (ffi-value (ffi-arg->scm ffi-arg type-tag is-pointer? is-enum?)))
-    #;(when (%debug)
-      (dimfi (format #f "~20,,,' @A:" (!name argument)) ffi-value '[ffi-arg]))
+    (when (%debug)
+      (dimfi (format #f "(-) ~16,,,' @A:" (!name argument)) ffi-value))
     (case type-tag
       ((boolean
         int8

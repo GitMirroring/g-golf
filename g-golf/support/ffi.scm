@@ -199,9 +199,16 @@
        (error "what machine is this?")))))
 
 (define (ffi-arg-string->scm ffi-arg)
-  (gi->scm (dereference-pointer ffi-arg) 'string))
+  ;; the double dereference is because, unlike I intially thought,
+  ;; libffi just fills the ffi-args calling
+  ;;   (void *) FFI_ALIGN (argp, align);
+  ;; which adds an indirection when the value is already a pointer.
+  (gi->scm (dereference-pointer (dereference-pointer ffi-arg)) 'string))
 
 (define (ffi-arg-pointer->scm ffi-arg)
+  ;; unlike for ffi-arg-string->scm, whether to double dereference (or
+  ;; not) depends on the arg type. this possible additional post
+  ;; processing is done by ffi-arg->cb-arg (the caller).
   (gi->scm (dereference-pointer ffi-arg) 'pointer))
 
 

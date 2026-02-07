@@ -4,7 +4,7 @@
 
 #+BEGIN_COMMENT
 
-Copyright (C) 2016 - 2025
+Copyright (C) 2016 - 2026
 Free Software Foundation, Inc.
 
 This document is part of GNU G-Golf.
@@ -25,6 +25,70 @@ warranty.
 
 
 * Latest News
+
+** Feb 2026
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.3 is released.
+
+*** Noteworthy changes in 0.8.3
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** Dependencies
+
+***** Adwaita examples
+
+  Adw-1  >=  1.8.0
+
+**** Enhancement
+
+***** Adding support for array of GVariant*
+
+The gi-array->scm and scm->gi-array now support array of GVariant*.
+
+**** Examples
+
+***** Adwaita Demo
+
+The upstream demo changes for 1.8.0 were all ported to the
+adwaita-1-demo g-golf port. For a detailed description:
+
+  git log --grep demo
+
+**** Bug fixing
+
+***** Callback - utf8 and filename args
+
+The ffi-arg-string->scm procedure now properly double dereference its
+ffi-arg. Please refer to the 0b7338d7c commit for a complete
+explanation. Prior to this fix, utf8 and/or filename callback arguments
+were 'garbage'.
+
+***** Name transformation - GDBus
+
+Fixing %g-studly-caps-expand-token-exception - In the presence of GDBus
+tokens, return g-dbus, not gd-bus.
+
+***** Arrays of objects
+
+The gi-array->scm has been fixed to properly support arrays of objects,
+arrays of GObject (sub)class instances to be more specific, which prior
+to this fix would fail to retrieve and/or create the goops proxy
+instance.
+
+***** Examples - [g-application-]run calls
+
+All examples concerned. The following changes were made: (a) call (run
+app '()) - that is, no command line args passed, as explained in the
+documentation, in order to pass command line args to a gtk/libadwaita
+application, one needs to provide the signal callback(s) to handle them,
+otherwise launching the app triggers a GLib-GIO-CRITICAL message; (b)
+always prefer the short method call, so (run app '()), not
+(g-application-run app '()), fixed.
+
+
+* Older News
 
 ** Jun 2025
 
@@ -52,9 +116,6 @@ find the proxi class definition, and for this call (g-object-find-class
 value), not (g-type-cache-ref g-type). This is because the g-value->scm
 g-type argument is the one given by the property g-param spec, but the
 instance being processed here could be of a sublass. Fixed.
-
-
-* Older News
 
 ** Mar 2025
 

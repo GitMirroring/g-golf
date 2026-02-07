@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2016 - 2020 Free Software Foundation, Inc.
+@c Copyright (C) 2016 - 2025 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 
@@ -90,8 +90,8 @@ unique.
 @end itemize
 
 Instances of the @code{<enum>} class are immutable (to be precise, there
-are not meant to be mutated, see @ref{GOOPS Notes and Conventions},
-'Slots are not Immutable').
+are not meant to be mutated, see @ref{GOOPS Notes - Conventions -
+Recommendations}, 'Slots are not Immutable').
 @end deftp
 
 
@@ -120,8 +120,8 @@ The @code{<gi-enum>} class is a subclass of @code{<enum>}.  Its
 The @code{name} slot is automatically initialized.
 
 Instances of the @code{<gi-enum>} class are immutable (to be precise,
-there are not meant to be mutated, see @ref{GOOPS Notes and
-Conventions}, 'Slots are not Immutable').
+there are not meant to be mutated, see @ref{GOOPS Notes - Conventions -
+Recommendations}, 'Slots are not Immutable').
 @end deftp
 
 

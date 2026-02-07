@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU G-Golf Reference Manual.
-@c Copyright (C) 2020 - 2021 Free Software Foundation, Inc.
+@c Copyright (C) 2020 - 2025 Free Software Foundation, Inc.
 @c See the file g-golf.texi for copying conditions.
 
 @node Scripting
@@ -88,8 +88,8 @@ eval} time.
 In a repl or in scripts, (1) is achieved by importing the @code{(oop
 goops)} module and calling
 @code{default-duplicate-binding-handler}@footnote{As seen in
-@ref{Configuring Guile for G-Golf} (and in @ref{GOOPS Notes and
-Conventions} - 'Merging Generics').}.
+@ref{Configuring Guile for G-Golf} (and in @ref{GOOPS Notes -
+Conventions - Recommendations} - 'Merging Generics').}.
 
 In Guile, (2) is achieved by calling the @code{eval-when}
 syntax@footnote{@xref{Eval-when,,, guile, The GNU Guile Reference
@@ -192,7 +192,7 @@ exec guile -e main -s "$0" "$@@"
   (let ((app (make <gtk-application>
                #:application-id "org.gtk.example")))
     (connect app 'activate activate)
-    (let ((status (run app 0 '())))
+    (let ((status (run app '())))
       (exit status))))
 @end lisp
 
@@ -236,7 +236,7 @@ arguments. It is actually optional, but when used, they are passed to
 the @code{main} (entry point) script procedure.
 
 However, as you may have noticed, we do not pass those (if any) to the
-Gtk application, which we launch using @code{(run app 0 '())}.
+Gtk application, which we launch using @code{(run app '())}.
 
 This is intentional: (a) we (want to) always use the same incantation to
 invoke Guile - and sometimes. may quiclky hack something using
@@ -250,7 +250,7 @@ you'll get an error message in the terminal (and the application won't
 be launched).
 
 To illustrate, let's change the @code{g-application-run} call of our
-script, so it becomes @code{(run app (length args) args)}, then try to
+script, so it becomes @code{(run app args)}, then try to
 launch it, passing a few (fake) arguments, here is what happens:
 
 @example

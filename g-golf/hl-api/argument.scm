@@ -260,7 +260,7 @@
                        is-zero-terminated
                        (if is-method? (+ param-n 1) param-n)
                        param-tag
-                      ptr-array)
+                       ptr-array)
                  (list iface-type name gi-type g-type))))
       (else
        (g-base-info-unref param-type)

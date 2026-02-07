@@ -52,7 +52,7 @@ exec guile -e main -s "$0" "$@"
               (let ((app (make <gtk-application>
                            #:application-id "org.gnu.g-golf.layout-manager-2")))
                 (connect app 'activate activate-demo)
-                (let ((status (g-application-run app '())))
+                (let ((status (run app '())))
                   (exit status))))))
     (if debug?
         (parameterize ((%debug #t))

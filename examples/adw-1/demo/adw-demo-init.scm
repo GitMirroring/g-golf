@@ -1,5 +1,5 @@
 ;;;;
-;;;; Copyright (C) 2025
+;;;; Copyright (C) 2026
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -96,7 +96,8 @@
         "ShortcutScope"
         "NamedAction"
         "KeyvalTrigger"
-        "License"))
+        "License"
+        "Builder"))
   (g-irepository-require "Adw" #:version "1")
   (for-each (lambda (name)
               (gi-import-by-name "Adw" name))
@@ -150,7 +151,10 @@
         "SpinnerPaintable"
         "BannerButtonStyle"
         "ViewStack"
-        "WrapBox")))
+        "WrapBox"
+        "ShortcutsDialog"
+        "ShortcutsSection"
+        "ShortcutsItem")))
 
 
 (define %adw-demo-path

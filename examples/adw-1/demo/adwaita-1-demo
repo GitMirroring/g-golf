@@ -67,7 +67,7 @@ exec guile -e main -s "$0" "$@"
                 (g-resources-register resource)
                 (connect app 'activate activate-demo)
                 (set! *random-state* (random-state-from-platform))
-                (let ((status (g-application-run app '())))
+                (let ((status (run app '())))
                   (exit status))))))
     (cond ((and debug? async-api?)
            (parameterize ((%debug #t) (%async-api #t))

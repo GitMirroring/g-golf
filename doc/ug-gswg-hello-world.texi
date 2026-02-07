@@ -37,7 +37,7 @@ G-Golf:
              #:application-id "org.example.GtkApplication")))
   (connect app 'activate activate)
   ;; Run the application
-  (run app 0 '()))
+  (run app '()))
 @end lisp
 
 Providing you successfully installed G-Golf, you may run the above code
@@ -68,7 +68,7 @@ re-evaluate the last expression:
 (let ((app (make <gtk-application>
              #:application-id "com.example.GtkApplication")))
   (connect app 'activate activate)
-  (run app 0 '()))
+  (run app '()))
 @end lisp
 
 Great! Now, the application was launched instantaneously. Since

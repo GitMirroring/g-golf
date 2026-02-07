@@ -2,6 +2,5 @@
 <gresources>
   <gresource prefix="/org/gnu/g-golf/adw-1/demo">
     <file compressed="true">style.css</file>
-    <file compressed="true">style-dark.css</file>
   </gresource>
 </gresources>

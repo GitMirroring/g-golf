@@ -10,7 +10,7 @@
 
 @menu
 * Naming Conventions::
-* GOOPS Notes and Conventions::
+* GOOPS Notes - Conventions - Recommendations::
 * Configuring Guile for G-Golf::
 * Customizing G-Golf::
 * SXML Support - Emacs users::
