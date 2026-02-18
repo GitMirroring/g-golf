@@ -1,11 +1,11 @@
 #! /bin/sh
 # -*- mode: scheme; coding: utf-8 -*-
-exec guile -e main -s "$0" "$@"
+exec guile --no-auto-compile -e main -s "$0" "$@"
 !#
 
 
 ;;;;
-;;;; Copyright (C) 2023 - 2024
+;;;; Copyright (C) 2023 - 2026
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -36,15 +36,7 @@ exec guile -e main -s "$0" "$@"
   (default-duplicate-binding-handler
     '(merge-generics replace warn-override-core warn last))
 
-  (use-modules (g-golf))
-
-  (for-each (lambda (name)
-              (gi-import-by-name "Gio" name))
-      '("Resource"))
-  (g-irepository-require "Adw" #:version "1")
-  (for-each (lambda (name)
-              (gi-import-by-name "Adw" name))
-      '("Application")))
+  (use-modules (g-golf)))
 
 
 (add-to-load-path (dirname (current-filename)))
