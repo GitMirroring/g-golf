@@ -30,13 +30,12 @@ exec guile --no-auto-compile -e main -s "$0" "$@"
 ;;; Code:
 
 
-(eval-when (expand load eval)
-  (use-modules (oop goops))
+(use-modules (oop goops))
 
-  (default-duplicate-binding-handler
-    '(merge-generics replace warn-override-core warn last))
+(default-duplicate-binding-handler
+  '(merge-generics replace warn-override-core warn last))
 
-  (use-modules (g-golf)))
+(use-modules (g-golf))
 
 
 (add-to-load-path (dirname (current-filename)))
