@@ -26,6 +26,26 @@ warranty.
 
 * Latest News
 
+** Mar 2026
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.4 is released.
+
+*** Noteworthy changes in 0.8.4
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** Examples
+
+***** Adwaita Demo
+
+The adw-1-demo script has been updated so that the compiled g-resources
+file is now created or updated in $XDG_CACHE_HOME/adw-1-demo/ or in
+$HOME/.cache/adw-1-demo/ if $XDG_CACHE_HOME is undefined.
+
+
+* Older News
+
 ** Feb 2026
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.3 is released.
@@ -86,9 +106,6 @@ application, one needs to provide the signal callback(s) to handle them,
 otherwise launching the app triggers a GLib-GIO-CRITICAL message; (b)
 always prefer the short method call, so (run app '()), not
 (g-application-run app '()), fixed.
-
-
-* Older News
 
 ** Jun 2025
 
