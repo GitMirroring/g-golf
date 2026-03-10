@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2024
+;;;; Copyright (C) 2024 - 2026
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -41,13 +41,6 @@
 
 
 #;(g-export )
-
-
-(eval-when (expand load eval)
-  (g-irepository-require "Adw" #:version "1")
-  (for-each (lambda (name)
-              (gi-import-by-name "Adw" name))
-      '("Dialog")))
 
 
 (define-class <adw-view-switcher-demo-dialog> (<adw-dialog>)

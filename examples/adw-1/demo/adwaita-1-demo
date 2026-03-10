@@ -1,11 +1,11 @@
 #! /bin/sh
 # -*- mode: scheme; coding: utf-8 -*-
-exec guile -e main -s "$0" "$@"
+exec guile --no-auto-compile -e main -s "$0" "$@"
 !#
 
 
 ;;;;
-;;;; Copyright (C) 2023 - 2024
+;;;; Copyright (C) 2023 - 2026
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -30,25 +30,17 @@ exec guile -e main -s "$0" "$@"
 ;;; Code:
 
 
-(eval-when (expand load eval)
-  (use-modules (oop goops))
+(use-modules (oop goops))
 
-  (default-duplicate-binding-handler
-    '(merge-generics replace warn-override-core warn last))
+(default-duplicate-binding-handler
+  '(merge-generics replace warn-override-core warn last))
 
-  (use-modules (g-golf))
-
-  (for-each (lambda (name)
-              (gi-import-by-name "Gio" name))
-      '("Resource"))
-  (g-irepository-require "Adw" #:version "1")
-  (for-each (lambda (name)
-              (gi-import-by-name "Adw" name))
-      '("Application")))
+(use-modules (g-golf))
 
 
 (add-to-load-path (dirname (current-filename)))
-(use-modules (adw-demo-init)
+(use-modules (xdg-vars)
+             (adw-demo-init)
              (adw-demo-window))
 
 
@@ -82,17 +74,20 @@ exec guile -e main -s "$0" "$@"
            (animate)))))
 
 (define* (ensure-g-resources path)
-  (let* ((g-resources (string-append path "/g-resources"))
+  (let* ((cache-dir (string-append %xdg-cache-home "/adw-1-demo"))
+         (g-resources (string-append cache-dir "/g-resources"))
          (g-resources-stat (and (access? g-resources R_OK) (stat g-resources)))
          (g-resources-xml (string-append path "/g-resources.xml"))
          (g-resources-xml-stat (stat g-resources-xml)))
     (when (or (not g-resources-stat)
               (< (stat:mtime g-resources-stat)
                  (stat:mtime g-resources-xml-stat)))
-      (compile-g-resources "g-resources.xml" "g-resources"))
+      (compile-g-resources g-resources-xml g-resources cache-dir))
     g-resources))
 
-(define* (compile-g-resources xml-file target)
+(define* (compile-g-resources xml-file target cache-dir)
+  (or (access? cache-dir R_OK)
+      (mkdir cache-dir))
   (system (string-append "glib-compile-resources "
                          "--target " target
                          " " xml-file)))

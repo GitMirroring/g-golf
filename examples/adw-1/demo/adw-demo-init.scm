@@ -37,124 +37,132 @@
   #:export (%adw-demo-path))
 
 
-(eval-when (expand load eval)
-  (for-each (lambda (name)
-              (gi-import-by-name "Gio" name))
-      '("Resource"
-        "SimpleActionGroup"
-        "SimpleAction"
-        "ActionMap"
-        "Menu"
-        "MenuItem"
-        "Icon"
-        "ThemedIcon"
-        "File"
-        "FileQueryInfoFlags"))
-  (g-irepository-require "Pango" #:version "1.0")
-  (for-each (lambda (name)
-              (gi-import-by-name "Pango" name))
-      '("EllipsizeMode"))
-  (g-irepository-require "Gtk" #:version "4.0")
-  (for-each (lambda (name)
-              (gi-import-by-name "Gsk" name))
-      '("Transform"))
-  (for-each (lambda (name)
-              (gi-import-by-name "Gdk" name))
-      '("Display"
-        "DragAction"
-        "ModifierType"))
-  (for-each (lambda (name)
-              (gi-import-by-name "Gtk" name))
-      '("Root"
-        "Widget"
-        "Window"
-        "ScrolledWindow"
-        "FileDialog"
-        "Expression"
-        "PropertyExpression"
-        "ClosureExpression"
-        "Adjustment"
-        "IconTheme"
-        "Stack"
-        "StackSwitcher"
-        "StackPage"
-        "Box"
-        "ListBox"
-        "CenterBox"
-        "Button"
-        "ToggleButton"
-        "Label"
-        "Image"
-        "PackType"
-        "Orientation"
-        "CustomLayout"
-        "TextDirection"
-        "StringList"
-        "StringObject"
-        "ShortcutController"
-        "Shortcut"
-        "ShortcutScope"
-        "NamedAction"
-        "KeyvalTrigger"
-        "License"
-        "Builder"))
-  (g-irepository-require "Adw" #:version "1")
-  (for-each (lambda (name)
-              (gi-import-by-name "Adw" name))
-      '("Application"
-        "ApplicationWindow"
-        "Window"
-        "StyleManager"
-        "ColorScheme"
-        "Bin"
-        "Banner"
-        "Avatar"
-        "Clamp"
-        "Carousel"
-        "PreferencesGroup"
-        "StatusPage"
-        "NavigationSplitView"
-        "OverlaySplitView"
-        "Dialog"
-        "AboutDialog"
-        "AlertDialog"
-        "ResponseAppearance"
-        "TabView"
-        "TabPage"
-        "TabBar"
-        "TabOverview"
-        "Toast"
-        "ToastOverlay"
-        "ToastPriority"
-        "ActionRow"
-        "SwitchRow"
-        "SpinRow"
-        "ComboRow"
-        "EntryRow"
-        "ExpanderRow"
-        "SplitButton"
-        "ButtonContent"
-        "EnumListModel"
-        "EnumListItem"
-        "LengthUnit"
-        "Animation"
-        "TimedAnimation"
-        "SpringAnimation"
-        "AnimationState"
-        "CallbackAnimationTarget"
-        "Easing"
-        "HeaderBar"
-        "ToolbarView"
-        "BottomSheet"
-        "Layout"
-        "LayoutSlot"
-        "SpinnerPaintable"
-        "BannerButtonStyle"
-        "ViewStack"
-        "WrapBox"
-        "ShortcutsDialog"
-        "ShortcutsSection"
-        "ShortcutsItem")))
+(for-each (lambda (name)
+            (gi-import-by-name "Gio" name))
+    '("Resource"
+      "SimpleActionGroup"
+      "SimpleAction"
+      "ActionMap"
+      "Menu"
+      "MenuItem"
+      "Icon"
+      "ThemedIcon"
+      "File"
+      "FileQueryInfoFlags"))
+(g-irepository-require "Pango" #:version "1.0")
+(for-each (lambda (name)
+            (gi-import-by-name "Pango" name))
+    '("EllipsizeMode"))
+(g-irepository-require "Gtk" #:version "4.0")
+(for-each (lambda (name)
+            (gi-import-by-name "Gsk" name))
+    '("Transform"
+      "Renderer"))
+(for-each (lambda (name)
+            (gi-import-by-name "Gdk" name))
+    '("Display"
+      "DragAction"
+      "ModifierType"))
+(for-each (lambda (name)
+            (gi-import-by-name "Gtk" name))
+    '("get_major_version"
+      "get_minor_version"
+      "get_micro_version"
+      "Root"
+      "Widget"
+      "Window"
+      "ScrolledWindow"
+      "FileDialog"
+      "Expression"
+      "PropertyExpression"
+      "ClosureExpression"
+      "Adjustment"
+      "IconTheme"
+      "Stack"
+      "StackSwitcher"
+      "StackPage"
+      "Box"
+      "ListBox"
+      "CenterBox"
+      "Button"
+      "ToggleButton"
+      "Label"
+      "Image"
+      "PackType"
+      "Orientation"
+      "CustomLayout"
+      "TextDirection"
+      "StringList"
+      "StringObject"
+      "ShortcutController"
+      "Shortcut"
+      "ShortcutScope"
+      "NamedAction"
+      "KeyvalTrigger"
+      "License"
+      "Builder"))
+(g-irepository-require "Adw" #:version "1")
+(for-each (lambda (name)
+            (gi-import-by-name "Adw" name))
+    '("get_major_version"
+      "get_minor_version"
+      "get_micro_version"
+      "Application"
+      "ApplicationWindow"
+      "Window"
+      "StyleManager"
+      "ColorScheme"
+      "Bin"
+      "Banner"
+      "Avatar"
+      "Clamp"
+      "Carousel"
+      "PreferencesDialog"
+      "PreferencesPage"
+      "PreferencesGroup"
+      "StatusPage"
+      "NavigationSplitView"
+      "OverlaySplitView"
+      "Dialog"
+      "AboutDialog"
+      "AlertDialog"
+      "ResponseAppearance"
+      "TabView"
+      "TabPage"
+      "TabBar"
+      "TabOverview"
+      "Toast"
+      "ToastOverlay"
+      "ToastPriority"
+      "ActionRow"
+      "SwitchRow"
+      "SpinRow"
+      "ComboRow"
+      "EntryRow"
+      "ExpanderRow"
+      "SplitButton"
+      "ButtonContent"
+      "EnumListModel"
+      "EnumListItem"
+      "LengthUnit"
+      "Animation"
+      "TimedAnimation"
+      "SpringAnimation"
+      "AnimationState"
+      "CallbackAnimationTarget"
+      "Easing"
+      "HeaderBar"
+      "ToolbarView"
+      "BottomSheet"
+      "Layout"
+      "LayoutSlot"
+      "SpinnerPaintable"
+      "BannerButtonStyle"
+      "ViewStack"
+      "WrapBox"
+      "ShortcutsDialog"
+      "ShortcutsSection"
+      "ShortcutsItem"))
 
 
 (define %adw-demo-path
