@@ -56,7 +56,8 @@
 (g-irepository-require "Gtk" #:version "4.0")
 (for-each (lambda (name)
             (gi-import-by-name "Gsk" name))
-    '("Transform"))
+    '("Transform"
+      "Renderer"))
 (for-each (lambda (name)
             (gi-import-by-name "Gdk" name))
     '("Display"
@@ -64,7 +65,10 @@
       "ModifierType"))
 (for-each (lambda (name)
             (gi-import-by-name "Gtk" name))
-    '("Root"
+    '("get_major_version"
+      "get_minor_version"
+      "get_micro_version"
+      "Root"
       "Widget"
       "Window"
       "ScrolledWindow"
@@ -100,7 +104,10 @@
 (g-irepository-require "Adw" #:version "1")
 (for-each (lambda (name)
             (gi-import-by-name "Adw" name))
-    '("Application"
+    '("get_major_version"
+      "get_minor_version"
+      "get_micro_version"
+      "Application"
       "ApplicationWindow"
       "Window"
       "StyleManager"
@@ -110,6 +117,8 @@
       "Avatar"
       "Clamp"
       "Carousel"
+      "PreferencesDialog"
+      "PreferencesPage"
       "PreferencesGroup"
       "StatusPage"
       "NavigationSplitView"

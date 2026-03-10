@@ -31,6 +31,7 @@
   #:use-module (ice-9 match)
   #:use-module (oop goops)
   #:use-module (g-golf)
+  #:use-module (adw-demo-init)
 
   #:duplicates (merge-generics
 		replace
@@ -43,27 +44,6 @@
 
 
 #;(g-export )
-
-
-(eval-when (expand load eval)
-  (g-irepository-require "Gtk" #:version "4.0")
-  (for-each (lambda (name)
-              (gi-import-by-name "Gdk" name))
-      '("Display"))
-  (for-each (lambda (name)
-              (gi-import-by-name "Gsk" name))
-      '("Renderer"))
-  (for-each (lambda (name)
-              (gi-import-by-name "Gtk" name))
-      '("get_major_version"
-        "get_minor_version"
-        "get_micro_version"))
-  (g-irepository-require "Adw" #:version "1")
-  (for-each (lambda (name)
-              (gi-import-by-name "Adw" name))
-      '("get_major_version"
-        "get_minor_version"
-        "get_micro_version")))
 
 
 (define (glib-header-version)

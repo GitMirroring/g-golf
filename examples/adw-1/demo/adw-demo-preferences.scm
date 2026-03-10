@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023 - 2024
+;;;; Copyright (C) 2023 - 2026
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -29,6 +29,7 @@
 (define-module (adw-demo-preferences)
   #:use-module (oop goops)
   #:use-module (g-golf)
+  #:use-module (adw-demo-init)
   
   #:duplicates (merge-generics
 		replace
@@ -46,23 +47,6 @@
           !go-to-subpage-2-ar
           !subpage-2
           !subpage-2-bt)
-
-
-(eval-when (expand load eval)
-  (g-irepository-require "Gtk" #:version "4.0")
-  (for-each (lambda (name)
-              (gi-import-by-name "Gtk" name))
-      '("Button"))
-  (g-irepository-require "Adw" #:version "1")
-  (for-each (lambda (name)
-              (gi-import-by-name "Adw" name))
-      '("StatusPage"
-        "PreferencesDialog"
-        "PreferencesPage"
-        "PreferencesGroup"
-        "Toast"
-        "ComboRow"
-        "ActionRow")))
 
 
 (define-class <adw-demo-preferences-dialog> (<adw-preferences-dialog>)
