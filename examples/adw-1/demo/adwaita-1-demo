@@ -74,20 +74,20 @@ exec guile --no-auto-compile -e main -s "$0" "$@"
            (animate)))))
 
 (define* (ensure-g-resources path)
-  (let* ((g-resources (string-append %xdg-cache-home "/adw-1-demo/g-resources"))
+  (let* ((cache-dir (string-append %xdg-cache-home "/adw-1-demo"))
+         (g-resources (string-append cache-dir "/g-resources"))
          (g-resources-stat (and (access? g-resources R_OK) (stat g-resources)))
          (g-resources-xml (string-append path "/g-resources.xml"))
          (g-resources-xml-stat (stat g-resources-xml)))
     (when (or (not g-resources-stat)
               (< (stat:mtime g-resources-stat)
                  (stat:mtime g-resources-xml-stat)))
-      (compile-g-resources g-resources-xml g-resources))
+      (compile-g-resources g-resources-xml g-resources cache-dir))
     g-resources))
 
-(define* (compile-g-resources xml-file target)
-  (let ((cache-dir (string-append %xdg-cache-home "/adw-1-demo")))
-    (or (access? cache-dir R_OK)
-        (mkdir cache-dir))
-    (system (string-append "glib-compile-resources "
-                           "--target " target
-                           " " xml-file))))
+(define* (compile-g-resources xml-file target cache-dir)
+  (or (access? cache-dir R_OK)
+      (mkdir cache-dir))
+  (system (string-append "glib-compile-resources "
+                         "--target " target
+                         " " xml-file)))
