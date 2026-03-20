@@ -5,7 +5,7 @@ exec guile -e main -s "$0" "$@"
 
 
 ;;;;
-;;;; Copyright (C) 2022 - 2023
+;;;; Copyright (C) 2022 - 2026
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -68,7 +68,7 @@ exec guile -e main -s "$0" "$@"
   (row #:accessor !row #:init-keyword #:row))
 
 (define-vfunc (get-flags-vfunc (self <solitaire-peg>))
-  '(size contents))
+  '(static-size static-contents))
 
 (define-vfunc (get-intrinsic-width-vfunc (self <solitaire-peg>))
   32)
