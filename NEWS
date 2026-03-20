@@ -28,6 +28,40 @@ warranty.
 
 ** Mar 2026
 
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.5 is released.
+
+*** Noteworthy changes in 0.8.5
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** Examples
+
+***** Gtk-4
+
+****** Simple and animated paintable
+
+Upstream GdkPaintableFlags were renamed as static-size and
+static-content, now dixed in g-golf as well.
+
+In addition, the nuclear icon snapshot procedure - originally written
+using the cairo backend - is now also proposed using the Gsk api.
+
+Both examples were upated to process "-d, --debug" and/or "-c, --cairo"
+command line options, parameterize and call nuclear-snapshot-cairo or
+nuclear-snapshot-gsk (the default in absence of command line option)
+accordingly.
+
+****** Peg solitaire
+
+Upstream GdkPaintableFlags were renamed as static-size and
+static-content, now dixed in g-golf as well.
+
+
+* Older News
+
+** Mar 2026
+
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.4 is released.
 
 *** Noteworthy changes in 0.8.4
@@ -42,9 +76,6 @@ Here is a summary of the noteworthy changes in this release. See G-Golf
 The adw-1-demo script has been updated so that the compiled g-resources
 file is now created or updated in $XDG_CACHE_HOME/adw-1-demo/ or in
 $HOME/.cache/adw-1-demo/ if $XDG_CACHE_HOME is undefined.
-
-
-* Older News
 
 ** Feb 2026
 

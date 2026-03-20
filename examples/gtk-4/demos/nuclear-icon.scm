@@ -1,7 +1,7 @@
 ;; -*- mode: scheme; coding: utf-8 -*-
 
 ;;;;
-;;;; Copyright (C) 2023 - 2024
+;;;; Copyright (C) 2023 - 2026
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -54,7 +54,9 @@
 		last)
 
   #:export (<nuclear-icon>
-            nuclear-snapshot))
+            nuclear-snapshot-cairo
+            nuclear-snapshot-gsk
+            %cairo?))
 
 
 #;(g-export )
@@ -67,26 +69,40 @@
       '("Paintable"))
 
   (for-each (lambda (name)
+              (gi-import-by-name "Gsk" name))
+      '("PathBuilder"
+        "Stroke"))
+
+  (for-each (lambda (name)
               (gi-import-by-name "Gtk" name))
       '("Snapshot")))
 
+
+(define %cairo? (make-parameter #f))
 
 
 (define-class <nuclear-icon> (<gobject> <gdk-paintable>)
   (rotation #:accessor !rotation #:init-keyword #:rotation))
 
 (define-vfunc (get-flags-vfunc (self <nuclear-icon>))
-  '(size contents))
+  '(static-size static-contents))
 
 (define-vfunc (snapshot-vfunc (self <nuclear-icon>) snapshot width height)
-  (nuclear-snapshot snapshot
-                    '(0.9 0.75 0.15 1.0)	;; nuclear yellow
-                    '(0.0 0.0 0.0 1.0)		;; black
-                    width
-                    height
-                    (!rotation self)))
+  (if (%cairo?)
+      (nuclear-snapshot-cairo snapshot
+                              '(0.9 0.75 0.15 1.0)	;; nuclear yellow
+                              '(0.0 0.0 0.0 1.0)	;; black
+                              width
+                              height
+                              (!rotation self))
+      (nuclear-snapshot-gsk snapshot
+                            '(0.9 0.75 0.15 1.0)	;; nuclear yellow
+                            '(0.0 0.0 0.0 1.0)		;; black
+                            width
+                            height
+                            (!rotation self))))
 
-(define (nuclear-snapshot snapshot background foreground width height rotation)
+(define (nuclear-snapshot-cairo snapshot background foreground width height rotation)
   (append-color snapshot
                 background
                 (graphene-rect-init (graphene-rect-alloc) 0 0 width height))
@@ -115,3 +131,35 @@
     (cairo-arc cr 0 0 radius (- pi) pi)
     (cairo-stroke cr)
     (cairo-destroy cr)))
+
+(define (nuclear-snapshot-gsk snapshot background foreground width height rotation)
+  (append-color snapshot
+                background
+                (graphene-rect-init (graphene-rect-alloc) 0 0 width height))
+  (let* ((radius 0.3)
+         (pi (acos -1))
+         (size (min width height))
+         (builder (gsk-path-builder-new))
+         (stroke (gsk-stroke-new radius)))
+    (save snapshot)
+
+    (let ((point (graphene-point-alloc)))
+      (translate snapshot
+                 (graphene-point-init point (/ width 2) (/ height 2))))
+    (scale snapshot size size)
+    (rotate snapshot rotation)
+
+    (gsk-path-builder-add-circle builder (graphene-point-zero) 0.1)
+    (let ((path (gsk-path-builder-to-path builder)))
+      (append-fill snapshot path 'winding foreground)
+      (gsk-path-unref path))
+
+    (gsk-stroke-set-dash stroke (list (/ (* radius pi) 3)))
+    (let ((builder (gsk-path-builder-new)))
+      (gsk-path-builder-add-circle builder (graphene-point-zero) radius)
+      (let ((path (gsk-path-builder-to-path builder)))
+        (append-stroke snapshot path stroke foreground)
+        (gsk-path-unref path)
+        (gsk-stroke-free stroke)))
+
+    (restore snapshot)))
