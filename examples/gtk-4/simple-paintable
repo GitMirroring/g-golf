@@ -5,7 +5,7 @@ exec guile -e main -s "$0" "$@"
 
 
 ;;;;
-;;;; Copyright (C) 2023
+;;;; Copyright (C) 2023 - 2026
 ;;;; Free Software Foundation, Inc.
 
 ;;;; This file is part of GNU G-Golf
@@ -27,13 +27,18 @@ exec guile -e main -s "$0" "$@"
 
 ;;; Commentary:
 
-;; Note: this example requires guile-cairo, a patched verison of
-;; guile-cairo:
+;; This example uses the (demos nuclear-icon) module, which implements
+;; the nuclear icon snapshot either using gsk (the default), or cairo
+;; (if you pass the -c or --cairo option on the command line).
+;;
+;; The cairo snapshot version requires guile-cairo, a patched verison of
+;; guile-cairo actually. Guile-cairo is here:
 
 ;;	https://www.nongnu.org/guile-cairo/
 
-;; It actually needs a patched version of guile-cairo, that contains the
-;; following new interface (which is not in guile-cairo 1.11.2):
+;; As said above, it actually needs a patched version of guile-cairo,
+;; that contains the following new interface (which is not in
+;; guile-cairo 1.11.2):
 
 ;;	cairo-pointer->context
 
@@ -63,7 +68,7 @@ exec guile -e main -s "$0" "$@"
               (gi-import-by-name "Gtk" name))
       '("Application"
         "ApplicationWindow"
-        "Image")))
+        "Picture")))
 
 (add-to-load-path (dirname (current-filename)))
 (use-modules (demos nuclear-icon))
@@ -76,15 +81,32 @@ exec guile -e main -s "$0" "$@"
                   #:default-height 200
                   #:application app))
         (nuclear (make <nuclear-icon> #:rotation 0.0))
-        (image (make <gtk-image>)))
-    (set-from-paintable image nuclear)
-    (set-child window image)
+        (picture (make <gtk-picture>)))
+    (set-paintable picture nuclear)
+    (set-child window picture)
     (present window)))
 
 
 (define (main args)
-  (let ((app (make <gtk-application>
-               #:application-id "org.gtk.example")))
-    (connect app 'activate activate)
-    (let ((status (run app '())))
-      (exit status))))
+  (let* ((debug? (or (member "-d" args)
+                     (member "--debug" args)))
+         (cairo? (or (member "-c" args)
+                     (member "--cairo" args)))
+         (app (make <gtk-application>
+                #:application-id "org.gtk.example"))
+         (animate
+          (lambda ()
+            (connect app 'activate activate)
+            (let ((status (run app '())))
+              (exit status)))))
+    (cond ((and debug? cairo?)
+           (parameterize ((%debug #t) (%cairo? #t))
+             (animate)))
+          (debug?
+           (parameterize ((%debug #t))
+             (animate)))
+          (cairo?
+           (parameterize ((%cairo? #t))
+             (animate)))
+          (else
+           (animate)))))
