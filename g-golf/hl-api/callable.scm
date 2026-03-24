@@ -564,7 +564,16 @@
                                          (error "Invalid argument: " value))))))))))
       ((array)
        (if (or (not value)
-               (null? value))
+               ;; if the list is empty, g-golf will call the upstream
+               ;; function passing NULL: this means that when gi
+               ;; may-be-null? is #f, till now, g-golf was raising an
+               ;; error if the list is empty ... however, a user just
+               ;; reported they need to call (g-variant-new-tuple '()),
+               ;; which is definitely accepted since the doc even
+               ;; mentions that when the n-children areg is zero, it
+               ;; returns 'the unit tuple' ... which works perfectly
+               ;; fine after this rather simple (but confusing) patch
+               #;(null? value))
            (if may-be-null?
                (gi-argument-set! gi-argument 'v-pointer #f)
                (error "Invalid array argument: " value))
