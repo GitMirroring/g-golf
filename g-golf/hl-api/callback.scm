@@ -193,7 +193,8 @@
                   (error (format #f "Missing returned value. All ~A callback must return a ~A, but g-golf-callback-closure-marshel received none."
                                  (!name callback) return-type)))
                  ((r-val . tail)
-                  (scm->gi-argument return-type
+                  (scm->gi-argument (!name callback)
+                                    return-type
                                     (!type-desc callback)
                                     return-value
                                     (car r-vals) ;; by design
@@ -254,7 +255,8 @@
 	    ((nil) 'nothing)	;; do not set the out arg to any value
             (else
              (parameterize ((%debug #f))
-               (scm->gi-argument (!type-tag arg-out)
+               (scm->gi-argument (!name callback)
+                                 (!type-tag arg-out)
                                  (!type-desc arg-out)
                                  ffi-out-arg
                                  value
