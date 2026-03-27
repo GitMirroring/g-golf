@@ -157,7 +157,7 @@ Gtk-4.0 examples:
 
 @itemize @bullet
 @item
-@uref{@value{UGTK4}, Gtk-4.0} @geq{} 4.10.0
+@uref{@value{UGTK4}, Gtk-4.0} @geq{} 4.22.1
 
 @item
 @uref{@value{UGUILE-CAIRO}, Guile-Cairo} > 1.11.2

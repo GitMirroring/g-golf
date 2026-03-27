@@ -51,7 +51,7 @@ software to run its test-suite:
 G-Golf currently needs the following additional software to run its
 Gtk-4.0 examples:
 
-	Gtk-4.0				>= 4.10.0
+	Gtk-4.0				>= 4.22.1
 	Guile-Cairo			> 1.11.2
 
     G-Golf actually requires a patched version of guile-cairo that
