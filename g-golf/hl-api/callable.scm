@@ -411,6 +411,14 @@
 (define (maybe-null-exception? name)
   (memq name %maybe-null-exceptions))
 
+(define %allow-null-exceptions
+  '((g-variant-new-tuple . (children))))
+
+(define (allow-null-exception? clb-name arg-name)
+  (let ((clb-allow-null-entry? (assq-ref %allow-null-exceptions clb-name)))
+    (and clb-allow-null-entry?
+         (memq arg-name clb-allow-null-entry?))))
+
 (define (callable-prepare-gi-args-in callable args)
   (let ((is-method? (!is-method? callable))
         (g-value-ptr? (preserve-g-value-ptr? callable)))
@@ -423,7 +431,8 @@
                 (is-pointer? (!is-pointer? argument))
                 (gi-argument (!gi-argument-in argument))
                 (field (!gi-argument-field argument)))
-           (scm->gi-argument (!type-tag argument)
+           (scm->gi-argument (!name callable)
+                             (!type-tag argument)
                              (!type-desc argument)
                              gi-argument
                              value
@@ -437,7 +446,8 @@
                              #:transfer (!transfer argument))
            (loop rest)))))))
 
-(define* (scm->gi-argument type-tag
+(define* (scm->gi-argument callable-name
+                           type-tag
                            type-desc
                            gi-argument	;; or an ffi-arg
                            value	;; the scheme value
@@ -452,7 +462,6 @@
                            (direction 'n/a)
                            (transfer #f))
   (when (%debug)
-    #;(dimfi " " 'scm->gi-argument)
     (dimfi (format #f "(-) ~16,,,' @A:" (!name clb/arg)) value)
     (dimfi (format #f "~20,,,' @A:" 'type-tag) type-tag)
     (dimfi (format #f "~20,,,' @A:" 'type-desc) type-desc)
@@ -565,7 +574,8 @@
       ((array)
        (if (or (not value)
                (null? value))
-           (if may-be-null?
+           (if (or may-be-null?
+                   (allow-null-exception? callable-name (!name clb/arg)))
                (gi-argument-set! gi-argument 'v-pointer #f)
                (error "Invalid array argument: " value))
            (let* ((array (scm->gi-array value
