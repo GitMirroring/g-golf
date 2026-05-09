@@ -93,6 +93,7 @@
             g-value-get-object
             g-value-set-object
             g-value-get-variant
+            g-value-set-variant
 
             ;; Type and Values
             g-type-param-boolean
@@ -205,6 +206,8 @@
       ((object
         interface)
        (g-value-set-object g-value value))
+      ((variant)
+       (g-value-set-variant g-value value))
       (else
        (error "Not implemented:" type-tag)))))
 
@@ -555,6 +558,10 @@
         #f
         variant)))
 
+(define (g-value-set-variant g-value variant)
+  (g_value_set_variant g-value
+                       (if variant variant %null-pointer)))
+
 
 ;;;
 ;;; GObject Bindings
@@ -841,6 +848,13 @@
                       (dynamic-func "g_value_get_variant"
 				    %libgobject)
                       (list '*)))
+
+(define g_value_set_variant
+  (pointer->procedure void
+                      (dynamic-func "g_value_set_variant"
+				    %libgobject)
+                      (list '*
+                            '*)))
 
 
 ;;;
