@@ -262,7 +262,20 @@
   (let* ((g-type (symbol->g-type 'object))
          (inst (make <gobject>))
          (g-value (g-value-init g-type)))
+    (assert (g-value-set! g-value #f))
     (assert (g-value-set! g-value (!g-inst inst)))))
+
+(define-method (test-g-value-get-variant (self <g-golf-test-gobject>))
+  (let* ((g-type (symbol->g-type 'variant))
+         (g-value (g-value-init g-type)))
+    (assert (g-value-ref g-value))))
+
+(define-method (test-g-value-set-variant (self <g-golf-test-gobject>))
+  (let* ((g-type (symbol->g-type 'variant))
+         (g-variant (g-variant-new-int64 -1))
+         (g-value (g-value-init g-type)))
+    (assert (g-value-set! g-value #f))
+    (assert (g-value-set! g-value g-variant))))
 
 
 ;;;
