@@ -251,6 +251,7 @@
 
 (define-method (test-g-value-set-pointer (self <g-golf-test-gobject>))
   (let ((g-value (g-value-init (symbol->g-type 'pointer))))
+    (assert (g-value-set! g-value #f))
     (assert (g-value-set! g-value g-value))))
 
 (define-method (test-g-value-get-object (self <g-golf-test-gobject>))
