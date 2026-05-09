@@ -28,6 +28,21 @@ warranty.
 
 ** May 2026
 
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.7 is released.
+
+*** Noteworthy changes in 0.8.7
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** API missing fix
+
+***** Adding the missing g-value-set-variant api
+
+* Older News
+
+** May 2026
+
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.6 is released.
 
 *** Noteworthy changes in 0.8.6
@@ -58,8 +73,6 @@ To fix this problem, G-Golf now implements an exception mechanism,
 extensible by users if necessary (see commit 9f71ea7 and g-golf affected
 modules for a complete understanding of what's in place and how to
 extend it if necessary).
-
-* Older News
 
 ** Mar 2026
 
