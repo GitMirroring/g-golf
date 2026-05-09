@@ -26,6 +26,41 @@ warranty.
 
 * Latest News
 
+** May 2026
+
+[[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.6 is released.
+
+*** Noteworthy changes in 0.8.6
+
+Here is a summary of the noteworthy changes in this release. See G-Golf
+[[http://git.savannah.gnu.org/cgit/g-golf.git][git summary]] and [[http://git.savannah.gnu.org/cgit/g-golf.git/log/][git log]] for a complete list and description.
+
+**** Dependencies
+
+***** Gtk-4 examples
+
+  Gtk-4.0  >=  4.22.1
+
+  Note: This depenency actually also applies to G-Golf version 0.8.5,
+  but I forgot to mention it as part of the release, also failed to
+  update the related location where this is mentionned (the INSTALL
+  distributed file, the documentation and the web site) - all fixed now.
+
+**** Code enhancement
+
+***** Callable array argument may be NULL, despite GI anotation
+
+GI callable array argument anotation sometimes declares the argument
+can't be NULL, where in reality it can: one example is the
+g-variant-new-tuple children arg.
+
+To fix this problem, G-Golf now implements an exception mechanism,
+extensible by users if necessary (see commit 9f71ea7 and g-golf affected
+modules for a complete understanding of what's in place and how to
+extend it if necessary).
+
+* Older News
+
 ** Mar 2026
 
 [[http://www.gnu.org/software/g-golf][GNU G-Golf]] version 0.8.5 is released.
@@ -56,9 +91,6 @@ accordingly.
 
 Upstream GdkPaintableFlags were renamed as static-size and
 static-content, now dixed in g-golf as well.
-
-
-* Older News
 
 ** Mar 2026
 
